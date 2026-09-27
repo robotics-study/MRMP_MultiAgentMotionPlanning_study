@@ -1,0 +1,7 @@
+# Prioritized A* (Erdmann & Lozano-Pérez 1987): agents are planned one at a time in
+# index order; each plans unit-cost A* over space-time against earlier paths.
+# No tunable parameters by design — the underlying single-agent search is plain
+# optimal A* (unit costs, Manhattan heuristic) and priority order IS agent index.
+algorithm: prioritized_astar
+category: mapf
+params: []
