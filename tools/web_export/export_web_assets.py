@@ -6,6 +6,10 @@ byte-identical event streams, so web assets are generated from the Python demo
 alone and stored gzipped for static serving (gzip mtime is pinned to 0 so the
 same input always produces the same bytes — stable git diffs).
 
+Traces are keyed by SCENARIO name (not map): one map can host several scenarios,
+so the scenario name is the only unambiguous key. The map JSON stays keyed by map
+name; a scenario's own `map:` field names which JSON the page loads.
+
 Usage:
     python tools/web_export/export_web_assets.py --algos prioritized_astar \
         --maps maze01 --scenario maze01_two
@@ -132,10 +136,10 @@ def export_traces(algo: str, map_name: str, scenario: Path,
         events = sum(1 for _ in trace.open())
         if events > MAX_EVENTS:
             raise SystemExit(
-                f"{algo}/{map_name}/py: {events} events > {MAX_EVENTS} — "
+                f"{algo}/{scenario.stem}/py: {events} events > {MAX_EVENTS} — "
                 "reduce the demo budget before exporting for the web"
             )
-        out = DATA_DIR / "traces" / algo / f"{map_name}.py.jsonl.gz"
+        out = DATA_DIR / "traces" / algo / f"{scenario.stem}.py.jsonl.gz"
         out.parent.mkdir(parents=True, exist_ok=True)
         # mtime=0 keeps identical inputs byte-identical (stable git diffs).
         with trace.open("rb") as src, gzip.GzipFile(out, "wb", mtime=0) as dst:

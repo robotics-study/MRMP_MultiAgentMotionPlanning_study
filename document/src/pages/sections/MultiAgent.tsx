@@ -156,13 +156,15 @@ const MultiAgent = () => {
             <h2>{t("What Is Coming", "구현 예정")}</h2>
             <T
                 en={<p>
-                    Planned for this section: <strong>Prioritized A*</strong>,{" "}
-                    <strong>Joint-space A*</strong>, and <strong>CBS</strong>, each with the same
-                    derivations, proofs, and multi-robot replay demos as the single-robot pages.
+                    The first entry, <strong>Prioritized A*</strong>, is written up and implemented —
+                    read it next. Still to come: <strong>Joint-space A*</strong>, the coupled baseline
+                    that everything else is measured against, and <strong>CBS</strong>. Each gets the same
+                    derivation, proof, and multi-robot replay demo treatment as the single-robot pages.
                 </p>}
                 ko={<p>
-                    이 섹션의 예정 페이지: <strong>Prioritized A*</strong>,{" "}
-                    <strong>Joint-space A*</strong>, <strong>CBS</strong>. 각각 단일 로봇
+                    첫 항목 <strong>Prioritized A*</strong>는 집필·구현이 끝났다. 다음 페이지에서 읽어라.
+                    아직 남은 것: 모든 것이 여기에 대해 저울질되는 coupled baseline{" "}
+                    <strong>Joint-space A*</strong>, 그리고 <strong>CBS</strong>. 각각 단일 로봇
                     페이지와 같은 유도·증명과 다중 로봇 재생 데모로 다룬다.
                 </p>}
             />

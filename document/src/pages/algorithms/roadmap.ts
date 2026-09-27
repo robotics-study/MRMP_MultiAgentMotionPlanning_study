@@ -7,7 +7,17 @@ export interface AlgoBlurb {
     blurb: Localized<string>;
 }
 
-export const ALGO_BLURBS: AlgoBlurb[] = [];
+export const ALGO_BLURBS: AlgoBlurb[] = [
+    {
+        slug: "prioritized_astar",
+        blurb: {
+            en: "Order the agents, let each plan a space-time A* around the finished paths as " +
+                "moving obstacles: fast and scalable, individually optimal, honestly incomplete.",
+            ko: "agent에 순서를 매기고 각자 시공간 A*로 완성된 경로를 움직이는 장애물로 " +
+                "돌아가기: 빠르고 확장성 있고 개별 최적이며, 불완전함을 정직하게 고백한다.",
+        },
+    },
+];
 
 // 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 이 저장소는 MAPF 하나가
 // 전부다 (파일 구조 pages/algorithms/<slug>/ 도 slug만 공유한다). 알고리즘 배치는

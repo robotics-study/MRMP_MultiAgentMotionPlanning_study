@@ -29,22 +29,34 @@ const loadTrace = (algo, name) =>
 
 const finalOf = (events) => events[events.length - 1];
 
-// (algo, agents, params) → TS 엔진 실행 (events 반환). 알고리즘이 추가되면 여기에 러너를
+// (map, agents, params) → TS 엔진 실행 (events 반환). 알고리즘이 추가되면 여기에 러너를
 // 등록한다 — agents 는 시나리오 yaml 의 cell 좌표값(데모가 world→cell 변환한 결과).
-const RUNNERS = {};
+const RUNNERS = {
+    prioritized_astar: (map, agents, params) => engines.runPrioritizedAStar(map, agents, params),
+};
 
-// algo × scenario 조합. agents: [[start, goal], ...] (cell [row, col]).
+// algo × scenario 조합. trace 파일은 시나리오 이름으로 키를 잡는다 (한 맵에 여러
+// 시나리오가 살 수 있어서). agents: [[start, goal], ...] (cell [row, col]).
 // metricKeys 가 없으면 sum_of_costs(expand 시 exact)와 expanded_nodes 를 비교한다.
-const CHECKS = [];
+const CHECKS = [
+    {
+        algo: "prioritized_astar",
+        scenarios: [
+            {map: "maze01", name: "maze01_two", agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
+            {map: "open01", name: "open01_cross", agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
+            {map: "open01", name: "open01_swap", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+        ],
+    },
+];
 
 let failures = 0;
 for (const check of CHECKS) {
     for (const scenario of check.scenarios) {
         let events;
         try {
-            events = loadTrace(check.algo, scenario.map);
+            events = loadTrace(check.algo, scenario.name);
         } catch {
-            continue;   // 해당 맵의 trace 미탑재 — 검사 대상 아님
+            continue;   // 해당 시나리오의 trace 미탑재 — 검사 대상 아님
         }
         const expected = finalOf(events);
         const started = events[0];
@@ -64,7 +76,7 @@ for (const check of CHECKS) {
                 problems.push(`${key.key} ${a} != ${b}`);
             }
         }
-        const tag = `${check.algo} × ${scenario.map}`;
+        const tag = `${check.algo} × ${scenario.name}`;
         if (problems.length) {
             failures++;
             console.log(`FAIL ${tag}: ${problems.join("; ")}`);
