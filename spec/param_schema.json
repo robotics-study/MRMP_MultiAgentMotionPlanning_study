@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mrmp/param-declaration.schema.json",
+  "title": "mrmp parameter declaration",
+  "description": "알고리즘 ParamSet 선언의 언어 공용 계약. 각 알고리즘의 configs/<category>/<algorithm>.yaml 은 이 구조를 따르며, C++/Python 로더는 로드 시점에 type/range/choices 를 검증한다.",
+  "type": "object",
+  "required": ["algorithm", "category", "params"],
+  "properties": {
+    "algorithm": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "알고리즘 식별자. 파일명(확장자 제외) 및 trace 의 algorithm 필드와 일치해야 한다."
+    },
+    "category": {
+      "enum": ["mapf"]
+    },
+    "params": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "default", "description"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": {
+            "enum": ["int", "float", "bool", "string", "enum"]
+          },
+          "default": {
+            "description": "type 과 일치하는 기본값. 실행 시 값 미지정이면 이 값을 쓴다."
+          },
+          "min": {
+            "type": "number",
+            "description": "int/float 전용 하한 (inclusive)."
+          },
+          "max": {
+            "type": "number",
+            "description": "int/float 전용 상한 (inclusive)."
+          },
+          "choices": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "enum 타입 전용 허용 값 목록."
+          },
+          "description": {
+            "type": "string",
+            "description": "파라미터의 의미와 튜닝 방향. 단위가 있으면 명시 (예: meters, rad/s)."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

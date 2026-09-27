@@ -1,0 +1,6 @@
+type: occupancy_grid
+image: maze01.pgm          # 0(black)=occupied, 255(white)=free
+resolution: 0.5            # meters / pixel -> 20x20 grid = 10m x 10m world
+origin: [0.0, 0.0, 0.0]    # world pose of bottom-left pixel [x, y, theta]
+occupied_thresh: 0.65
+free_thresh: 0.196

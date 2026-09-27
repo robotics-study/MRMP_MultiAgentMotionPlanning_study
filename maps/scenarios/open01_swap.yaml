@@ -1,0 +1,9 @@
+# 같은 행(row 10)을 서로 반대 방향으로 가로지르는 정면 스왑. 열린 공간이라
+# 우선순위 계획은 뒤 agent가 옆으로 돌아가고, 최적 해는 더 싸게 통과한다 —
+# prioritized의 suboptimality를 보여 주는 대비 시나리오.
+map: ../grid/open01.yaml   # scenario 파일 기준 상대 경로
+agents:                    # agent 순서 = agent index (우선순위와 무관, 표시 순서)
+  - start: [1.25, 4.75]    # cell (10, 2) — 오른쪽으로
+    goal: [8.25, 4.75]     # cell (10, 16)
+  - start: [8.25, 4.75]    # cell (10, 16) — 왼쪽으로
+    goal: [1.25, 4.75]     # cell (10, 2)

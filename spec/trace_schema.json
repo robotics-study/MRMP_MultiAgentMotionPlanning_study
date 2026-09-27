@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mrmp/trace-event.schema.json",
+  "title": "mrmp trace event",
+  "description": "step-by-step 시각화의 언어 공용 계약. trace 파일은 JSON Lines(.jsonl)이며 한 줄이 이벤트 하나다. C++/Python 구현 모두 이 스키마를 따르는 이벤트만 방출한다. 내러티브는 seq 순서뿐 — wall-clock 시간은 담지 않는다. 이벤트가 실어 나르는 유일한 시간은 space-time 이벤트의 이산 시각 필드 t다.",
+  "type": "object",
+  "required": ["seq", "event"],
+  "properties": {
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "이벤트 순번 (0부터 단조 증가). 재생 순서의 기준."
+    },
+    "event": {
+      "enum": [
+        "planning_started",
+        "node_expanded",
+        "path_found",
+        "conflict_found",
+        "constraint_added",
+        "planning_finished"
+      ]
+    },
+    "algorithm": {
+      "type": "string",
+      "description": "planning_started 전용: 알고리즘 식별자 (configs 파일명과 동일. 예: prioritized_astar)."
+    },
+    "map": {
+      "type": "string",
+      "description": "planning_started 전용: 맵 파일 경로 (repo 루트 기준 상대 경로)."
+    },
+    "params": {
+      "type": "object",
+      "description": "planning_started 전용: 실행에 사용된 파라미터 값 스냅샷. 키는 사전순으로 정렬해 두 언어가 같은 순서로 직렬화한다."
+    },
+    "state": {
+      "$ref": "#/$defs/state",
+      "description": "node_expanded 전용: 확장한 노드의 상태. agent 필드가 있으면 그 agent의 개별 탐색 노드(셀 하나), 없으면 joint state — 모든 agent의 셀을 [r0,c0,r1,c1,...]로 평면화한 것."
+    },
+    "cost": {
+      "type": "number",
+      "description": "node_expanded 선택: 그 노드의 g-value (모든 action이 1 스텝이라 g = 경과 시각)."
+    },
+    "agent": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "사건이 속한 agent의 인덱스. node_expanded에서는 개별 탐색일 때만 (joint state 확장에는 없음), path_found/constraint_added에서는 필수."
+    },
+    "t": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "space-time 이벤트의 이산 시각 (스텝). node_expanded에서는 개별 탐색 노드의 시간 차원 좌표 (joint state 확장 생략), conflict_found/constraint_added에서는 충돌·제약이 생긴 시각."
+    },
+    "path": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/state" },
+      "description": "path_found 전용: 그 agent의 space-time 경로. path[t]가 시각 t에 차지하는 셀."
+    },
+    "kind": {
+      "enum": ["vertex", "edge"],
+      "description": "conflict_found/constraint_added 전용: vertex = 두 agent가 같은 시각 같은 셀을 차지, edge = 두 agent가 한 간선의 양끝을 맞바꿈 (스왑)."
+    },
+    "cell": {
+      "$ref": "#/$defs/state",
+      "description": "conflict_found/constraint_added 전용: 문제의 셀. edge에서는 스왑되는 두 셀 중 하나 — 방향은 인코딩하지 않는다."
+    },
+    "to": {
+      "$ref": "#/$defs/state",
+      "description": "edge conflict/constraint 선택: cell과 자리를 바꾸는 다른 쪽 셀."
+    },
+    "agents": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "conflict_found 전용: 충돌한 두 agent 인덱스."
+    },
+    "success": {
+      "type": "boolean",
+      "description": "planning_finished 전용. 모든 agent가 goal에 도달했는지."
+    },
+    "metrics": {
+      "type": "object",
+      "description": "planning_finished 전용: sum_of_costs, makespan, expanded_nodes 등 공통 metric (키는 사전순 정렬)."
+    }
+  },
+  "$defs": {
+    "state": {
+      "description": "상태 표현. 항상 격자 셀의 [row, col] (int)이며 joint state는 여러 셀의 평면화.",
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2
+    }
+  }
+}

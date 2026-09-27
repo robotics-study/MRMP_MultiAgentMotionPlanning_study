@@ -1,0 +1,8 @@
+# 열린 공간에서 서로 수직인 두 경로가 (10, 9) 셀에서 교차한다 — vertex conflict
+# 시연용 정석 크로스.
+map: ../grid/open01.yaml   # scenario 파일 기준 상대 경로
+agents:                    # agent 순서 = agent index (우선순위와 무관, 표시 순서)
+  - start: [0.75, 4.75]    # cell (10, 1) — 왼쪽에서 오른쪽으로
+    goal: [8.75, 4.75]     # cell (10, 17)
+  - start: [4.75, 9.25]    # cell (1, 9) — 위에서 아래로
+    goal: [4.75, 0.75]     # cell (18, 9)
