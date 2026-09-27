@@ -1,0 +1,34 @@
+# C++
+cpp/build*/
+compile_commands.json
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+dist/
+
+# 실행 산출물 (trace, 벤치 리포트, 애니메이션)
+out/
+
+# Web docs (document/)
+node_modules/
+
+# 에디터 / OS
+.idea/
+.vscode/
+.DS_Store
+
+# 검증 산출물 (Playwright 스크린샷 등)
+.playwright-mcp/
+docs/.jekyll-cache/
+
+# 세션 상태 산출물 (round summary 등)
+.claude/state/
+document/.vite/
