@@ -1,6 +1,7 @@
-# 같은 행(row 10)을 서로 반대 방향으로 가로지르는 정면 스왑. 열린 공간이라
-# 우선순위 계획은 뒤 agent가 옆으로 돌아가고, 최적 해는 더 싸게 통과한다 —
-# prioritized의 suboptimality를 보여 주는 대비 시나리오.
+# 같은 행(row 10)을 서로 반대 방향으로 가로지르는 정면 스왑. agent 0의 직진
+# 경로가 움직이는 벽이 되어 agent 1은 그 옆으로 돌아가야 한다. 두 agent 모두
+# Manhattan 거리가 14이고 parity상 홀수 비용이 불가능해 agent 1은 15를 쓸 수 없다 —
+# 우회 비용은 정확히 16이고, 합 30은 이 맵의 joint optimum이기도 하다.
 map: ../grid/open01.yaml   # scenario 파일 기준 상대 경로
 agents:                    # agent 순서 = agent index (우선순위와 무관, 표시 순서)
   - start: [1.25, 4.75]    # cell (10, 2) — 오른쪽으로
