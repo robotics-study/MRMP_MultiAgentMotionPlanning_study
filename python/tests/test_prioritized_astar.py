@@ -105,6 +105,20 @@ def test_head_on_corridor_swap_is_unsolvable() -> None:
     assert result.paths == []
 
 
+def test_pocket_yield_makes_the_swap_solvable() -> None:
+    # Same head-on swap, but one pocket cell at (1,4) beside the corridor: agent 1
+    # ducks into it while agent 0 sweeps past, then continues. Agent 0 keeps its
+    # straight path (cost 6); agent 1's detour is forced to cost exactly 9.
+    planner = PrioritizedAStar(config("prioritized_astar"))
+    grid = grid_from(["#######", "####.##", ".......", "#######"])
+    tasks = [AgentTask((2, 0), (2, 6)), AgentTask((2, 6), (2, 0))]
+    result = planner.plan(grid, tasks)
+    assert result.success
+    assert_joint_valid(result.paths)
+    assert len(result.paths[0]) - 1 == 6
+    assert len(result.paths[1]) - 1 == 9
+
+
 def test_goal_stays_occupied_until_arrival() -> None:
     # Agent 0 passes through (0,2) at step 2 and parks at (0,4). Agent 1's goal
     # IS (0,2): arriving before step 2 would park it on top of agent 0's
