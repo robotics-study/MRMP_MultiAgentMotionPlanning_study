@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mrmp"
+version = "0.1.0"
+description = "Multi-agent motion planning (MAPF) algorithms (Python mirror of the C++ implementation)"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.23",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1",
+    "mypy>=1.0",
+    "types-pyyaml>=6.0",  # loader.py imports yaml; mypy needs the stubs
+]
+viz = [
+    "matplotlib>=3.6",
+    "pillow>=9.0",  # replay.py writes GIFs via matplotlib's PillowWriter
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mrmp*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+ignore_missing_imports = true
