@@ -5,7 +5,7 @@ import {SECTIONS} from "../pages/algorithms/roadmap";
 import {useAlgoNav} from "../libs/nav";
 import {useLang, useTr, pick} from "../libs/i18n";
 
-const REPO = "https://github.com/robotics-study/MRMP-Multi-Agent-Motion-Planning--study"
+const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
 
 // supportedExample(python/c++) → 실제 구현 파일로 가는 chip 링크. 알고리즘 파일은
 // python/mrmp/mapf/<slug>.py · cpp/include/mrmp/mapf/<slug>.hpp 에 있다.

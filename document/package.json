@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "multi-agent motion planning (MAPF) algorithm study pages",
   "main": "src/App.tsx",
-  "repository": "git@github.com:robotics-study/MRMP-Multi-Agent-Motion-Planning--study.git",
+  "repository": "git@github.com:robotics-study/MRMP_MultiAgentMotionPlanning_study.git",
   "author": "ladianchad <qhrejddlvltm@gmail.com>",
   "license": "MIT",
-  "homepage": "https://robotics-study.github.io/MRMP-Multi-Agent-Motion-Planning--study/",
+  "homepage": "https://robotics-study.github.io/MRMP_MultiAgentMotionPlanning_study/",
   "scripts": {
     "dev": "vite",
     "build": "node scripts/gen-sitemap.mjs && vite build && node scripts/prerender.mjs",

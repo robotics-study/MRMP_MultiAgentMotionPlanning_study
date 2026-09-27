@@ -8,7 +8,7 @@ import {useAlgoNav} from "../../libs/nav";
 import {useLang, useTr, pick} from "../../libs/i18n";
 import cn from "../../libs/cn";
 
-const REPO = "https://github.com/robotics-study/MRMP-Multi-Agent-Motion-Planning--study"
+const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
 
 const AlgoCard = ({slug, title, blurb, supportedExample, onOpen}: {
     slug: string

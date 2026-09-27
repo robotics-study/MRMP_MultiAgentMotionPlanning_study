@@ -3,7 +3,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(({mode}) => {
     return {
-        base: mode == 'production' ? '/MRMP-Multi-Agent-Motion-Planning--study' : '/',
+        base: mode == 'production' ? '/MRMP_MultiAgentMotionPlanning_study' : '/',
         server: {
             host: true,
             port: 3000,
