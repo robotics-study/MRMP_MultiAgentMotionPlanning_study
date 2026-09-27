@@ -136,8 +136,8 @@ export function runPrioritizedAStar(
             expanded += 1;
             emit({event: "node_expanded", state: [cur.cell[0], cur.cell[1]], cost: cur.t, agent, t: cur.t});
 
-            // goal guard: stay-at-goal 반향으로 앞선 경로가 시각 >= t에 goal을
-            // 계속 점유하면 pop을 받아들인다.
+            // goal guard: stay-at-goal semantics — 앞선 경로가 시각 >= t 어디에서도
+            // goal을 방문하지 않을 때에만 이 pop을 받아들인다.
             let guard = true;
             for (const p of planned) {
                 for (let tt = cur.t; tt < pathLen(p); tt++) {

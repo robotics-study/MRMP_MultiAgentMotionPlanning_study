@@ -240,7 +240,7 @@ const PrioritizedAStar = () => {
                     <li>frontier는 <InlineMath math="(f, \text{seq})"/> 기준 min-heap이다. 우선순위는{" "}
                     <InlineMath math="f = t + h"/>이고 동률은 push 순서로 깬다. 이 정확한 tie-break가
                         언어 간 계약의 일부다.</li>
-                    <li>pop이 곧 확장이다. 모든 상태는 정확히 한 번 push된다 — <InlineMath math="g = t"/>라
+                    <li>pop이 곧 확장이다. 모든 상태는 정확히 한 번 push된다. <InlineMath math="g = t"/>라
                         발견 시점의 비용은 절대 개선되지 않으므로 relaxation도 lazy deletion도 필요 없다.</li>
                     <li>goal을 pop하는 것만으로는 부족하다. stay-at-goal 반향으로 완료된 agent는 goal을
                         영원히 점유하므로, 어떤 앞선 경로도 시각 ≥ <InlineMath math="t"/>에서 goal을 방문하지
@@ -314,9 +314,9 @@ const PrioritizedAStar = () => {
                             얼린다. 남는 것은 평범한 정적 그래프다: 상태는 <InlineMath math="(c, t)"/>이고
                             간선은 <InlineMath math="t+1"/>의 합법 후속으로 간다. Manhattan heuristic은 이
                             그래프에 admissible하다(실제 스텝은 항상 비용 1이고 Manhattan은 남은 스텝을
-                            과대평가하지 않는다). 따라서 A*가 <InlineMath math="(goal, t)"/>를 pop할 때 —
-                            stay-at-goal 가드로 도착 이후 합법성까지 보장된다 — 반환되는 경로는 feasible
-                            최단이다. 더 싼 합법 경로가 있었다면 그 경로의 어떤 상태가 pop 시점에{" "}
+                            과대평가하지 않는다). 따라서 A*가 <InlineMath math="(goal, t)"/>를 pop하는 순간
+                            반환되는 경로는 feasible 최단이다. stay-at-goal 가드가 도착 이후의 합법성까지
+                            보장하기 때문이다. 더 싼 합법 경로가 있었다면 그 경로의 어떤 상태가 pop 시점에{" "}
                             <InlineMath math="f \le C^* < t"/>로 OPEN에 있었을 테니 모순.{" "}
                             <InlineMath math="\blacksquare"/>
                         </p>
@@ -386,20 +386,20 @@ const PrioritizedAStar = () => {
                     space-time search, flattened back onto the grid), then the execution replay walk every
                     finished path step by step. The three scenarios are chosen for what priority does:{" "}
                     <code>maze01_two</code> threads both agents through one corridor gap at staggered times
-                    so neither pays a centimeter of detour; <code>open01_cross</code> times a crossing apart
-                    instead of slowing down; and in <code>open01_swap</code> agent 0's straight path is a
-                    moving wall that agent 1 must route around — parity makes cost 15 impossible, so the
-                    detour costs exactly 16.
+                    so neither pays any detour: each still achieves its unconstrained shortest cost;
+                    <code>open01_cross</code> times a crossing apart instead of slowing down; and in
+                    <code>open01_swap</code> agent 0's straight path is a moving wall that agent 1 must
+                    route around — parity makes cost 15 impossible, so the detour costs exactly 16.
                 </p>}
                 ko={<p>
                     아래 플레이어는 이 저장소의 실제 demo가 방출한 기록된 trace를 재생한다. 시나리오 버튼을
                     눌러 전환하라. 각 agent의 확장이 자기 색으로 피어나는 것(시공간 탐색을 격자에 다시
                     펼친 것)이 보이고, 이어 실행 재생이 완성된 경로를 스텝마다 걸어간다. 세 시나리오는
                     우선순위가 무엇을 하는지로 골랐다: <code>maze01_two</code>는 두 agent를 폭 1 통로 gap을
-                    통해 시간을 어긋내 통과시켜 둘 다 돌아가지 않고 원점수 최단을 유지한다.{" "}
+                    통해 시간을 어긋나게 통과시켜 둘 모두 우회 없이 자기 최소 비용을 유지한다.{" "}
                     <code>open01_cross</code>는 교차점에서 속도를 줄이는 대신 타이밍으로 비킨다. 그리고{" "}
                     <code>open01_swap</code>에서 agent 0의 직진 경로는 움직이는 벽이 되고 agent 1은 그 주위를
-                    돌아가야 한다 — parity 때문에 비용 15가 불가능해서 우회는 정확히 16이다.
+                    돌아가야 한다. parity 때문에 비용 15가 불가능해서 우회 비용은 정확히 16이다.
                 </p>}
             />
             <TraceReplay algo="prioritized_astar" label={t(
