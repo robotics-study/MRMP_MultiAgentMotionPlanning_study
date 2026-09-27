@@ -9,7 +9,7 @@ import {fileURLToPath} from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ORIGIN = "https://robotics-study.github.io";
-const BASE = "/MRMP-Multi-Agent-Motion-Planning--study/";
+const BASE = "/MRMP_MultiAgentMotionPlanning_study/";
 
 const indexTs = readFileSync(join(root, "src/pages/algorithms/index.ts"), "utf-8");
 const slugs = indexTs
