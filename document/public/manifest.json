@@ -1,0 +1,9 @@
+{
+  "name": "Navigation · Study",
+  "short_name": "Navigation",
+  "description": "Interactive study notes on robot navigation algorithms — graph search and sampling-based global planners with step-by-step search visualizations, in C++ and Python.",
+  "start_url": "/MRMP-Multi-Agent-Motion-Planning--study",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020"
+}
