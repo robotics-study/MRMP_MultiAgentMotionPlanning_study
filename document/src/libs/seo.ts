@@ -9,7 +9,7 @@ import {ALGO_BLURBS, SECTIONS} from "../pages/algorithms/roadmap";
 import {ISectionIntro} from "../pages/sections";
 
 const ORIGIN = "https://robotics-study.github.io";
-const BASE_PATH = "/MRMP-Multi-Agent-Motion-Planning--study/";
+const BASE_PATH = "/MRMP_MultiAgentMotionPlanning_study/";
 
 const SITE: Record<Lang, string> = {
     en: "MRMP · Study",
