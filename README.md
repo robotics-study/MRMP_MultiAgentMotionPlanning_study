@@ -53,7 +53,7 @@ trace 재생 데모 + 실제 C++/Python 소스 + **원 논문 레퍼런스(DOI)*
 
 | 카테고리 | 알고리즘 | C++ | Python | 원 논문 |
 |---|---|:---:|:---:|---|
-| mapf | Prioritized A* | ⏳ | ⏳ | Erdmann & Lozano-Pérez (1987) |
+| mapf | Prioritized A* | ✅ | ✅ | Erdmann & Lozano-Pérez (1987) |
 | mapf | Joint-space A* | ⏳ | ⏳ | joint-state search (관행적 baseline) |
 | mapf | CBS | ⏳ | ⏳ | Sharon, Stern, Felner & Sturtevant (2015) |
 
@@ -64,12 +64,12 @@ trace 재생 데모 + 실제 C++/Python 소스 + **원 논문 레퍼런스(DOI)*
 ```bash
 # Python (>= 3.10) — mrmp 패키지 + viz/dev extras
 cd python && pip install -e ".[dev,viz]" && cd ..
-PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 31 passed
+PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 41 passed
 
 # C++ (C++20, CMake >= 3.20, GoogleTest 는 FetchContent 자동)
 cmake -S cpp -B cpp/build -DCMAKE_BUILD_TYPE=Release
 cmake --build cpp/build -j
-ctest --test-dir cpp/build     # 25 tests
+ctest --test-dir cpp/build     # 35 tests
 ```
 
 ### 데모 실행 — 두 언어가 동일한 CLI 인자 (알고리즘 구현 시 활성화)
