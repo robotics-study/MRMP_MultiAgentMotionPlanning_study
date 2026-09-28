@@ -50,6 +50,19 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
                 "점근적으로 최적이며, 대가는 차원으로 지불한다.",
         },
     },
+    {
+        slug: "subdimensional_rrt",
+        blurb: {
+            en: "Refuse the joint space until it is needed: every robot obeys its own BFS-tree policy " +
+                "until a collision proves the policy insufficient — then the involved robots join a " +
+                "collision set and get steered by samples. Dimension grows exactly where robots meet, " +
+                "and nothing about optimality is promised.",
+            ko: "필요할 때까지 joint 공간을 거부한다: 모든 robot은 충돌이 policy의 부족함을 입증할까지 " +
+                "자기 BFS-tree policy를 따른다 — 그러면 관련된 robot들이 collision set에 합류해 표본 " +
+                "조향으로 넘어간다. 차원은 robot들이 만나는 곳에서 정확히 자라고 최적성에 대해서는 아무것도 " +
+                "약속하지 않는다.",
+        },
+    },
 ];
 
 // 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 갈래는 survey(Bui 2023)가
