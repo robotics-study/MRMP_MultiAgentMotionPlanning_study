@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Export web-site data assets: grid maps as JSON + demo traces as gzip JSONL.
 
-The docs SPA (document/) replays real demo traces. The C++ and Python demos emit
+The docs SPA runs every planner live in the browser; the exported traces are no
+longer replayed by pages — they remain the ground truth that check-engine-parity
+compares the TypeScript engines against. The C++ and Python demos emit
 byte-identical event streams, so web assets are generated from the Python demo
 alone and stored gzipped for static serving (gzip mtime is pinned to 0 so the
 same input always produces the same bytes — stable git diffs).

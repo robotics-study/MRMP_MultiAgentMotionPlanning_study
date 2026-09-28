@@ -2,12 +2,27 @@ import {ReactNode} from "react";
 import {T, useTr} from "../../libs/i18n";
 import Terms from "../../components/math/Terms";
 import {BlockMath, InlineMath} from "../../components/math/Tex";
-import TraceReplay from "../../components/panels/TraceReplay";
+import Sandbox, {ScenarioPreset} from "../../components/panels/Sandbox";
 import CodeTabs from "../../components/CodeTabs";
 import Pseudocode from "../../components/Pseudocode";
+import {runPrioritizedAStar} from "../../libs/algorithms/prioritized_astar";
+import {GridMap} from "../../libs/grid";
+import {Cell, TraceEvent} from "../../libs/trace/types";
 import pyImpl from "../../../../python/mrmp/mapf/prioritized_astar.py?raw";
 import cppHeader from "../../../../cpp/include/mrmp/mapf/prioritized_astar.hpp?raw";
 import cppImpl from "../../../../cpp/src/mapf/prioritized_astar.cpp?raw";
+
+// 라이브 sandbox의 엔진 — 모듈 상수여야 identity가 안정적이라 SandboxScene이
+// map/agents 변경에만 재실행한다. 이 planner는 파라미터가 없다.
+const runLive = (map: GridMap, tasks: Array<[Cell, Cell]>): TraceEvent[] =>
+    runPrioritizedAStar(map, tasks, {})
+
+// 시나리오 preset — cell 좌표는 데모/parity와 동일한 좌표계다.
+const PRESETS: ScenarioPreset[] = [
+    {name: "maze01_two", map: "maze01", agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
+    {name: "open01_cross", map: "open01", agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
+    {name: "open01_swap", map: "open01", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+]
 
 const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
 
@@ -381,48 +396,51 @@ const PrioritizedAStar = () => {
             <h2>Demo</h2>
             <T
                 en={<p>
-                    The player below replays recorded traces from the repository's real demos — click a
-                    scenario button to switch. Watch each agent's expansion bloom in its own color (the
-                    space-time search, flattened back onto the grid), then the execution replay walk every
-                    finished path step by step. The three scenarios are chosen for what priority does:{" "}
-                    <code>maze01_two</code> threads both agents through one corridor gap at staggered times
-                    so neither pays any detour: each still achieves its unconstrained shortest cost;
-                    <code>open01_cross</code> times a crossing apart instead of slowing down; and in
-                    <code>open01_swap</code> agent 0's straight path is a moving wall that agent 1 must
-                    route around — parity makes cost 15 impossible, so the detour costs exactly 16.
+                    The sandbox below runs this planner live in your browser — the same engine, byte-for-byte
+                    what the Python/C++ code below emits. Draw walls, drag a numbered dot or its ring to move
+                    an agent's start/goal, add agents; every edit re-plans instantly and replays from step 0.
+                    Watch each agent's expansion bloom in its own color (the space-time search, flattened back
+                    onto the grid), then the execution replay walk every finished path step by step. The three
+                    presets are chosen for what priority does: <code>maze01_two</code> threads both agents
+                    through one corridor gap at staggered times so neither pays any detour — each still
+                    achieves its unconstrained shortest cost; <code>open01_cross</code> times a crossing apart
+                    instead of slowing down; and in <code>open01_swap</code> agent 0's straight path is a
+                    moving wall that agent 1 must route around — parity makes cost 15 impossible, so the
+                    detour costs exactly 16. Then edit: wall off the corridor gap, drag an endpoint into a
+                    dead end, add a third agent and watch priority fail honestly.
                 </p>}
                 ko={<p>
-                    아래 플레이어는 이 저장소의 실제 demo가 방출한 기록된 trace를 재생한다. 시나리오 버튼을
-                    눌러 전환하라. 각 agent의 확장이 자기 색으로 피어나는 것(시공간 탐색을 격자에 다시
-                    펼친 것)이 보이고, 이어 실행 재생이 완성된 경로를 스텝마다 걸어간다. 세 시나리오는
-                    우선순위가 무엇을 하는지로 골랐다: <code>maze01_two</code>는 두 agent를 폭 1 통로 gap을
-                    통해 시간을 어긋나게 통과시켜 둘 모두 우회 없이 자기 최소 비용을 유지한다.{" "}
-                    <code>open01_cross</code>는 교차점에서 속도를 줄이는 대신 타이밍으로 비킨다. 그리고{" "}
-                    <code>open01_swap</code>에서 agent 0의 직진 경로는 움직이는 벽이 되고 agent 1은 그 주위를
-                    돌아가야 한다. parity 때문에 비용 15가 불가능해서 우회 비용은 정확히 16이다.
+                    아래 sandbox는 이 planner를 브라우저에서 직접 실행합니다. 아래 Python/C++ 코드가 내뱉는
+                    것과 바이트 단위로 같은 엔진입니다. 벽을 그리고, 번호가 적힌 점이나 그 링을 끌어 agent의
+                    start/goal을 옮기고, agent를 더하라. 모든 편집은 즉시 재계획되고 재생은 스텝 0부터 다시
+                    돕니다. 각 agent의 확장이 자기 색으로 피어나는 것(시공간 탐색을 격자에 다시 펼친 것)이
+                    보이고, 이어 실행 재생이 완성된 경로를 스텝마다 걸어갑니다. 세 preset은 우선순위가 무엇을
+                    하는지로 골랐습니다: <code>maze01_two</code>는 두 agent를 폭 1 통로 gap을 통해 시간을
+                    어긋나게 통과시켜 둘 모두 우회 없이 자기 최소 비용을 유지하고,{" "}
+                    <code>open01_cross</code>는 교차점에서 속도를 줄이는 대신 타이밍으로 비키며,{" "}
+                    <code>open01_swap</code>에서 agent 0의 직진 경로는 움직이는 벽이 되어 agent 1이 그 주위를
+                    돌아가야 합니다. parity 때문에 비용 15가 불가능해 우회 비용은 정확히 16입니다. 이제 직접
+                    편집해 보세요 — 통로 gap을 막아보고, endpoint를 막다른 곳에 찍어보고, agent 3번을
+                    추가해 우선순위가 정직하게 실패하는 모습을 보세요.
                 </p>}
             />
-            <TraceReplay algo="prioritized_astar" label={t(
-                "Recorded traces from the repository's prioritized_astar demo (per-agent expansion + execution replay)",
-                "저장소의 prioritized_astar demo가 방출한 실제 trace(agent별 확장 + 실행 재생)",
-            )} sources={[
-                {scenario: "maze01_two", map: "maze01"},
-                {scenario: "open01_cross", map: "open01"},
-                {scenario: "open01_swap", map: "open01"},
-            ]}/>
+            <Sandbox label={t(
+                "Live prioritized_astar sandbox — the browser engine is a byte-identical mirror of the Python/C++ planner. Draw walls, drag endpoints, add agents; every edit re-plans and replays",
+                "라이브 prioritized_astar sandbox — 브라우저 엔진은 Python/C++ planner와 바이트 단위로 동일한 미러입니다. 벽을 그리고, endpoint를 끌어 옮기고, agent를 더하면 모든 편집이 즉시 재계획과 재생으로 이어집니다",
+            )} presets={PRESETS} run={runLive}/>
 
             <h2>Implementation</h2>
             <T
                 en={<p>
                     The Python and C++ implementations are line-for-line mirrors of each other, and the
-                    browser engine that powers parity checking is a third mirror. Same fixed neighbor order,
-                    same <InlineMath math="(f, \text{seq})"/> tie-break, same horizon argument, same event
-                    stream — so all three produce byte-identical traces on every scenario, which{" "}
+                    browser engine that powers the live sandbox above is a third mirror. Same fixed neighbor
+                    order, same <InlineMath math="(f, \text{seq})"/> tie-break, same horizon argument, same
+                    event stream — so all three produce byte-identical traces on every scenario, which{" "}
                     <code>check-engine-parity</code> verifies on every build. The code below is the actual
                     source, not an excerpt.
                 </p>}
                 ko={<p>
-                    Python과 C++ 구현은 서로 줄 대 줄 미러이고, parity 검사를 뒷받침하는 브라우저 엔진이
+                    Python과 C++ 구현은 서로 줄 대 줄 미러이고, 위 라이브 sandbox를 움직이는 브라우저 엔진이
                     세 번째 미러다. 동일한 고정 이웃 순서, 동일한 <InlineMath math="(f, \text{seq})"/>
                     tie-break, 동일한 horizon 논의, 동일한 이벤트 스트림. 그래서 셋 모두 모든 시나리오에서
                     바이트 단위로 동일한 trace를 만들고, 빌드마다 <code>check-engine-parity</code>가 이를
