@@ -6,8 +6,10 @@ import {IAlgoData} from "../../../types/global";
 // sections의 en/ko 문자열은 각 언어로 렌더된 본문 h2 헤딩과 정확히 일치해야
 // 사이드바/TOC/검색 앵커(slug)가 맞는다.
 // 배열 순서가 사이드바·pager의 진행 순서다 — 섹션별로 계보순: search 갈래는
-// decoupled(Prioritized A*) → coupled(Joint-space A*, 모든 것의 baseline) → hybrid(CBS),
-// sampling 갈래는 coupled(joint 상태 motion tree) → subdimensional → implicit roadmap 순서.
+// decoupled/priority 갈래(Prioritized A* → Push and Swap → Push and Rotate — 우선순위
+// 계획을 local primitive로 완성하는 decentralized 계열) → coupled(Joint-space A*, 모든 것의
+// baseline) → hybrid(CBS), sampling 갈래는 coupled(joint 상태 motion tree) → subdimensional
+// → implicit roadmap 순서.
 // 집필된 페이지만 멀티라인 리터럴로 올린다 (멀티라인 리터럴 규약 — prerender/sitemap이
 // contents 있는 블록만 파싱한다). 콘텐츠 모듈은 pages/algorithms/<section>/<slug>.tsx.
 // 미집필 planned 항목은 한 줄 항목으로 둔다.
@@ -27,6 +29,19 @@ const data: IAlgoData[] = [
             {en: "Implementation", ko: "Implementation"},
             {en: "References", ko: "References"},
         ],
+    },
+    // priority 갈래의 다음 장 — 예약을 동결하지 않고 push/swap primitive로
+    // lower-priority agent를 치운다. component당 빈 셀 ≥2이면 완전하다고 주장하고,
+    // 그 주장이 참인지 검증하는 것이 후속 Push and Rotate다.
+    {
+        slug: "push_and_swap",
+        title: {en: "Push and Swap", ko: "Push and Swap"},
+        section: "search",
+    },
+    {
+        slug: "push_and_rotate",
+        title: {en: "Push and Rotate", ko: "Push and Rotate"},
+        section: "search",
     },
     {
         slug: "joint_astar",

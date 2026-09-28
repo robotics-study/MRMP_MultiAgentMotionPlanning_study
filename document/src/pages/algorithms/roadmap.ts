@@ -56,11 +56,13 @@ export const SECTIONS: Array<{
         title: {en: "Search-Based Planning", ko: "Search-Based Planning"},
         desc: {
             en: "Point robots on one shared graph — Multi-Agent Path Finding proper. Enumerate " +
-                "states exactly, and read the branch along its coupling axis: decoupled " +
-                "prioritized planning, coupled joint-space search, and the hybrid in between (CBS).",
+                "states exactly, and read the branch along its coupling axis: prioritized planning " +
+                "and its decentralized per-agent completion via push/swap primitives, coupled " +
+                "joint-space search, and the hybrid in between (CBS).",
             ko: "하나의 그래프를 공유하는 점 로봇들 — Multi-Agent Path Finding 그 자체. 상태를 " +
-                "정확하게 열거하고, 결합 축을 따라 읽는다: decoupled 우선순위 계획, coupled " +
-                "joint-space 탐색, 그리고 그 사이 어딘가의 hybrid(CBS).",
+                "정확하게 열거하고, 결합 축을 따라 읽는다: 우선순위 계획과 push/swap primitive로 " +
+                "완성되는 decentralized 계열, coupled joint-space 탐색, 그리고 그 사이 어딘가의 " +
+                "hybrid(CBS).",
         },
     },
     {
