@@ -33,6 +33,7 @@ const finalOf = (events) => events[events.length - 1];
 // 등록한다 — agents 는 시나리오 yaml 의 cell 좌표값(데모가 world→cell 변환한 결과).
 const RUNNERS = {
     prioritized_astar: (map, agents, params) => engines.runPrioritizedAStar(map, agents, params),
+    joint_astar: (map, agents, params) => engines.runJointAStar(map, agents, params),
 };
 
 // algo × scenario 조합. trace 파일은 시나리오 이름으로 키를 잡는다 (한 맵에 여러
@@ -41,6 +42,14 @@ const RUNNERS = {
 const CHECKS = [
     {
         algo: "prioritized_astar",
+        scenarios: [
+            {map: "maze01", name: "maze01_two", agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
+            {map: "open01", name: "open01_cross", agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
+            {map: "open01", name: "open01_swap", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+        ],
+    },
+    {
+        algo: "joint_astar",
         scenarios: [
             {map: "maze01", name: "maze01_two", agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
             {map: "open01", name: "open01_cross", agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},

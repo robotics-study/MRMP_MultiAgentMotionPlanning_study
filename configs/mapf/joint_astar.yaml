@@ -1,0 +1,7 @@
+# Joint-space A* (the coupled baseline): one A* over the JOINT state — the tuple of
+# all agent positions at once. No tunable parameters by design: unit costs, the
+# sum-of-Manhattan heuristic, and FIFO tie-breaking are all fixed by the algorithm's
+# definition, exactly like prioritized_astar.
+algorithm: joint_astar
+category: mapf
+params: []

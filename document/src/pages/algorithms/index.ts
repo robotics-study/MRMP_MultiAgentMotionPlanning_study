@@ -25,7 +25,21 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
-    {slug: "joint_astar", title: {en: "Joint-Space A*", ko: "Joint-Space A*"}},
+    {
+        slug: "joint_astar",
+        title: {en: "Joint-Space A*", ko: "Joint-Space A*"},
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./joint_astar")),
+        sections: [
+            {en: "From Priorities to the Joint State", ko: "우선순위에서 joint 상태로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
+    },
     {slug: "cbs", title: {en: "Conflict-Based Search", ko: "Conflict-Based Search"}},
 ];
 
