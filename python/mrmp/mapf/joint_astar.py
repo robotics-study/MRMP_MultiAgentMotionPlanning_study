@@ -88,7 +88,10 @@ class JointAStar(MultiAgentPlanner):
             # Sum of per-agent Manhattan distances — admissible (each unarrived
             # agent needs at least that many steps, each paying 1) and consistent
             # (one joint step moves any agent at most one cell).
-            return sum(space.heuristic(pos, goal) for pos, goal in zip(state, goals))
+            return sum(
+                space.heuristic(pos, goal)
+                for pos, goal in zip(state, goals, strict=True)
+            )
 
         counter = itertools.count(1)
         h0 = h(start)
@@ -136,10 +139,12 @@ class JointAStar(MultiAgentPlanner):
             # One joint step: every unarrived agent takes exactly one action (a
             # move or the wait self-loop, each costing its one time step); arrived
             # agents pin in place and pay nothing.
-            step_cost = sum(1 for pos, goal in zip(state, goals) if pos != goal)
+            step_cost = sum(
+                1 for pos, goal in zip(state, goals, strict=True) if pos != goal
+            )
             actions = [
                 [pos] if pos == goal else [n for n, _cost in space.neighbors(pos)]
-                for pos, goal in zip(state, goals)
+                for pos, goal in zip(state, goals, strict=True)
             ]
             g_now = g_score[state]
             for combo in itertools.product(*actions):

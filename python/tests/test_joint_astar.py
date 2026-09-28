@@ -121,15 +121,17 @@ def test_pocket_yield_makes_the_swap_solvable() -> None:
     assert len(result.paths[1]) - 1 == 9
 
 
-def test_goal_cell_of_parked_agent_blocks_like_priority() -> None:
-    # Same scenario where prioritized failed for a reason of the instance itself:
-    # agent 0 parks on (0,4) forever and agent 1's start IS that cell — no joint
-    # plan exists either. Stay-at-goal semantics are shared across both planners.
+def test_parked_goal_blocks_the_only_lane() -> None:
+    # Agent 0's goal is the corridor cell agent 1 must pass through to reach its
+    # own goal. Stay-at-goal semantics are shared across both planners: once
+    # agent 0 parks there forever, no joint plan exists — the complete search
+    # exhausts and says so (after actually searching, unlike the duplicate start).
     planner = JointAStar(config("joint_astar"))
-    grid = grid_from(["..", ".."])
-    tasks = [AgentTask((0, 0), (1, 1)), AgentTask((0, 0), (1, 0))]
+    grid = grid_from(["#####", ".....", "#####"])
+    tasks = [AgentTask((1, 0), (1, 2)), AgentTask((1, 4), (1, 0))]
     result = planner.plan(grid, tasks)
     assert not result.success
+    assert result.stats.expanded_nodes > 0
 
 
 def test_duplicate_start_fails_immediately() -> None:
