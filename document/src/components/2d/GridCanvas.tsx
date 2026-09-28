@@ -1,4 +1,4 @@
-import {useMemo} from "react";
+import {Fragment, useMemo} from "react";
 import {Circle, Layer, Line, Rect, Shape, Stage, Text} from "react-konva";
 import {GridMap} from "../../libs/grid";
 import {AGENT_COLORS, CONFLICT_COLOR, MultiTimeline} from "../../libs/trace/timeline";
@@ -125,17 +125,20 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null}: Gr
                               strokeWidth={Math.max(1.6, cell * 0.14)} lineCap="round"/>
                     )
                 }))}
-                {/* 실행 재생: agent 디스크 (번호 표시) — 경로 끝에 도착하면 거기 고정 */}
+                {/* 실행 재생: agent 디스크 (번호 표시) — 경로 끝에 도착하면 거기 고정.
+                    Konva의 Shape(Circle)은 Container가 아니라 자식을 가질 수 없다
+                    (Node.prototype.add 없음) — 라벨은 디스크와 나란한 형제 Text로 둔다. */}
                 {execStep !== null && visiblePaths.map((p) => {
                     const color = AGENT_COLORS[p.agent % AGENT_COLORS.length]
                     const [x, y] = center(p.path[Math.min(execStep, p.path.length - 1)])
                     return (
-                        <Circle key={`d${p.agent}`} x={x} y={y} radius={cell * 0.38} fill={color}
-                                stroke={colors.bg} strokeWidth={Math.max(1, cell * 0.06)}>
+                        <Fragment key={`d${p.agent}`}>
+                            <Circle x={x} y={y} radius={cell * 0.38} fill={color} listening={false}
+                                    stroke={colors.bg} strokeWidth={Math.max(1, cell * 0.06)}/>
                             <Text text={String(p.agent)} width={cell * 0.76} height={cell * 0.76}
-                                  x={-cell * 0.38} y={-cell * 0.38} align="center" verticalAlign="middle"
-                                  fontSize={Math.max(8, cell * 0.4)} fill="#ffffff" fontStyle="bold"/>
-                        </Circle>
+                                  x={x - cell * 0.38} y={y - cell * 0.38} align="center" verticalAlign="middle"
+                                  fontSize={Math.max(8, cell * 0.4)} fill="#ffffff" fontStyle="bold" listening={false}/>
+                        </Fragment>
                     )
                 })}
             </Layer>
