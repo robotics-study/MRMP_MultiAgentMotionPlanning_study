@@ -8,13 +8,14 @@
 
 **다중 로봇(MAPF) planning 알고리즘 — C++ / Python 독립 이중 구현 스터디**
 
-같은 추상화 설계를 두 언어로 미러링하고, 언어 공용 trace 포맷으로 탐색 과정을 재생하며,<br>
-(scenario × algorithm) 매트릭스로 벤치마크한다. 단일 로봇 navigation 은 자매 저장소<br>
+같은 추상화 설계를 두 언어로 미러링하고, 언어 공용 trace 포맷으로 탐색 과정을 기록하며,<br>
+브라우저 라이브 sandbox 로 직접 돌려보고, (scenario × algorithm) 매트릭스로 벤치마크한다.
+단일 로봇 navigation 은 자매 저장소<br>
 [nav_study](https://github.com/robotics-study/navigation_basic) 에서 다룬다.
 
 *Multi-agent (MAPF) planning algorithms, mirrored in C++20 and Python — with step-by-step
-visualization, interactive in-browser replays, and a benchmark matrix. Single-robot navigation
-lives in the sibling nav_study repo.*
+visualization, live in-browser sandboxes running the same engines, and a benchmark matrix.
+Single-robot navigation lives in the sibling nav_study repo.*
 
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)
@@ -31,14 +32,14 @@ lives in the sibling nav_study repo.*
 - **🪞 언어 미러링** — C++ 과 Python 이 같은 설계·같은 파라미터·같은 trace 이벤트를 각자 idiomatic 하게 구현한다. 공유 계약(`spec/`)·파라미터(`configs/`)·맵(`maps/`)은 언어 밖에 두고 양쪽에서 로드한다.
 - **🎬 Trace 기반 시각화** — 알고리즘은 탐색 진행을 JSON Lines 이벤트로 방출하고, 재생기는 언어당 하나가 아니라 **하나**(`tools/viz/replay.py`)다. GIF 애니메이션 + 중간 과정 PNG 스냅샷을 만든다.
 - **📊 벤치마크 매트릭스** — `tools/bench/run_matrix.py` 가 (scenario × algorithm) 전 조합을 실행해 성공 여부·sum_of_costs·makespan·expanded_nodes 를 수집하고 리포트를 쓴다.
-- **🌐 인터랙티브 문서 사이트** — 알고리즘마다 유도·성질·증명·재생 데모(탐색 스크러버 + 실행 τ 재생)·실제 구현 소스를 한 페이지에 담는다. 브라우저는 저장소가 기록한 trace 를 그대로 재생한다.
+- **🌐 인터랙티브 문서 사이트** — 알고리즘마다 유도·성질·증명·라이브 sandbox(벽을 그리고 endpoint 를 끌어 편집하면 브라우저 엔진이 즉시 재계획)·실제 구현 소스를 한 페이지에 담는다. 브라우저 엔진은 planner 의 세 번째 미러이며, 저장소가 수출한 trace 는 parity 검증의 기준 자료로만 쓰인다.
 
 ## 📚 문서 사이트
 
 **[📖 robotics-study.github.io/MRMP_MultiAgentMotionPlanning_study](https://robotics-study.github.io/MRMP_MultiAgentMotionPlanning_study/)** — 우상단 토글로 한국어/English 전환.
 
 알고리즘별 페이지: 개념 유도 + 성질(완전성·최적성·복잡도) 증명 + pseudocode 해설 +
-trace 재생 데모 + 실제 C++/Python 소스 + **원 논문 레퍼런스(DOI)**.
+라이브 sandbox 데모(편집하면 즉시 재계획) + 실제 C++/Python 소스 + **원 논문 레퍼런스(DOI)**.
 
 > 사이트 소스는 `document/` (React + Vite SPA). `main` 에 push 되면 GitHub Actions 가
 > 빌드해 GitHub Pages 로 배포한다 (`.github/workflows/deploy.yml`).
@@ -109,7 +110,7 @@ python tools/bench/run_matrix.py --out out/report.md
 ├── configs/       # 알고리즘별 파라미터 yaml — C++/Python 이 같은 파일을 읽는다
 ├── cpp/           # C++20 구현 (include + src + demos + GoogleTest)
 ├── python/        # Python 구현 (mrmp 패키지 + demos + pytest)
-├── tools/         # viz(trace 재생기) · bench(매트릭스 러너) · web_export(사이트용 trace)
+├── tools/         # viz(trace 재생기) · bench(매트릭스 러너) · web_export(사이트 맵 + parity trace 수출)
 └── document/      # 문서 사이트 (React + Vite SPA → GitHub Pages)
 ```
 

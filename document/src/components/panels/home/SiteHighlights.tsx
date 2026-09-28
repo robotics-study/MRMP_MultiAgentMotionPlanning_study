@@ -29,13 +29,16 @@ const SiteHighlights = () => {
         },
         {
             kicker: t("live demos", "라이브 데모"),
-            title: t("Watch conflicts happen", "충돌이 생기는 순간을 직접"),
+            title: t("Draw a wall. Watch the plan change.", "벽을 그리면 계획이 바뀝니다"),
             desc: t(
-                "Every demo replays the planner's own trace: expansions per agent, the vertex " +
-                "and edge conflicts found, the constraints added, then every agent walking its " +
-                "space-time path.",
-                "모든 데모가 planner의 trace를 그대로 재생합니다. agent별 확장, 발견된 vertex·" +
-                "edge conflict, 걸리는 제약, 그리고 모든 agent가 자기 시공간 경로를 걸어가는 순간까지.",
+                "Every page runs the planner live in your browser — the exact mirror of the " +
+                "Python/C++ engine. Draw walls, drag an agent's start or goal, add agents: every " +
+                "edit re-plans and replays, showing expansions per agent, the vertex and edge " +
+                "conflicts found, the constraints added, then every agent walking its space-time path.",
+                "모든 페이지에서 planner를 브라우저에서 직접 돌립니다. 엔진은 Python/C++ 구현과 " +
+                "필드 단위로 동일한 미러예요. 벽을 그리고, agent의 start/goal을 끄고, agent를 " +
+                "추가하면 매 편집이 즉시 재계획·재생됩니다. agent별 확장, 발견된 vertex·edge " +
+                "conflict, 걸리는 제약, 모든 agent가 시공간 경로를 걸어가는 순간까지.",
             ),
         },
         {
@@ -43,9 +46,11 @@ const SiteHighlights = () => {
             title: t("Read the real implementation", "실제 구현을 그대로 읽기"),
             desc: t(
                 "Each page ends with the complete C++ and Python source that the explanations " +
-                "describe — both languages emit byte-for-byte equivalent traces.",
+                "describe. The live sandbox engine is a third mirror of the same planner, and all " +
+                "three emit byte-identical traces on every scenario, verified on every build.",
                 "각 페이지 끝에는 설명이 가리키는 C++·Python 구현 전체가 그대로 붙어 있습니다. " +
-                "두 언어 모두 필드 단위로 같은 trace를 방출합니다.",
+                "라이브 sandbox 엔진은 같은 planner의 세 번째 미러이고, 셋 모두 모든 시나리오에서 " +
+                "필드 단위로 동일한 trace를 방출합니다. 빌드마다 검증됩니다.",
             ),
         },
     ]
