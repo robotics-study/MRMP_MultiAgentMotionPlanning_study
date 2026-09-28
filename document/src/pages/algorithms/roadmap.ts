@@ -17,6 +17,17 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
                 "돌아가기: 빠르고 확장성 있고 개별 최적이며, 불완전함을 정직하게 고백한다.",
         },
     },
+    {
+        slug: "joint_astar",
+        blurb: {
+            en: "Treat all k positions as one state and run a single A* over that product space: " +
+                "complete, sum-of-costs optimal by construction — paid for in |V|^k. The baseline " +
+                "every other approach exists to escape.",
+            ko: "k개의 위치 전부를 하나의 상태로 다루고 그 product space 위에서 A* 하나를 돌린다: " +
+                "완전하고 구성상 sum-of-costs 최적이며, 대가는 |V|^k다. 다른 모든 접근이 벗어나려 " +
+                "존재하는 baseline.",
+        },
+    },
 ];
 
 // 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 이 저장소는 MAPF 하나가
