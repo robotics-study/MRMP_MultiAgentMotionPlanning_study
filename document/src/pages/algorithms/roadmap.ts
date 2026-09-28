@@ -39,6 +39,17 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
                 "대가는 agent 수가 아니라 간섭만큼.",
         },
     },
+    {
+        slug: "ma_rrt_star",
+        blurb: {
+            en: "One RRT* grown on the joint state space of motion graphs: samples are whole joint " +
+                "states, steering is simultaneous greedy descent, rewiring chases optimality — " +
+                "probabilistically complete, asymptotically optimal, paid in dimension.",
+            ko: "motion graph의 joint 상태 위에 RRT* 하나를 기른다: 표본은 통째로 joint 상태이고, " +
+                "조향은 동시 greedy 하강이며, rewiring으로 최적성을 쫓는다 — 확률적으로 완전하고 " +
+                "점근적으로 최적이며, 대가는 차원으로 지불한다.",
+        },
+    },
 ];
 
 // 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 갈래는 survey(Bui 2023)가
@@ -71,10 +82,12 @@ export const SECTIONS: Array<{
         desc: {
             en: "Robots with geometry in continuous configuration space: sample instead of " +
                 "enumerate — joint-state motion trees, subdimensional expansion, implicit " +
-                "roadmaps. The same coupling axis reappears; this branch is still unwritten.",
+                "roadmaps. The same coupling axis reappears: MA-RRT* (in the paper's own grid " +
+                "discretization) is written and implemented; sRRT and the dRRT family follow.",
             ko: "기하를 가진 로봇을 연속적인 configuration space에서 계획한다 — 열거 대신 " +
                 "샘플링. joint 상태의 motion tree, subdimensional expansion, implicit roadmap. 같은 " +
-                "결합 축이 다시 나타나며, 이 갈래는 아직 집필 중이다.",
+                "결합 축이 다시 나타난다: MA-RRT*(논문 자체의 격자 이산화로)가 집필·구현됐고, " +
+                "sRRT와 dRRT 계열이 뒤를 잇는다.",
         },
     },
 ];

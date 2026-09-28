@@ -75,11 +75,24 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
-    // --- sampling 갈래 (planned) — 집필 순서도 결합 축을 따른다: coupled → hybrid.
+    // --- sampling 갈래 — 집필 순서도 결합 축을 따른다: coupled → subdimensional →
+    // implicit roadmap. 첫 회원 MA-RRT*는 논문 자체의 이산화(G-RRT*)로 DiscreteSpace
+    // 위에서 구현됐다 — search 갈래와 같은 맵, 같은 비용 척도로 비교 가능하다.
     {
         slug: "ma_rrt_star",
         title: {en: "MA-RRT*", ko: "MA-RRT*"},
         section: "sampling",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./sampling/ma_rrt_star")),
+        sections: [
+            {en: "From Joint States to Random Trees", ko: "joint 상태에서 random tree로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
     },
     {
         slug: "subdimensional_rrt",
