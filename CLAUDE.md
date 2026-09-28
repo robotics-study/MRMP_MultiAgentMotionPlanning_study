@@ -157,7 +157,7 @@ React 18 + Vite + TS + Tailwind SPA. 2D 는 Konva, 수식은 KaTeX, 이중언어
 - **증명**: 산문 서술 금지. 가정 → BlockMath 부등식 체인 → 모순/결론의 단계형.
 - **수식 항 설명 필수 (`Terms` 컴포넌트)**: 모든 display 수식(BlockMath) 바로 아래에 `components/math/Terms`로 기호별 설명을 붙인다. **모든 기호를 그 자리에서 정의한다** — 이전 페이지에서 정의한 기호도 다시 적어, 독자가 페이지를 왔다 갔다 하지 않게 한다.
 - **Parameters 섹션 금지** — 웹은 알고리즘 설명이지 코드 문서가 아니다. parameter 개념은 이론 산문에서 다룬다.
-- **Demo**: 기록 trace 재생(TracePlayer: 탐색 phase 스크러버 + 실행 phase τ 재생). TraceReplay 는 py trace 한 벌만 (`<map>.py.jsonl.gz`), 배속 버튼 없이 고정. 라이브 TS 엔진을 추가하면 `scripts/check-engine-parity.mjs` 에 등록해 python 구현과 parity 를 검증한다.
+- **Demo**: 라이브 sandbox(`components/panels/Sandbox.tsx`) — 페이지가 모듈 상수 `runLive`(libs/algorithms 의 TS 엔진 = Python 구현의 정확한 미러)와 preset 시나리오를 넘기면, 브라우저에서 직접 실행하고 벽 페인팅·endpoint 드래그·agent 추가마다 재계획한다. 재생은 TracePlayer(탐색 phase 스크러버 + 실행 phase τ 재생), 배속 버튼 없이 고정. TS 엔진은 `scripts/check-engine-parity.mjs` 에 등록해 python trace 와 필드 단위 parity 를 매 빌드 검증하고, 수출 trace(`<algo>/<scenario>.jsonl.gz`)는 parity 의 기준 자료로만 쓰인다 (페이지는 더 이상 trace 를 읽지 않는다).
 - **Implementation**: 실제 저장소 소스를 vite `?raw` 로 embed (사본 금지), python/c++ 탭 토글 + 파일별 GitHub 링크.
 - **References**: 실제 논문 링크(DOI) 필수.
 - **시각 자료 적극 배치**: 페이지·소개마다 Konva figure (CanvasFigure 래핑, 테마 색은 useCanvasColors). agent 색상은 `AGENT_COLORS`, 충돌 색은 `CONFLICT_COLOR` (모두 `libs/trace/timeline.ts` 정의 — replay.py 와 공유). 데이터 표는 가운데 정렬(전역 CSS 처리됨).

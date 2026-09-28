@@ -2,14 +2,31 @@ import {ReactNode} from "react";
 import {T, useTr} from "../../libs/i18n";
 import Terms from "../../components/math/Terms";
 import {BlockMath, InlineMath} from "../../components/math/Tex";
-import TraceReplay from "../../components/panels/TraceReplay";
+import Sandbox, {ScenarioPreset} from "../../components/panels/Sandbox";
 import CodeTabs from "../../components/CodeTabs";
 import Pseudocode from "../../components/Pseudocode";
+import {runJointAStar} from "../../libs/algorithms/joint_astar";
+import {GridMap} from "../../libs/grid";
+import {Cell, TraceEvent} from "../../libs/trace/types";
 import pyImpl from "../../../../python/mrmp/mapf/joint_astar.py?raw";
 import cppHeader from "../../../../cpp/include/mrmp/mapf/joint_astar.hpp?raw";
 import cppImpl from "../../../../cpp/src/mapf/joint_astar.cpp?raw";
 
 const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
+
+// 라이브 sandbox의 엔진 — 모듈 상수여야 identity가 안정적이라 SandboxScene이
+// map/agents 변경에만 재실행한다. 이 planner는 파라미터가 없다.
+const runLive = (map: GridMap, tasks: Array<[Cell, Cell]>): TraceEvent[] =>
+    runJointAStar(map, tasks, {})
+
+// 시나리오 preset — cell 좌표는 데모/parity와 동일한 좌표계다. agent 수는 2로
+// 고정이다: 상태 공간이 |V|^k로 폭발하는 planner를 브라우저에서 실시간으로 돌리는
+// 상한이 바로 그 지수다 (3번째 agent를 못 고르는 게 아니라, 그게 페이지의 논지).
+const PRESETS: ScenarioPreset[] = [
+    {name: "maze01_two", map: "maze01", agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
+    {name: "open01_cross", map: "open01", agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
+    {name: "open01_swap", map: "open01", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+]
 
 // 접이식 증명 블록 — 본문 흐름은 직관 중심으로 유지하고, 형식 증명은 원할 때만 편다.
 const Proof = ({title, children}: {title: string; children: ReactNode}) => (
@@ -323,20 +340,24 @@ while OPEN not empty:
             <h2>Demo</h2>
             <T
                 en={<p>
-                    The same three scenarios as the prioritized page, replayed from this planner's real
-                    traces. Watch the difference in what “solving” means: every agent moves inside one
-                    search at once (the expansion bloom covers all agents simultaneously — a joint state is
-                    being expanded, not an individual path), and the finished paths are jointly optimal by
-                    construction. The costs match the prioritized page exactly (66 / 33 / 30): on these three
-                    scenarios the priority order happened to already be optimal. What differs is the price —
-                    <code>maze01_two</code> needed 10,344 joint expansions where prioritized needed 1,375. On{" "}
-                    <code>open01_cross</code>, where the Manhattan heuristic points straight down both
-                    corridors, the coupled search is actually cheaper (18 vs 35). The lesson isn't “worse”;
-                    it's that coupling pays in lockstep with how much the agents must reason about each other.
+                    The same three scenarios as the prioritized page, now live — and this sandbox is capped
+                    at two agents on purpose. The state space is <InlineMath math="|V|^k"/>: a third agent
+                    isn't a missing feature, it's what the exponential means. Watch the difference in what
+                    “solving” means: every agent moves inside one search at once (the expansion bloom covers
+                    all agents simultaneously — a joint state is being expanded, not an individual path), and
+                    the finished paths are jointly optimal by construction. The costs match the prioritized
+                    page exactly (66 / 33 / 30): on these three scenarios the priority order happened to
+                    already be optimal. What differs is the price — <code>maze01_two</code> needed 10,344
+                    joint expansions where prioritized needed 1,375. On <code>open01_cross</code>, where the
+                    Manhattan heuristic points straight down both corridors, the coupled search is actually
+                    cheaper (18 vs 35). The lesson isn't “worse”; it's that coupling pays in lockstep with
+                    how much the agents must reason about each other.
                 </p>}
                 ko={<p>
-                    우선순위 페이지와 동일한 세 시나리오를 이 planner의 실제 trace로 재생한다. “푼다”는 것의
-                    의미가 어떻게 다른지 지켜보라. 모든 agent가 하나의 탐색 안에서 동시에 움직인다. 확장 bloom이
+                    우선순위 페이지와 동일한 세 시나리오를 이제 라이브로 돌린다 — 그리고 이 sandbox는
+                    일부러 agent 2명으로 막아 두었다. 상태 공간이 <InlineMath math="|V|^k"/>이기 때문이다.
+                    agent 3번을 못 고르게 한 게 기능이 아니라, 그게 지수의 의미다. “푼다”는 것의 의미가
+                    어떻게 다른지 지켜보라. 모든 agent가 하나의 탐색 안에서 동시에 움직인다. 확장 bloom이
                     모든 agent에 동시에 피어나고(개별 경로가 joint 상태가 확장되는 것이다), 완성된 경로는 구성상
                     jointly optimal이다. 비용은 우선순위 페이지와 정확히 일치한다(66 / 33 / 30). 이 세 시나리오에서
                     우선순위 순서는 우연히 이미 최적이었다. 다른 것은 대가다. <code>maze01_two</code>는 joint 확장
@@ -345,28 +366,25 @@ while OPEN not empty:
                     아니다. 결합은 agent들이 서로에 대해 얼마나 추론해야 하는지에 비례해서 대가를 청구한다는 것이다.
                 </p>}
             />
-            <TraceReplay algo="joint_astar" label={t(
-                "Recorded traces from the repository's joint_astar demo (joint-state expansion + execution replay)",
-                "저장소의 joint_astar demo가 방출한 실제 trace(joint 상태 확장 + 실행 재생)",
-            )} sources={[
-                {scenario: "maze01_two", map: "maze01"},
-                {scenario: "open01_cross", map: "open01"},
-                {scenario: "open01_swap", map: "open01"},
-            ]}/>
+            <Sandbox maxAgents={2} label={t(
+                "Live joint_astar sandbox — byte-identical to the Python/C++ planner, capped at two agents because |V|^k is the lesson. Draw walls, drag endpoints; every edit re-plans and replays",
+                "라이브 joint_astar sandbox — Python/C++ planner와 바이트 단위로 동일하고, |V|^k가 논지이므로 agent 2명으로 막혀 있습니다. 벽을 그리고 endpoint를 끄면 모든 편집이 즉시 재계획·재생됩니다",
+            )} presets={PRESETS} run={runLive}/>
 
             <h2>Implementation</h2>
             <T
                 en={<p>
-                    Python and C++ mirror each other line for line, and the browser engine that powers parity
-                    checking is a third mirror: same heap tie-breaks (the push counter starts at 1), same{" "}
+                    Python and C++ mirror each other line for line, and the browser engine that powers the
+                    live sandbox above — and backs parity checking — is a third mirror: same heap tie-breaks
+                    (the push counter starts at 1), same{" "}
                     <InlineMath math="(\text{agent order}, \text{last fastest})"/> product enumeration, same
                     flattened joint-state events — so all three produce byte-identical traces on every
                     scenario, which <code>check-engine-parity</code> verifies on every build. The code below
                     is the actual source, not an excerpt.
                 </p>}
                 ko={<p>
-                    Python과 C++ 구현은 서로 줄 대 줄 미러이고, parity 검사를 뒷받침하는 브라우저 엔진이 세 번째
-                    미러다. 동일한 heap tie-break(push 카운터는 1부터 시작), 동일한{" "}
+                    Python과 C++ 구현은 서로 줄 대 줄 미러이고, 위 라이브 sandbox를 움직이는 브라우저 엔진이
+                    세 번째 미러다. parity 검사도 이 엔진이 뒷받침한다. 동일한 heap tie-break(push 카운터는 1부터 시작), 동일한{" "}
                     <InlineMath math="(\text{agent 순서}, \text{마지막이 가장 빠름})"/> product 열거, 동일한 평면화된
                     joint 상태 이벤트. 그래서 셋 모두 모든 시나리오에서 바이트 단위로 동일한 trace를 만들고,{" "}
                     <code>check-engine-parity</code>가 빌드마다 이를 검증한다. 아래 코드는 발췌가 아니라 실제 소스
