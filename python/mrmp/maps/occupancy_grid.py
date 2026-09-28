@@ -93,5 +93,15 @@ class OccupancyGrid2D(MapBase):
         4-connected move set (diagonals are not moves here)."""
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
+    def cells(self) -> list[Cell]:
+        """Every passable cell in canonical row-major order (row ascending, then
+        column) — the motion graph's vertex set for uniform waypoint sampling."""
+        return [
+            (r, c)
+            for r in range(self._height)
+            for c in range(self._width)
+            if self._free[r][c]
+        ]
+
     def capabilities(self) -> set[Capability]:
         return {Capability.DISCRETE_SPACE}
