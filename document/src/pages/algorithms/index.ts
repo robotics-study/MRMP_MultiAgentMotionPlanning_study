@@ -94,10 +94,24 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
+    // subdimensional 갈래의 첫 회원 — joint 공간을 통째로 탐색하는 대신 개별 policy를
+    // 먼저 세우고 충돌이 나는 곳에서만 차원을 올린다. 논문 자체의 이산화 없이도
+    // 격자 위에서 정확히 구성 가능(BFS tree가 optimal individual policy)하다.
     {
         slug: "subdimensional_rrt",
         title: {en: "sRRT", ko: "sRRT"},
         section: "sampling",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./sampling/subdimensional_rrt")),
+        sections: [
+            {en: "From Joint Trees to Individual Policies", ko: "joint 트리에서 개별 policy로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
     },
     {
         slug: "drrt",

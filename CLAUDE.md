@@ -9,9 +9,9 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 두 갈�
 | 섹션 (= 코드 디렉토리) | 알고리즘 (⏳ = planned) | 베이스 클래스 |
 |---|---|---|
 | `search` | Prioritized A*, Push and Swap ⏳, Push and Rotate ⏳, Joint-space A*, CBS | `MultiAgentPlanner` |
-| `sampling` | MA-RRT*, sRRT ⏳, dRRT ⏳, dRRT* ⏳ | `MultiAgentPlanner` — MA-RRT*는 논문의 자체 이산화(G-RRT*)로 `DiscreteSpace` 위에서 구현; 연속 공간 capability은 sRRT/dRRT wave와 함께 |
+| `sampling` | MA-RRT*, sRRT, dRRT ⏳, dRRT* ⏳ | `MultiAgentPlanner` — MA-RRT*는 논문의 자체 이산화(G-RRT*)로, sRRT는 individual policy(BFS tree)가 격자에서 정확히 구성되므로 `DiscreteSpace` 위에서 구현; 연속 공간 capability은 dRRT wave와 함께 |
 
-계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. priority 갈래의 완성인 decentralized 계열 — Push and Swap(Luna & Bekris, IJCAI 2011) → Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014) — 은 planned(예약 동결 대신 push/swap primitive로 치우며, component당 빈 셀 ≥2이면 완전하다고 주장 — 그 주장을 검증·보완하는 것이 Push and Rotate). sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled — 논문 자체의 이산화 G-RRT*로 DiscreteSpace 위에서 구현 완료) → sRRT(Wagner, Kang & Choset 2012) ⏳ → dRRT(Solovey, Salzman & Halperin 2016) ⏳ → dRRT*(Dobson et al. 2017) ⏳ 순서. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
+계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. priority 갈래의 완성인 decentralized 계열 — Push and Swap(Luna & Bekris, IJCAI 2011) → Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014) — 은 planned(예약 동결 대신 push/swap primitive로 치우며, component당 빈 셀 ≥2이면 완전하다고 주장 — 그 주장을 검증·보완하는 것이 Push and Rotate). sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled — 논문 자체의 이산화 G-RRT*로 DiscreteSpace 위에서 구현 완료) → sRRT(Wagner, Kang & Choset 2012, subdimensional — individual policy + collision set, 같은 DiscreteSpace 위에서 구현 완료) → dRRT(Solovey, Salzman & Halperin 2016) ⏳ → dRRT*(Dobson et al. 2017) ⏳ 순서. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
 
 모든 알고리즘은 추상 클래스 기반으로 다음 세 가지가 자동으로 성립해야 한다:
 1. **Performance estimate** — 공통 metric(sum_of_costs, makespan, expanded nodes, success)을 benchmark runner가 수집.
