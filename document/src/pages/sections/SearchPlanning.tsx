@@ -125,7 +125,11 @@ const SearchPlanning = () => {
                             <strong>Decoupled — Prioritized A*.</strong> Order the agents; each plans
                             with single-agent A* in space-time, treating earlier agents' paths as
                             moving obstacles. Fast and scalable, but incomplete: a bad priority order
-                            can paint later agents into corners.
+                            can paint later agents into corners. The planned <strong>Push and Swap</strong>
+                            keeps per-agent planning yet drops the frozen reservations — push shoves a
+                            blocker out of the way along its own shortest path, swap exchanges two
+                            agents outright — complete on any graph with at least two free cells per
+                            connected component.
                         </li>
                         <li>
                             <strong>Coupled — Joint-space A*.</strong> Search the joint space
@@ -149,7 +153,10 @@ const SearchPlanning = () => {
                             <strong>Decoupled (Prioritized A*).</strong> agent에 순서를 매기고, 각자
                             앞선 agent들의 경로를 움직이는 장애물로 취급하며 시공간 A*로
                             계획한다. 빠르고 확장성 있지만 불완전하다: 우선순위를 잘못 매기면 뒤의
-                            agent를 구석에 가둘 수 있다.
+                            agent를 구석에 가둘 수 있다. 이 극단의 완성은 planned인 Push and Swap이다.
+                            예약 동결을 포기하지 않으면서 lower-priority agent를 push로 밀어내고
+                            swap으로 자리를 맞바꿔 완전성을 얻는다. component당 빈 셀이 2개 이상이면
+                            항상 성공한다.
                         </li>
                         <li>
                             <strong>Coupled (Joint-space A*).</strong> joint 공간을 직접 탐색한다.
@@ -190,21 +197,25 @@ const SearchPlanning = () => {
             <h2>{t("All Three Poles, in Reading Order", "세 극단, 읽는 순서")}</h2>
             <T
                 en={<p>
-                    All three poles are now written up and implemented. Read{" "}
+                    All three poles have a written representative now. Read{" "}
                     <strong>Prioritized A*</strong> first (the decoupled pole), then{" "}
                     <strong>Joint-Space A*</strong> — the coupled baseline that everything else is
-                    measured against — and finally <strong>CBS</strong>, the hybrid in between. Each
-                    gets the same derivation, proof, and live interactive sandbox treatment as the
-                    single-robot pages. When this branch is read through, the genealogy continues in
-                    the sibling section: the same coupling axis, re-fought with motion trees over
-                    continuous configuration space.
+                    measured against — and finally <strong>CBS</strong>, the hybrid in between. The
+                    priority pole's completion, <strong>Push and Swap</strong> and its fix{" "}
+                    <strong>Push and Rotate</strong>, sits on the roadmap. Each gets the same
+                    derivation, proof, and live interactive sandbox treatment as the single-robot
+                    pages. When this branch is read through, the genealogy continues in the sibling
+                    section: the same coupling axis, re-fought with motion trees over continuous
+                    configuration space.
                 </p>}
                 ko={<p>
-                    세 극단 모두 집필·구현이 끝났다. 먼저 <strong>Prioritized A*</strong> (decoupled
-                    극단)를 읽고, 이어서 모든 것이 여기에 대해 저울질되는 coupled baseline{" "}
+                    세 극단이 모두 대표 알고리즘을 갖췄다. 먼저 <strong>Prioritized A*</strong>
+                    (decoupled 극단)를 읽고, 이어서 모든 것이 여기에 대해 저울질되는 coupled baseline{" "}
                     <strong>Joint-Space A*</strong>를 읽고, 마지막으로 그 사이 어딘가의 hybrid{" "}
-                    <strong>CBS</strong>를 읽어라. 각각 단일 로봇 페이지와 같은 유도·증명과 라이브
-                    interactive sandbox로 다룬다. 이 갈래를 다 읽으면 계보는 자매 섹션으로 이어진다.
+                    <strong>CBS</strong>를 읽어라. priority 극단의 완성인 <strong>Push and Swap</strong>와
+                    그 보완 <strong>Push and Rotate</strong>는 로드맵에 있다. 각각 단일 로봇 페이지와 같은
+                    유도·증명과 라이브 interactive sandbox로 다룬다. 이 갈래를 다 읽으면 계보는 자매
+                    섹션으로 이어진다.
                     같은 결합 축을 연속적인 configuration space 위의 motion tree로 다시 싸우는 갈래.
                 </p>}
             />

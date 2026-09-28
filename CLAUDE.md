@@ -8,10 +8,10 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 두 갈�
 
 | 섹션 (= 코드 디렉토리) | 알고리즘 (⏳ = planned) | 베이스 클래스 |
 |---|---|---|
-| `search` | Prioritized A*, Joint-space A*, CBS | `MultiAgentPlanner` |
+| `search` | Prioritized A*, Push and Swap ⏳, Push and Rotate ⏳, Joint-space A*, CBS | `MultiAgentPlanner` |
 | `sampling` ⏳ | MA-RRT*, sRRT, dRRT, dRRT* | wave 때 설계 (continuous space capability 포함) |
 
-계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled) → sRRT(Wagner, Kang & Choset 2012) → dRRT(Solovey, Salzman & Halperin 2016) → dRRT*(Dobson et al. 2017) 순서로 planned. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
+계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. priority 갈래의 완성인 decentralized 계열 — Push and Swap(Luna & Bekris, IJCAI 2011) → Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014) — 은 planned(예약 동결 대신 push/swap primitive로 완전성 확보, slidable graph: component당 빈 셀 ≥2). sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled) → sRRT(Wagner, Kang & Choset 2012) → dRRT(Solovey, Salzman & Halperin 2016) → dRRT*(Dobson et al. 2017) 순서로 planned. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
 
 모든 알고리즘은 추상 클래스 기반으로 다음 세 가지가 자동으로 성립해야 한다:
 1. **Performance estimate** — 공통 metric(sum_of_costs, makespan, expanded nodes, success)을 benchmark runner가 수집.
