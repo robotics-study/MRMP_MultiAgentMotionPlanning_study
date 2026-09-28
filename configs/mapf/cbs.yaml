@@ -1,0 +1,7 @@
+# CBS (Sharon et al. 2015): best-first constraint-tree search over per-agent space-time
+# A* sub-searches. No tunable parameters by design: unit costs, the Manhattan heuristic,
+# FIFO tie-breaking and the earliest-conflict tie-break order are all fixed by the
+# algorithm's definition, exactly like the other two planners.
+algorithm: cbs
+category: mapf
+params: []
