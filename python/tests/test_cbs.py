@@ -20,8 +20,8 @@ from mrmp.core.capabilities import Capability
 from mrmp.core.params import ParamSet
 from mrmp.core.trace import TraceRecorder
 from mrmp.core.types import AgentTask, Cell
-from mrmp.mapf import Cbs
 from mrmp.maps.loader import load_map, load_scenario
+from mrmp.search import Cbs
 
 
 def _occ(path: list[Cell], t: int) -> Cell:

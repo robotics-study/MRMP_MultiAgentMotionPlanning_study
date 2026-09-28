@@ -1,16 +1,17 @@
 # mrmp
 
-다중 로봇(MAPF) planning 알고리즘 구현체 + demo 모음. C++ / Python 독립 이중 구현.
+Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 두 갈래(search-based MAPF, sampling-based MRMP)를 C++ / Python 독립 이중 구현으로.
 
 ## 프로젝트 개요
 
-**여러 로봇의 조율(MAPF)** 알고리즘만 다룬다. 모든 agent는 하나의 shared grid 위에서 계획하고, 출력은 agent별 충돌 없는 시공간(space-time) 경로다. 단일 로봇 navigation 알고리즘은 이 저장소의 범위가 아니다 — 자매 저장소 [nav_study](https://github.com/robotics-study/navigation_basic) 에서 다룬다.
+**여러 로봇의 조율(multi-agent motion planning)** 알고리즘만 다룬다. 계보의 1차 분류 축은 planner 타입(survey: Bui et al. 2023): search 기반은 모든 agent가 하나의 shared grid 위에서 이산 상태를 열거해 시공간(space-time) 경로를 찾고, sampling 기반은 연속 configuration space에서 표본 채취로 계획한다. 단일 로봇 navigation 알고리즘은 이 저장소의 범위가 아니다 — 자매 저장소 [nav_study](https://github.com/robotics-study/navigation_basic) 에서 다룬다.
 
-| 카테고리 | 알고리즘 (계획) | 베이스 클래스 |
+| 섹션 (= 코드 디렉토리) | 알고리즘 (⏳ = planned) | 베이스 클래스 |
 |---|---|---|
-| mapf | Prioritized A*, Joint-space A*, CBS | `MultiAgentPlanner` |
+| `search` | Prioritized A*, Joint-space A*, CBS | `MultiAgentPlanner` |
+| `sampling` ⏳ | MA-RRT*, sRRT, dRRT, dRRT* | wave 때 설계 (continuous space capability 포함) |
 
-계보 순서: decoupled(Prioritized A*, Erdmann & Lozano-Pérez 1987) → coupled(Joint-space A*, 모든 것의 baseline) → hybrid(CBS, Sharon et al. 2015). 새 알고리즘도 이 계보 위치에 끼워 넣는다.
+계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled) → sRRT(Wagner, Kang & Choset 2012) → dRRT(Solovey, Salzman & Halperin 2016) → dRRT*(Dobson et al. 2017) 순서로 planned. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
 
 모든 알고리즘은 추상 클래스 기반으로 다음 세 가지가 자동으로 성립해야 한다:
 1. **Performance estimate** — 공통 metric(sum_of_costs, makespan, expanded nodes, success)을 benchmark runner가 수집.
@@ -29,13 +30,13 @@
 ├── maps/                        # 공용 벤치마크 맵 데이터
 │   ├── grid/                    #   occupancy grid (ROS 스타일 yaml + pgm)
 │   └── scenarios/               #   agents(start/goal world 좌표) 시나리오 (yaml, 맵 참조)
-├── configs/mapf/                # 알고리즘별 파라미터 yaml (언어 공용)
+├── configs/<section>/           # 알고리즘별 파라미터 yaml (언어 공용) — section ∈ {search, sampling}
 ├── cpp/
 │   ├── CMakeLists.txt
 │   ├── include/mrmp/
 │   │   ├── core/                # planner.hpp, params.hpp, trace.hpp, types.hpp, capabilities.hpp
 │   │   ├── maps/                # occupancy_grid.hpp, pgm.hpp, loader.hpp
-│   │   └── mapf/                #   (알고리즘 헤더 — wave별로 추가)
+│   │   └── search/              #   알고리즘 헤더 (사이트 섹션과 1:1 — sampling/ 은 wave 때 추가)
 │   ├── src/                     # include/와 동일 구조의 구현
 │   ├── demos/                   # demo_<algo>.cpp — 실행 시 trace 파일 출력
 │   └── tests/                   # GoogleTest
@@ -44,7 +45,7 @@
 │   ├── mrmp/
 │   │   ├── core/                # planner.py, params.py, trace.py, types.py, capabilities.py
 │   │   ├── maps/                # cpp include/mrmp/maps/ 와 1:1 미러
-│   │   └── mapf/                #   (알고리즘 모듈 — wave별로 추가)
+│   │   └── search/              #   알고리즘 모듈 (사이트 섹션과 1:1 — sampling/ 은 wave 때 추가)
 │   ├── demos/                   # demo_<algo>.py — demo_common.run(name, factory) 조립만
 │   └── tests/                   # pytest
 └── tools/                       # Python. mrmp 패키지에 의존 (설치 후 사용)
@@ -58,7 +59,7 @@
 ### 의존 방향 (위반은 리뷰 Critical)
 - `core` 는 stdlib(+ Eigen / numpy)만 의존한다. 알고리즘·맵 모듈을 알지 못한다.
 - `maps` 는 `core` 만 의존한다.
-- 알고리즘 모듈(`mapf`)은 `core` 의 추상 인터페이스에만 의존한다. **구체 맵 클래스 직접 참조 금지.**
+- 알고리즘 모듈(`search`, 이후 `sampling`)은 `core` 의 추상 인터페이스에만 의존한다. **구체 맵 클래스 직접 참조 금지.**
 - `tools/viz`, `tools/bench`, `tools/web_export` 는 trace/param/map 포맷(spec)과 `core`/`maps` 로더에만 의존한다. 알고리즘 내부 상태 접근 금지 — 시각화에 필요한 모든 정보는 trace 이벤트로 방출되어야 한다.
 - `demos` 는 최상위 조립 계층: 알고리즘 + maps + configs 를 묶기만 한다. 로직 금지.
 
@@ -81,7 +82,7 @@
 
 ### 파라미터 추상화
 - 각 알고리즘은 자신의 `ParamSet` 을 선언한다: 파라미터 이름, 타입, 기본값, 유효 범위/제약. 선언 형식은 `spec/param_schema.json` 을 따른다.
-- 값은 `configs/mapf/<algorithm>.yaml` 에서 로드하고 로드 시점에 선언 기반 검증(범위 밖 → 에러)을 수행한다. 코드에 매직 넘버로 파라미터를 심지 않는다.
+- 값은 `configs/search/<algorithm>.yaml` 에서 로드하고 로드 시점에 선언 기반 검증(범위 밖 → 에러)을 수행한다. 코드에 매직 넘버로 파라미터를 심지 않는다.
 - 같은 yaml 을 C++/Python 양쪽이 그대로 읽는다.
 
 ### Trace (step-by-step 시각화의 계약)
@@ -92,7 +93,7 @@
 - **데모 산출물 형식 (룰)**: 모든 알고리즘의 demo trace 는 `replay.py` 로 (1) 애니메이션 **GIF** (`--gif`, 탐색 진행 + 실행 재생) 와 (2) 탐색 중간 과정 **PNG 스냅샷** 세트 (`--snapshots`, 진행률 균등 분할) 로 렌더링 가능해야 한다. 산출물은 두 언어 데모 각각에 대해 `out/viz/<algo>/py/`, `out/viz/<algo>/cpp/` 아래에 둔다 (`out/` 은 gitignore — 커밋하지 않는다).
 
 ### Benchmark
-- `tools/bench/run_matrix.py` 는 (scenario × algorithm) 조합을 실행하고 metric 을 수집한다: success, sum_of_costs, makespan, expanded_nodes. 알고리즘 열은 `configs/mapf/<algo>.yaml` + `python/demos/demo_<algo>.py` 가 둘 다 존재할 때 발견된다.
+- `tools/bench/run_matrix.py` 는 (scenario × algorithm) 조합을 실행하고 metric 을 수집한다: success, sum_of_costs, makespan, expanded_nodes. 알고리즘 열은 `configs/search/<algo>.yaml` + `python/demos/demo_<algo>.py` 가 둘 다 존재할 때 발견된다.
 - C++ demo 는 같은 CLI 인자로 같은 trace 를 출력하므로 언어 비교가 가능하다.
 
 ## 빌드 / 테스트 / 실행
@@ -112,7 +113,7 @@ PYTHONPATH=$PWD/python .venv/bin/python -m mypy python/mrmp tools
 # Demo (예시 — 두 언어가 동일한 인자 형태를 갖는다)
 python python/demos/demo_prioritized_astar.py --map maps/grid/maze01.yaml \
     --scenario maps/scenarios/maze01_two.yaml \
-    --params configs/mapf/prioritized_astar.yaml --trace out/trace.jsonl
+    --params configs/search/prioritized_astar.yaml --trace out/trace.jsonl
 ./cpp/build/demos/demo_prioritized_astar --map ... --scenario ... \
     --params ... --trace out/trace.cpp.jsonl
 
@@ -126,7 +127,7 @@ PYTHONPATH=$PWD/python python tools/web_export/export_web_assets.py \
 
 ## 새 알고리즘 추가 체크리스트
 
-1. `configs/mapf/<algo>.yaml` 에 파라미터 선언 + 기본값 작성.
+1. `configs/search/<algo>.yaml` 에 파라미터 선언 + 기본값 작성.
 2. `MultiAgentPlanner` 를 상속해 C++/Python 양쪽 구현 (`required_capabilities()` 선언 포함). 계보 순서 유지.
 3. 탐색 단계마다 trace 이벤트 방출. 새 이벤트 타입이 필요하면 `spec/trace_schema.json` 먼저 갱신.
 4. 두 언어 각각 demo 추가 (`demo_common.run(name, factory)` 패턴 — 조립만, 로직 금지).
@@ -146,7 +147,7 @@ PYTHONPATH=$PWD/python python tools/web_export/export_web_assets.py \
 
 ## 문서 사이트 (document/)
 
-React 18 + Vite + TS + Tailwind SPA. 2D 는 Konva, 수식은 KaTeX, 이중언어는 `<T en ko>`. 대분류(Multi-Agent Path Finding)는 저장소 최상위 카테고리와 1:1 미러 — 섹션은 `mapf` 하나뿐이다. 빌드/검증: `cd document && yarn build`, dev 서버 `yarn dev`.
+React 18 + Vite + TS + Tailwind SPA. 2D 는 Konva, 수식은 KaTeX, 이중언어는 `<T en ko>`. 사이트 섹션(`search` / `sampling`)은 저장소 코드 디렉토리와 1:1 미러 — 알고리즘 페이지는 `pages/algorithms/<section>/<slug>.tsx`, 카드·사이드바 그룹핑도 같은 섹션 키를 쓴다. 빌드/검증: `cd document && yarn build`, dev 서버 `yarn dev`.
 
 ### 알고리즘 페이지 규칙 (순서 고정)
 
@@ -173,4 +174,4 @@ React 18 + Vite + TS + Tailwind SPA. 2D 는 Konva, 수식은 KaTeX, 이중언어
 ### PR 워크플로우
 
 - **머지된 브랜치에 후속 커밋을 push 하지 않는다.** push 전에 해당 브랜치 PR 상태를 확인하고, 이미 머지됐으면 main 에서 새 브랜치를 파서 새 PR 로 올린다.
-- 알고리즘 wave 는 `feat/mapf-<slug>` 브랜치 → PR (간단한 계획 포함) → 리뷰 코멘트 → 수정 → merge → 브랜치 삭제. base 는 main.
+- 알고리즘 wave 는 `feat/<section>-<slug>` 브랜치 → PR (간단한 계획 포함) → 리뷰 코멘트 → 수정 → merge → 브랜치 삭제. base 는 main.

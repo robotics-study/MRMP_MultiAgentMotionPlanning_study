@@ -10,16 +10,26 @@ import Home from "./pages/home/Home";
 import AlgorithmContents from "./components/AlgorithmContents";
 import SectionContents from "./components/SectionContents";
 import {BASE_PATH} from "./libs/url";
-import {BrowserRouter, Routes, Route} from "react-router-dom";
+import {useNavigate, useLocation, BrowserRouter, Routes, Route} from "react-router-dom";
 import {useAlgoNav} from "./libs/nav";
 import cn from "./libs/cn";
 import {LangProvider, useLang} from "./libs/i18n";
 
 const PageSelector = () => {
+    const navigate = useNavigate()
+    const location = useLocation()
     const {lang} = useLang()
     const {current, currentSection} = useAlgoNav()
     const [menuOpen, setMenuOpen] = useState(false)
     const closeMenu = useCallback(() => setMenuOpen(false), [])
+
+    // 섹션 키가 mapf → search로 바뀌었다. 예전 링크(/section/mapf)는 언어 쿼리를
+    // 유지한 채 새 경로로 정리한다.
+    useEffect(() => {
+        if (location.pathname === "/section/mapf") {
+            navigate({pathname: "/section/search", search: location.search}, {replace: true})
+        }
+    }, [location.pathname, location.search, navigate])
 
     // 집필되지 않은 slug(planned 항목 클릭 등)은 intro도 없어 그대로 홈이 렌더된다.
     const currentAlgo = useMemo(

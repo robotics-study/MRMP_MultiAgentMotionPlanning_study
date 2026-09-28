@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from demo_common import run
 
-from mrmp.mapf import Cbs
+from mrmp.search import Cbs
 
 if __name__ == "__main__":
     run("cbs", Cbs)

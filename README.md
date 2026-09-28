@@ -4,18 +4,19 @@
 
 ### 🌐 [robotics-study.github.io/MRMP_MultiAgentMotionPlanning_study](https://robotics-study.github.io/MRMP_MultiAgentMotionPlanning_study/)
 
-문서 사이트가 라이브입니다 — 알고리즘 페이지가 준비되면 위 링크로 연결됩니다. (한국어/English 토글 내장)
+문서 사이트가 라이브입니다 — 알고리즘마다 유도·증명·라이브 sandbox 페이지. (한국어/English 토글 내장)
 
-**다중 로봇(MAPF) planning 알고리즘 — C++ / Python 독립 이중 구현 스터디**
+**Multi-agent motion planning 의 계보 — search 기반(MAPF)과 sampling 기반(MRMP)을 C++ / Python 독립 이중 구현으로 스터디**
 
 같은 추상화 설계를 두 언어로 미러링하고, 언어 공용 trace 포맷으로 탐색 과정을 기록하며,<br>
 브라우저 라이브 sandbox 로 직접 돌려보고, (scenario × algorithm) 매트릭스로 벤치마크한다.
 단일 로봇 navigation 은 자매 저장소<br>
 [nav_study](https://github.com/robotics-study/navigation_basic) 에서 다룬다.
 
-*Multi-agent (MAPF) planning algorithms, mirrored in C++20 and Python — with step-by-step
-visualization, live in-browser sandboxes running the same engines, and a benchmark matrix.
-Single-robot navigation lives in the sibling nav_study repo.*
+*The genealogy of multi-agent motion planning — the search-based branch (MAPF) and the
+sampling-based branch — mirrored in C++20 and Python, with step-by-step visualization, live
+in-browser sandboxes running the same engines, and a benchmark matrix. Single-robot navigation
+lives in the sibling nav_study repo.*
 
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)
@@ -52,13 +53,17 @@ Single-robot navigation lives in the sibling nav_study repo.*
 
 ## 🗺️ 구현 현황 (parity)
 
-| 카테고리 | 알고리즘 | C++ | Python | 원 논문 |
+| 섹션 | 알고리즘 | C++ | Python | 원 논문 |
 |---|---|:---:|:---:|---|
-| mapf | Prioritized A* | ✅ | ✅ | Erdmann & Lozano-Pérez (1987) |
-| mapf | Joint-space A* | ✅ | ✅ | joint-state search (관행적 baseline) |
-| mapf | CBS | ✅ | ✅ | Sharon, Stern, Felner & Sturtevant (2015) |
+| search | Prioritized A* | ✅ | ✅ | Erdmann & Lozano-Pérez (1987) |
+| search | Joint-space A* | ✅ | ✅ | joint-state search (관행적 baseline) |
+| search | CBS | ✅ | ✅ | Sharon, Stern, Felner & Sturtevant (2015) |
+| sampling | MA-RRT* | ⏳ | ⏳ | Čáp, Novák, Vokřínek & Pěchouček (2013) |
+| sampling | sRRT | ⏳ | ⏳ | Wagner, Kang & Choset (2012) |
+| sampling | dRRT | ⏳ | ⏳ | Solovey, Salzman & Halperin (2016) |
+| sampling | dRRT* | ⏳ | ⏳ | Dobson, Mattern, Patterson, Song & Kavraki (2017) |
 
-⏳ planned — 계보순(decoupled → coupled → hybrid)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
+각 갈래 안에서 계보순(decoupled → coupled → hybrid)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. sampling 갈래는 연속 configuration space 를 다루므로 새 capability(맵 타입)이 함께 들어온다. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
 
 ## 🚀 빠른 시작
 
@@ -79,12 +84,12 @@ ctest --test-dir cpp/build     # 55 tests
 # Python
 python python/demos/demo_prioritized_astar.py \
   --map maps/grid/maze01.yaml --scenario maps/scenarios/maze01_two.yaml \
-  --params configs/mapf/prioritized_astar.yaml --trace out/trace.jsonl
+  --params configs/search/prioritized_astar.yaml --trace out/trace.jsonl
 
 # C++ (동일 인자)
 ./cpp/build/demos/demo_prioritized_astar \
   --map maps/grid/maze01.yaml --scenario maps/scenarios/maze01_two.yaml \
-  --params configs/mapf/prioritized_astar.yaml --trace out/trace.cpp.jsonl
+  --params configs/search/prioritized_astar.yaml --trace out/trace.cpp.jsonl
 ```
 
 stdout 에 한 줄 JSON metric(`sum_of_costs`·`makespan`·`expanded_nodes`), `--trace` 경로에 step-by-step JSONL trace 가 남는다.
@@ -118,7 +123,7 @@ python tools/bench/run_matrix.py --out out/report.md
 
 ## 🧭 새 알고리즘 추가
 
-1. `configs/mapf/<algo>.yaml` 파라미터 선언 → 2. 두 언어 구현 (`required_capabilities()` 포함)
+1. `configs/search/<algo>.yaml` 파라미터 선언 → 2. 두 언어 구현 (`required_capabilities()` 포함)
 → 3. trace 이벤트 방출 → 4. 두 언어 demo → 5. 단위 테스트 (최적성/충돌 없음/no-path/param 검증)
 → 6. bench 매트릭스 통과 → 7. `replay.py --gif/--snapshots` 렌더 확인 → 8. parity 표 + 문서 사이트 페이지 갱신.
 

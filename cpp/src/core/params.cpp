@@ -33,11 +33,11 @@ ParamSet ParamSet::from_yaml(const std::string& path) {
 
   ParamSet set;
   set.algorithm_ = root.at("algorithm").as_string();
-  set.category_ = root.at("category").as_string();
-  // The repo has exactly one algorithm category — a config declaring anything
-  // else is stale (or from the single-robot sibling repo).
-  if (set.category_ != "mapf") {
-    fail("unknown category '" + set.category_ + "'");
+  set.section_ = root.at("section").as_string();
+  // A config declares which family (site section) its algorithm belongs to — a
+  // config declaring anything else is stale. Mirrored in Python.
+  if (set.section_ != "search" && set.section_ != "sampling") {
+    fail("unknown section '" + set.section_ + "'");
   }
 
   const YamlNode& params = root.at("params");

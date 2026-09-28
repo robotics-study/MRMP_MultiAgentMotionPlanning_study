@@ -8,10 +8,10 @@ import {useLang, useTr, pick} from "../libs/i18n";
 const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
 
 // supportedExample(python/c++) → 실제 구현 파일로 가는 chip 링크. 알고리즘 파일은
-// python/mrmp/mapf/<slug>.py · cpp/include/mrmp/mapf/<slug>.hpp 에 있다.
+// python/mrmp/search/<slug>.py · cpp/include/mrmp/search/<slug>.hpp 에 있다.
 const codeLinkFor = (algo: IAlgoData, language: string): string | null => {
-    if (language === "c++") return `${REPO}/blob/main/cpp/include/mrmp/mapf/${algo.slug}.hpp`
-    if (language === "python") return `${REPO}/blob/main/python/mrmp/mapf/${algo.slug}.py`
+    if (language === "c++") return `${REPO}/blob/main/cpp/include/mrmp/search/${algo.slug}.hpp`
+    if (language === "python") return `${REPO}/blob/main/python/mrmp/search/${algo.slug}.py`
     return null
 }
 

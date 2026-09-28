@@ -1,7 +1,7 @@
 import {GridMap} from "../grid";
 import {Cell, TraceEvent} from "../trace/types";
 
-// 브라우저 라이브 데모용 prioritized planning. python/mrmp/mapf/prioritized_astar.py의
+// 브라우저 라이브 데모용 prioritized planning. python/mrmp/search/prioritized_astar.py의
 // 정확한 미러 — 고정 이웃 순서(up/down/left/right/wait), (f, seq) lexicographic
 // tie-break, stay-at-goal 점유, pop 시점 goal guard, 정적 flood-fill 사전 검사로
 // 유한화한 시간축까지 같아 trace가 필드 단위로 일치한다. 시각화용이 아니라

@@ -41,26 +41,38 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
     },
 ];
 
-// 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 이 저장소는 MAPF 하나가
-// 전부다 (파일 구조 pages/algorithms/<slug>/ 도 slug만 공유한다). 알고리즘 배치는
-// 항상 계보순: decoupled(Prioritized A*) → coupled(Joint-space A*, 모든 것의 baseline)
-// → hybrid(CBS) — CBS가 앞 둘을 "각자 계획"과 "전체 최적"의 양극으로 소개하므로
-// 그 두 극을 먼저 보여 준다.
+// 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 갈래는 survey(Bui 2023)가
+// planner 타입으로 나누는 그대로다: search-based(그래프 위 열거 탐색)와
+// sampling-based(연속 configuration space의 표본 채취). 각 섹션 안의 알고리즘 배치는
+// 항상 계보순 — 결합 축을 따라 decoupled → coupled → hybrid 순서로 읽는다. 소스 코드
+// 트리(python/mrmp/<section>/)와 configs(<section>/<slug>.yaml)도 이 구분을 따른다.
 export const SECTIONS: Array<{
     key: AlgoSection;
     title: Localized<string>;
     desc: Localized<string>;
 }> = [
     {
-        key: "mapf",
-        title: {en: "Multi-Agent Path Finding", ko: "Multi-Agent Path Finding"},
+        key: "search",
+        title: {en: "Search-Based Planning", ko: "Search-Based Planning"},
         desc: {
-            en: "Planning paths for several robots on one shared map: a collision-free " +
-                "space-time path per agent. Decoupled prioritized planning, coupled " +
-                "joint-space search, and the hybrid in between (CBS).",
-            ko: "여러 로봇이 하나의 지도를 공유할 경로를 계획한다: agent마다 충돌 없는 " +
-                "시공간 경로. decoupled 우선순위 계획, coupled joint-space 탐색, 그리고 " +
-                "그 사이 어딘가의 CBS.",
+            en: "Point robots on one shared graph — Multi-Agent Path Finding proper. Enumerate " +
+                "states exactly, and read the branch along its coupling axis: decoupled " +
+                "prioritized planning, coupled joint-space search, and the hybrid in between (CBS).",
+            ko: "하나의 그래프를 공유하는 점 로봇들 — Multi-Agent Path Finding 그 자체. 상태를 " +
+                "정확하게 열거하고, 결합 축을 따라 읽는다: decoupled 우선순위 계획, coupled " +
+                "joint-space 탐색, 그리고 그 사이 어딘가의 hybrid(CBS).",
+        },
+    },
+    {
+        key: "sampling",
+        title: {en: "Sampling-Based Planning", ko: "Sampling-Based Planning"},
+        desc: {
+            en: "Robots with geometry in continuous configuration space: sample instead of " +
+                "enumerate — joint-state motion trees, subdimensional expansion, implicit " +
+                "roadmaps. The same coupling axis reappears; this branch is still unwritten.",
+            ko: "기하를 가진 로봇을 연속적인 configuration space에서 계획한다 — 열거 대신 " +
+                "샘플링. joint 상태의 motion tree, subdimensional expansion, implicit roadmap. 같은 " +
+                "결합 축이 다시 나타나며, 이 갈래는 아직 집필 중이다.",
         },
     },
 ];

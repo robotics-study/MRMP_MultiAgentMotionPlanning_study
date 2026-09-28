@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from demo_common import run
 
-from mrmp.mapf import PrioritizedAStar
+from mrmp.search import PrioritizedAStar
 
 if __name__ == "__main__":
     run("prioritized_astar", PrioritizedAStar)

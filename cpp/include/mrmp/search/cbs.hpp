@@ -11,7 +11,7 @@
 #include "mrmp/core/trace.hpp"
 #include "mrmp/core/types.hpp"
 
-namespace mrmp::mapf {
+namespace mrmp::search {
 
 // CBS — Conflict-Based Search, the hybrid pole of the MAPF genealogy.
 //
@@ -49,7 +49,7 @@ namespace mrmp::mapf {
 //
 // Determinism contract: identical heap tie-breaks ((cost, seq) / (f, seq), counters
 // from 0), identical neighbor order and conflict ordering — C++/Python/TS runs
-// produce byte-identical traces. Mirrors python/mrmp/mapf/cbs.py bit-for-bit.
+// produce byte-identical traces. Mirrors python/mrmp/search/cbs.py bit-for-bit.
 class Cbs final : public core::MultiAgentPlanner {
  public:
   explicit Cbs(core::ParamSet params) : MultiAgentPlanner(std::move(params)) {}
@@ -98,4 +98,4 @@ class Cbs final : public core::MultiAgentPlanner {
                            const core::Cell& to_cell);
 };
 
-}  // namespace mrmp::mapf
+}  // namespace mrmp::search

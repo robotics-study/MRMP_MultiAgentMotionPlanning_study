@@ -11,7 +11,7 @@
 #include "mrmp/core/trace.hpp"
 #include "mrmp/core/types.hpp"
 
-namespace mrmp::mapf {
+namespace mrmp::search {
 
 // Prioritized planning — plan agents one at a time, later agents treat earlier
 // paths as moving obstacles.
@@ -38,7 +38,7 @@ namespace mrmp::mapf {
 // Determinism contract: neighbor order is the map's fixed up/down/left/right/wait
 // order and equal-f ties pop in push order (lexicographic (f, seq) heap key), so
 // C++/Python/TS runs produce identical expansions and paths. Mirrors
-// python/mrmp/mapf/prioritized_astar.py bit-for-bit.
+// python/mrmp/search/prioritized_astar.py bit-for-bit.
 class PrioritizedAStar final : public core::MultiAgentPlanner {
  public:
   explicit PrioritizedAStar(core::ParamSet params) : MultiAgentPlanner(std::move(params)) {}
@@ -64,4 +64,4 @@ class PrioritizedAStar final : public core::MultiAgentPlanner {
       core::TraceRecorder* recorder) const;
 };
 
-}  // namespace mrmp::mapf
+}  // namespace mrmp::search

@@ -1,4 +1,4 @@
-#include "mrmp/mapf/cbs.hpp"
+#include "mrmp/search/cbs.hpp"
 
 #include <algorithm>
 #include <deque>
@@ -7,7 +7,7 @@
 #include <tuple>
 #include <utility>
 
-namespace mrmp::mapf {
+namespace mrmp::search {
 
 using core::Cell;
 using core::ConflictKind;
@@ -301,4 +301,4 @@ Cbs::first_conflict(const std::vector<std::vector<Cell>>& paths) {
   return std::nullopt;
 }
 
-}  // namespace mrmp::mapf
+}  // namespace mrmp::search

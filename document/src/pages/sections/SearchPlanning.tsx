@@ -4,7 +4,8 @@ import SpaceTimeConflict from "../../components/panels/intro/SpaceTimeConflict";
 import MultiCorridorPriority from "../../components/panels/intro/MultiCorridorPriority";
 import MultiConstraintTree from "../../components/panels/intro/MultiConstraintTree";
 
-const MultiAgent = () => {
+// search 갈래 소개 페이지 — 계보의 첫 갈래(그래프 위 열거 탐색)와 그 안의 결합 축을 소개한다.
+const SearchPlanning = () => {
     const t = useTr()
     return (
         <>
@@ -20,6 +21,39 @@ const MultiAgent = () => {
                     창고는 그렇지 않다: 각자로서는 완벽한 경로들이 모이면 불가능해질 수 있다.
                     Multi-agent planning은 <em>공존하는</em> 경로들을 찾는 일이다.
                 </p>}
+            />
+
+            <T
+                en={<>
+                    <p>
+                        The field sorts itself by what the planner does: survey taxonomies split
+                        multi-robot planners into search-based, sampling-based, and learning-guided
+                        families (Bui 2023), and this site follows that axis. <em>This</em> section is
+                        the search branch — discrete states enumerated exactly. Its sibling{" "}
+                        <em>sampling-based</em> section probes continuous configuration space with
+                        random samples instead.
+                    </p>
+                    <p>
+                        Inside each branch runs the same second axis, the one that makes planning
+                        for many robots different in kind: how the agents are coupled. This branch
+                        is where all three coupling strategies were invented, and it is written here
+                        in exactly that order.
+                    </p>
+                </>}
+                ko={<>
+                    <p>
+                        이 분야는 planner가 무엇을 하는지로 스스로를 정리한다: survey 분류들은
+                        multi-robot planner를 search 기반, sampling 기반, 학습 기반으로 나눈다
+                        (Bui 2023). 이 사이트도 그 축을 따른다. <em>이</em> 섹션은 search 갈래다 —
+                        이산 상태를 정확하게 열거한다. 자매 섹션인 <em>sampling-based</em>는 대신
+                        연속적인 configuration space를 무작위 표본으로 찔러 본다.
+                    </p>
+                    <p>
+                        각 갈래 안에는 같은 두 번째 축이 흐른다. 여러 로봇의 계획을 종류가
+                        다르게 만드는 바로 그 축, agent들이 어떻게 결합되는가다. 세 결합 전략이 모두
+                        이 갈래에서 발명됐고, 이 섹션은 정확히 그 순서대로 읽는다.
+                    </p>
+                </>}
             />
 
             <h2>{t("The Problem", "문제 정의")}</h2>
@@ -161,18 +195,21 @@ const MultiAgent = () => {
                     <strong>Joint-Space A*</strong> — the coupled baseline that everything else is
                     measured against — and finally <strong>CBS</strong>, the hybrid in between. Each
                     gets the same derivation, proof, and live interactive sandbox treatment as the
-                    single-robot pages.
+                    single-robot pages. When this branch is read through, the genealogy continues in
+                    the sibling section: the same coupling axis, re-fought with motion trees over
+                    continuous configuration space.
                 </p>}
                 ko={<p>
                     세 극단 모두 집필·구현이 끝났다. 먼저 <strong>Prioritized A*</strong> (decoupled
                     극단)를 읽고, 이어서 모든 것이 여기에 대해 저울질되는 coupled baseline{" "}
                     <strong>Joint-Space A*</strong>를 읽고, 마지막으로 그 사이 어딘가의 hybrid{" "}
                     <strong>CBS</strong>를 읽어라. 각각 단일 로봇 페이지와 같은 유도·증명과 라이브
-                    interactive sandbox로 다룬다.
+                    interactive sandbox로 다룬다. 이 갈래를 다 읽으면 계보는 자매 섹션으로 이어진다.
+                    같은 결합 축을 연속적인 configuration space 위의 motion tree로 다시 싸우는 갈래.
                 </p>}
             />
         </>
     )
 }
 
-export default MultiAgent
+export default SearchPlanning

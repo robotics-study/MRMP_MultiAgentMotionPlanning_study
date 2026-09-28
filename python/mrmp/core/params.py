@@ -1,4 +1,4 @@
-"""Declarative algorithm parameters loaded from configs/<category>/<algo>.yaml.
+"""Declarative algorithm parameters loaded from configs/<section>/<algo>.yaml.
 
 Mirrors the C++ `core/params.hpp`. The yaml *is* the declaration (per
 `spec/param_schema.json`) carrying defaults; the loader validates type / range /
@@ -72,9 +72,9 @@ def _check_range(decl: ParamDecl, as_float: float, value: ParamValue) -> ParamVa
 
 
 class ParamSet:
-    def __init__(self, algorithm: str, category: str, decls: dict[str, ParamDecl]) -> None:
+    def __init__(self, algorithm: str, section: str, decls: dict[str, ParamDecl]) -> None:
         self.algorithm = algorithm
-        self.category = category
+        self.section = section
         self._decls = decls
         self._values: dict[str, ParamValue] = {
             name: _check_default(decl) for name, decl in decls.items()
@@ -86,13 +86,13 @@ class ParamSet:
             raw = yaml.safe_load(fh)
         if not isinstance(raw, dict):
             raise ParamError(f"param error: {path} is not a mapping")
-        for key in ("algorithm", "category", "params"):
+        for key in ("algorithm", "section", "params"):
             if key not in raw:
                 raise ParamError(f"param error: {path} missing required key '{key}'")
-        # The repo has exactly one algorithm category — a config declaring anything
-        # else is stale (or from the single-robot sibling repo). Mirrored in C++.
-        if raw["category"] != "mapf":
-            raise ParamError(f"param error: unknown category {raw['category']!r}")
+        # A config declares which family (site section) its algorithm belongs to —
+        # a config declaring anything else is stale. Mirrored in C++.
+        if raw["section"] not in ("search", "sampling"):
+            raise ParamError(f"param error: unknown section {raw['section']!r}")
         params = raw["params"]
         if not isinstance(params, list):
             raise ParamError(f"param error: {path} 'params' must be a list")
@@ -115,7 +115,7 @@ class ParamSet:
                 description=entry["description"],
             )
             decls[decl.name] = decl
-        return cls(raw["algorithm"], raw["category"], decls)
+        return cls(raw["algorithm"], raw["section"], decls)
 
     def _typed(self, name: str, expected: str) -> ParamValue:
         if name not in self._decls:

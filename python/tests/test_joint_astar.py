@@ -13,9 +13,9 @@ from conftest import REPO_ROOT, config, grid_from
 from mrmp.core.capabilities import Capability
 from mrmp.core.trace import TraceRecorder
 from mrmp.core.types import AgentTask, Cell
-from mrmp.mapf import JointAStar
 from mrmp.maps.loader import load_map, load_scenario
 from mrmp.maps.occupancy_grid import OccupancyGrid2D
+from mrmp.search import JointAStar
 
 
 def _occ(path: list[Cell], t: int) -> Cell:

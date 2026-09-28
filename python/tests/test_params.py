@@ -13,7 +13,7 @@ from mrmp.core.params import ParamError, ParamSet
 def test_empty_params_loads_and_values_is_empty(tmp_path: Path) -> None:
     cfg = write_config(tmp_path / "ok.yaml", "x", [])
     ps = ParamSet.from_yaml(cfg)
-    assert ps.algorithm == "x" and ps.category == "mapf"
+    assert ps.algorithm == "x" and ps.section == "search"
     assert ps.values() == {}
 
 
@@ -51,7 +51,7 @@ def test_enum_choice_violation_raises(tmp_path: Path) -> None:
 
 def test_missing_required_key_raises(tmp_path: Path) -> None:
     p = tmp_path / "bad.yaml"
-    p.write_text("algorithm: x\ncategory: mapf\n", encoding="utf-8")
+    p.write_text("algorithm: x\nsection: search\n", encoding="utf-8")
     with pytest.raises(ParamError):
         ParamSet.from_yaml(p)
 

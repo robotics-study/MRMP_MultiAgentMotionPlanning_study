@@ -11,7 +11,7 @@ from mrmp.core.params import ParamSet
 from mrmp.maps.occupancy_grid import OccupancyGrid2D
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-CONFIG_DIR = REPO_ROOT / "configs" / "mapf"
+CONFIG_DIR = REPO_ROOT / "configs" / "search"
 
 
 def config(algo: str) -> ParamSet:
@@ -32,6 +32,6 @@ def grid_from(free_rows: list[str]) -> OccupancyGrid2D:
 
 
 def write_config(path: Path, algorithm: str, params: list[dict[str, object]]) -> Path:
-    doc = {"algorithm": algorithm, "category": "mapf", "params": params}
+    doc = {"algorithm": algorithm, "section": "search", "params": params}
     path.write_text(yaml.safe_dump(doc), encoding="utf-8")
     return path

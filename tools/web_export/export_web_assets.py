@@ -103,7 +103,12 @@ def params_file(algo: str, overrides: dict[str, str], tmp: Path) -> Path:
     re-run with smaller budgets; parameters are recorded in the trace's
     planning_started event, so replay and parity stay exact either way.
     """
-    src = REPO / "configs" / "mapf" / f"{algo}.yaml"
+    matches = sorted((REPO / "configs").rglob(f"{algo}.yaml"))
+    if len(matches) != 1:
+        raise SystemExit(
+            f"expected exactly one configs/<section>/{algo}.yaml, found {len(matches)}"
+        )
+    src = matches[0]
     if not overrides:
         return src
     doc = yaml.safe_load(src.read_text())

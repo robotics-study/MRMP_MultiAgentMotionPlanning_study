@@ -4,7 +4,7 @@
 Runs each Python demo as a subprocess and collects metrics from the trace's
 `planning_finished` event plus makespan from its `path_found` events. Depends on
 spec/core/maps only — it never imports an algorithm module; an algorithm is
-runnable exactly when `configs/mapf/<algo>.yaml` and `python/demos/demo_<algo>.py`
+runnable exactly when `configs/<section>/<algo>.yaml` and `python/demos/demo_<algo>.py`
 both exist, which is how the matrix discovers its columns.
 """
 
@@ -109,8 +109,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="MRMP benchmark matrix runner")
     parser.add_argument("--scenarios", default=str(_REPO_ROOT / "maps" / "scenarios"))
     parser.add_argument(
-        "--configs", default=str(_REPO_ROOT / "configs" / "mapf"),
-        help="algorithm-config dir (algo id -> <dir>/<algo>.yaml)",
+        "--configs", default=str(_REPO_ROOT / "configs"),
+        help="algorithm-config root (algo id -> <section-dir>/<algo>.yaml under it)",
     )
     parser.add_argument("--demos", default=str(_REPO_ROOT / "python" / "demos"))
     parser.add_argument("--out", default=str(_REPO_ROOT / "out" / "report.md"))
@@ -124,7 +124,7 @@ def main() -> None:
     scenarios_dir = Path(args.scenarios)
     configs_dir = Path(args.configs)
     demos_dir = Path(args.demos)
-    algos = args.algos or sorted(p.stem for p in configs_dir.glob("*.yaml"))
+    algos = args.algos or sorted(p.stem for p in configs_dir.rglob("*.yaml"))
 
     scenario_paths = sorted(scenarios_dir.glob("*.yaml"))
     rows: list[Row] = []
@@ -132,10 +132,15 @@ def main() -> None:
         for algo in algos:
             # A missing config still runs the demo subprocess with a nonexistent
             # --params path so an explicit --algos request fails loudly ("error"),
-            # never silently skipped.
-            rows.append(
-                _run_one(args.python, demos_dir, configs_dir / f"{algo}.yaml", scenario_path, algo)
-            )
+            # never silently skipped. Slugs are globally unique across sections —
+            # two matches is a repo bug, not a tie to break silently.
+            found = sorted(configs_dir.rglob(f"{algo}.yaml"))
+            if len(found) > 1:
+                raise SystemExit(
+                    f"expected exactly one configs/<section>/{algo}.yaml, found {len(found)}"
+                )
+            config_path = found[0] if found else configs_dir / f"{algo}.yaml"
+            rows.append(_run_one(args.python, demos_dir, config_path, scenario_path, algo))
             print(f"ran {scenario_path.name} x {algo} -> {rows[-1].status}", file=sys.stderr)
 
     out_path = Path(args.out)
