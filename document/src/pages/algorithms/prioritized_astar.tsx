@@ -8,9 +8,9 @@ import Pseudocode from "../../components/Pseudocode";
 import {runPrioritizedAStar} from "../../libs/algorithms/prioritized_astar";
 import {GridMap} from "../../libs/grid";
 import {Cell, TraceEvent} from "../../libs/trace/types";
-import pyImpl from "../../../../python/mrmp/mapf/prioritized_astar.py?raw";
-import cppHeader from "../../../../cpp/include/mrmp/mapf/prioritized_astar.hpp?raw";
-import cppImpl from "../../../../cpp/src/mapf/prioritized_astar.cpp?raw";
+import pyImpl from "../../../../python/mrmp/search/prioritized_astar.py?raw";
+import cppHeader from "../../../../cpp/include/mrmp/search/prioritized_astar.hpp?raw";
+import cppImpl from "../../../../cpp/src/search/prioritized_astar.cpp?raw";
 
 // 라이브 sandbox의 엔진 — 모듈 상수여야 identity가 안정적이라 SandboxScene이
 // map/agents 변경에만 재실행한다. 이 planner는 파라미터가 없다.
@@ -454,9 +454,9 @@ const PrioritizedAStar = () => {
                         lang: "python",
                         files: [
                             {
-                                name: "python/mrmp/mapf/prioritized_astar.py",
+                                name: "python/mrmp/search/prioritized_astar.py",
                                 code: pyImpl,
-                                href: `${REPO}/blob/main/python/mrmp/mapf/prioritized_astar.py`,
+                                href: `${REPO}/blob/main/python/mrmp/search/prioritized_astar.py`,
                             },
                         ],
                     },
@@ -465,14 +465,14 @@ const PrioritizedAStar = () => {
                         lang: "cpp",
                         files: [
                             {
-                                name: "cpp/include/mrmp/mapf/prioritized_astar.hpp",
+                                name: "cpp/include/mrmp/search/prioritized_astar.hpp",
                                 code: cppHeader,
-                                href: `${REPO}/blob/main/cpp/include/mrmp/mapf/prioritized_astar.hpp`,
+                                href: `${REPO}/blob/main/cpp/include/mrmp/search/prioritized_astar.hpp`,
                             },
                             {
-                                name: "cpp/src/mapf/prioritized_astar.cpp",
+                                name: "cpp/src/search/prioritized_astar.cpp",
                                 code: cppImpl,
-                                href: `${REPO}/blob/main/cpp/src/mapf/prioritized_astar.cpp`,
+                                href: `${REPO}/blob/main/cpp/src/search/prioritized_astar.cpp`,
                             },
                         ],
                     },

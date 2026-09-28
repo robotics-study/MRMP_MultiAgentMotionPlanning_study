@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from demo_common import run
 
-from mrmp.mapf import JointAStar
+from mrmp.search import JointAStar
 
 if __name__ == "__main__":
     run("joint_astar", JointAStar)

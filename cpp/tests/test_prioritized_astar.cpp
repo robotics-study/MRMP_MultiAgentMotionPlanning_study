@@ -12,7 +12,7 @@
 #include "mrmp/core/params.hpp"
 #include "mrmp/core/trace.hpp"
 #include "mrmp/core/types.hpp"
-#include "mrmp/mapf/prioritized_astar.hpp"
+#include "mrmp/search/prioritized_astar.hpp"
 #include "mrmp/maps/loader.hpp"
 #include "mrmp/maps/occupancy_grid.hpp"
 #include "test_util.hpp"
@@ -43,7 +43,7 @@ void assert_joint_valid(const std::vector<std::vector<core::Cell>>& paths) {
 }
 
 core::ParamSet config() {
-  return core::ParamSet::from_yaml(test::repo_path("configs/mapf/prioritized_astar.yaml"));
+  return core::ParamSet::from_yaml(test::repo_path("configs/search/prioritized_astar.yaml"));
 }
 
 // Load a repo scenario and convert its world-coord endpoints to cells (exactly
@@ -71,7 +71,7 @@ int cost_of(const std::vector<core::Cell>& path) { return static_cast<int>(path.
 }  // namespace
 
 TEST(PrioritizedAStar, ContractMatchesConfig) {
-  mapf::PrioritizedAStar planner(config());
+  search::PrioritizedAStar planner(config());
   EXPECT_EQ(planner.name(), config().algorithm());
   EXPECT_TRUE(planner.required_capabilities().count(core::Capability::DISCRETE_SPACE) > 0);
   EXPECT_EQ(planner.required_capabilities().size(), 1u);
@@ -80,7 +80,7 @@ TEST(PrioritizedAStar, ContractMatchesConfig) {
 TEST(PrioritizedAStar, SingleAgentIsPlainOptimalAStar) {
   // With one agent there are no reservations: cost must equal the Manhattan
   // distance (the unconstrained optimum) on an open grid.
-  mapf::PrioritizedAStar planner(config());
+  search::PrioritizedAStar planner(config());
   auto grid = test::make_grid({".....", ".....", ".....", ".....", "....."});
   std::vector<core::AgentTask> tasks{{core::Cell{4, 0}, core::Cell{0, 4}}};
   core::MultiPlanResult r = planner.plan(grid, tasks, nullptr);
@@ -95,7 +95,7 @@ TEST(PrioritizedAStar, Maze01TwoHeadOnPassesByTiming) {
   // Both agents share the one corridor but their timings stagger naturally:
   // each still achieves its unconstrained shortest cost (33 + 33 = 66).
   ScenarioSetup s = scenario("maze01_two");
-  core::MultiPlanResult r = mapf::PrioritizedAStar(config()).plan(s.grid, s.tasks, nullptr);
+  core::MultiPlanResult r = search::PrioritizedAStar(config()).plan(s.grid, s.tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   EXPECT_DOUBLE_EQ(r.cost, 66.0);
@@ -108,7 +108,7 @@ TEST(PrioritizedAStar, Open01CrossBothGoStraight) {
   // The crossing at (10,9) is timed apart without either agent slowing down:
   // both costs equal their Manhattan distance (16 + 17 = 33).
   ScenarioSetup s = scenario("open01_cross");
-  core::MultiPlanResult r = mapf::PrioritizedAStar(config()).plan(s.grid, s.tasks, nullptr);
+  core::MultiPlanResult r = search::PrioritizedAStar(config()).plan(s.grid, s.tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   EXPECT_DOUBLE_EQ(r.cost, 33.0);
@@ -122,7 +122,7 @@ TEST(PrioritizedAStar, Open01SwapDetoursAroundTheMovingWall) {
   // cannot pass it head-on (parity rules out cost 15) and must detour via an
   // adjacent row — 14 + 16 = 30, which here equals the joint optimum.
   ScenarioSetup s = scenario("open01_swap");
-  core::MultiPlanResult r = mapf::PrioritizedAStar(config()).plan(s.grid, s.tasks, nullptr);
+  core::MultiPlanResult r = search::PrioritizedAStar(config()).plan(s.grid, s.tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   EXPECT_DOUBLE_EQ(r.cost, 30.0);
@@ -137,7 +137,7 @@ TEST(PrioritizedAStar, HeadOnCorridorSwapIsUnsolvable) {
   auto grid = test::make_grid({"#####", ".....", "#####"});
   std::vector<core::AgentTask> tasks{{core::Cell{1, 0}, core::Cell{1, 4}},
                                      {core::Cell{1, 4}, core::Cell{1, 0}}};
-  core::MultiPlanResult r = mapf::PrioritizedAStar(config()).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::PrioritizedAStar(config()).plan(grid, tasks, nullptr);
   EXPECT_FALSE(r.success);
   EXPECT_TRUE(r.paths.empty());
 }
@@ -149,7 +149,7 @@ TEST(PrioritizedAStar, PocketYieldMakesTheSwapSolvable) {
   auto grid = test::make_grid({"#######", "####.##", ".......", "#######"});
   std::vector<core::AgentTask> tasks{{core::Cell{2, 0}, core::Cell{2, 6}},
                                      {core::Cell{2, 6}, core::Cell{2, 0}}};
-  core::MultiPlanResult r = mapf::PrioritizedAStar(config()).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::PrioritizedAStar(config()).plan(grid, tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   ASSERT_EQ(r.paths.size(), 2u);
@@ -164,7 +164,7 @@ TEST(PrioritizedAStar, GoalStaysOccupiedUntilArrival) {
   auto grid = test::make_grid({".....", "##.##"});
   std::vector<core::AgentTask> tasks{{core::Cell{0, 0}, core::Cell{0, 4}},
                                      {core::Cell{1, 2}, core::Cell{0, 2}}};
-  core::MultiPlanResult r = mapf::PrioritizedAStar(config()).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::PrioritizedAStar(config()).plan(grid, tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   ASSERT_EQ(r.paths.size(), 2u);
@@ -177,7 +177,7 @@ TEST(PrioritizedAStar, StartCellOccupiedFailsImmediately) {
   auto grid = test::make_grid({"..", ".."});
   std::vector<core::AgentTask> tasks{{core::Cell{0, 0}, core::Cell{1, 1}},
                                      {core::Cell{0, 0}, core::Cell{1, 0}}};
-  core::MultiPlanResult r = mapf::PrioritizedAStar(config()).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::PrioritizedAStar(config()).plan(grid, tasks, nullptr);
   EXPECT_FALSE(r.success);
 }
 
@@ -187,7 +187,7 @@ TEST(PrioritizedAStar, TraceEventsAndMetrics) {
   std::vector<core::AgentTask> tasks{{core::Cell{2, 0}, core::Cell{2, 2}},
                                      {core::Cell{0, 2}, core::Cell{2, 0}}};
   core::TraceRecorder rec(os);
-  mapf::PrioritizedAStar planner(config());
+  search::PrioritizedAStar planner(config());
   core::MultiPlanResult r = planner.plan(grid, tasks, &rec);
   ASSERT_TRUE(r.success);
 

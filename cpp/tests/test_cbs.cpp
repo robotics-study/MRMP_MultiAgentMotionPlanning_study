@@ -12,7 +12,7 @@
 #include "mrmp/core/params.hpp"
 #include "mrmp/core/trace.hpp"
 #include "mrmp/core/types.hpp"
-#include "mrmp/mapf/cbs.hpp"
+#include "mrmp/search/cbs.hpp"
 #include "mrmp/maps/loader.hpp"
 #include "mrmp/maps/occupancy_grid.hpp"
 #include "test_util.hpp"
@@ -43,14 +43,14 @@ void assert_joint_valid(const std::vector<std::vector<core::Cell>>& paths) {
 }
 
 core::ParamSet config() {
-  return core::ParamSet::from_yaml(test::repo_path("configs/mapf/cbs.yaml"));
+  return core::ParamSet::from_yaml(test::repo_path("configs/search/cbs.yaml"));
 }
 
 // The cbs config with a smaller CT-expansion budget (deterministic stops).
 core::ParamSet budget_config(int budget) {
   return core::ParamSet::from_yaml(test::write_temp(
       "cbs_budget.yaml",
-      "algorithm: cbs\ncategory: mapf\nparams:\n  - name: max_ct_expansions\n    type: int\n"
+      "algorithm: cbs\nsection: search\nparams:\n  - name: max_ct_expansions\n    type: int\n"
       "    default: " +
           std::to_string(budget) + "\n    min: 1\n    description: test budget\n"));
 }
@@ -86,7 +86,7 @@ int makespan_of(const std::vector<std::vector<core::Cell>>& paths) {
 }  // namespace
 
 TEST(Cbs, ContractMatchesConfig) {
-  mapf::Cbs planner(config());
+  search::Cbs planner(config());
   EXPECT_EQ(planner.name(), config().algorithm());
   EXPECT_TRUE(planner.required_capabilities().count(core::Capability::DISCRETE_SPACE) > 0);
   EXPECT_EQ(planner.required_capabilities().size(), 1u);
@@ -97,7 +97,7 @@ TEST(Cbs, ContractMatchesConfig) {
 TEST(Cbs, SingleAgentIsPlainOptimalAStar) {
   // One agent, no possible conflict: the CT never branches and the root's
   // unconstrained sub-search IS the answer — the Manhattan optimum.
-  mapf::Cbs planner(config());
+  search::Cbs planner(config());
   auto grid = test::make_grid({".....", ".....", ".....", ".....", "....."});
   std::vector<core::AgentTask> tasks{{core::Cell{4, 0}, core::Cell{0, 4}}};
   core::MultiPlanResult r = planner.plan(grid, tasks, nullptr);
@@ -112,7 +112,7 @@ TEST(Cbs, Maze01TwoHeadOnPassesByTiming) {
   // The joint optimum equals what prioritized achieved by luck of timing; CBS
   // reaches it by branching on the corridor meeting instead of by priority.
   ScenarioSetup s = scenario("maze01_two");
-  core::MultiPlanResult r = mapf::Cbs(config()).plan(s.grid, s.tasks, nullptr);
+  core::MultiPlanResult r = search::Cbs(config()).plan(s.grid, s.tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   EXPECT_DOUBLE_EQ(r.cost, 66.0);
@@ -123,7 +123,7 @@ TEST(Cbs, Open01CrossBothGoStraight) {
   // The crossing is timed apart without either agent slowing down: both costs
   // equal their Manhattan distance (16 + 17 = 33) — the joint optimum.
   ScenarioSetup s = scenario("open01_cross");
-  core::MultiPlanResult r = mapf::Cbs(config()).plan(s.grid, s.tasks, nullptr);
+  core::MultiPlanResult r = search::Cbs(config()).plan(s.grid, s.tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   EXPECT_DOUBLE_EQ(r.cost, 33.0);
@@ -135,7 +135,7 @@ TEST(Cbs, Open01SwapDetoursAroundTheMovingWall) {
   // 30 and one of them detours — CBS finds it by branching on the head-on
   // collision instead of hoping a priority order stumbles into it.
   ScenarioSetup s = scenario("open01_swap");
-  core::MultiPlanResult r = mapf::Cbs(config()).plan(s.grid, s.tasks, nullptr);
+  core::MultiPlanResult r = search::Cbs(config()).plan(s.grid, s.tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   EXPECT_DOUBLE_EQ(r.cost, 30.0);
@@ -150,7 +150,7 @@ TEST(Cbs, DuplicateStartFailsByBranchingToDeadEnds) {
   auto grid = test::make_grid({"..", ".."});
   std::vector<core::AgentTask> tasks{{core::Cell{0, 0}, core::Cell{1, 1}},
                                      {core::Cell{0, 0}, core::Cell{1, 0}}};
-  core::MultiPlanResult r = mapf::Cbs(config()).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::Cbs(config()).plan(grid, tasks, nullptr);
   EXPECT_FALSE(r.success);
   EXPECT_TRUE(r.paths.empty());
   // Root expansions only: both children died before expanding anything.
@@ -166,7 +166,7 @@ TEST(Cbs, CorridorSwapBudgetStop) {
   auto grid = test::make_grid({"#####", ".....", "#####"});
   std::vector<core::AgentTask> tasks{{core::Cell{1, 0}, core::Cell{1, 4}},
                                      {core::Cell{1, 4}, core::Cell{1, 0}}};
-  core::MultiPlanResult r = mapf::Cbs(budget_config(8)).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::Cbs(budget_config(8)).plan(grid, tasks, nullptr);
   EXPECT_FALSE(r.success);
   EXPECT_TRUE(r.paths.empty());
   // Root (both agents' unconstrained A*s) + seven more CT expansions before the
@@ -179,7 +179,7 @@ TEST(Cbs, BudgetExhaustionIsNotAVerdict) {
   // alone. A budget stop says "no solution found within budget", never
   // "unsolvable" — the pair to the default-config test above.
   ScenarioSetup s = scenario("open01_cross");
-  core::MultiPlanResult r = mapf::Cbs(budget_config(1)).plan(s.grid, s.tasks, nullptr);
+  core::MultiPlanResult r = search::Cbs(budget_config(1)).plan(s.grid, s.tasks, nullptr);
   EXPECT_FALSE(r.success);
   EXPECT_GT(r.stats.expanded_nodes, 0);
 }
@@ -191,7 +191,7 @@ TEST(Cbs, PocketYieldMakesTheSwapSolvable) {
   auto grid = test::make_grid({"#######", "####.##", ".......", "#######"});
   std::vector<core::AgentTask> tasks{{core::Cell{2, 0}, core::Cell{2, 6}},
                                      {core::Cell{2, 6}, core::Cell{2, 0}}};
-  core::MultiPlanResult r = mapf::Cbs(config()).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::Cbs(config()).plan(grid, tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   EXPECT_DOUBLE_EQ(r.cost, 15.0);
@@ -207,7 +207,7 @@ TEST(Cbs, TraceShowsTheConstraintTreeLifecycle) {
   std::vector<core::AgentTask> tasks{{core::Cell{2, 0}, core::Cell{2, 2}},
                                      {core::Cell{0, 2}, core::Cell{2, 0}}};
   core::TraceRecorder rec(os);
-  mapf::Cbs planner(config());
+  search::Cbs planner(config());
   core::MultiPlanResult r = planner.plan(grid, tasks, &rec);
   ASSERT_TRUE(r.success);
 

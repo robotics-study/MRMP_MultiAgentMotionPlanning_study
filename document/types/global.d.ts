@@ -16,7 +16,7 @@ export interface ISupportedExample {
 }
 
 export interface IAlgoData {
-    // URL 경로(/algo/<slug>)이자 configs/mapf/<slug>.yaml, 소스 파일명과 동일한 식별자.
+    // URL 경로(/algo/<slug>)이자 configs/search/<slug>.yaml, 소스 파일명과 동일한 식별자.
     slug: string,
     title: Localized,
     supportedExample?: ISupportedExample,

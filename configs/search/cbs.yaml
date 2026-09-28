@@ -6,7 +6,7 @@
 # constraint-tree expansions is what stops the search instead. A tree that empties on
 # its own IS a verdict; hitting the budget is only "no solution found within budget".
 algorithm: cbs
-category: mapf
+section: search
 params:
   - name: max_ct_expansions
     type: int

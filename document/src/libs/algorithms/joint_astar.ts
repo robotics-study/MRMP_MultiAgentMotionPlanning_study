@@ -1,7 +1,7 @@
 import {GridMap} from "../grid";
 import {Cell, TraceEvent} from "../trace/types";
 
-// 브라우저 라이브 데모용 joint-space A*. python/mrmp/mapf/joint_astar.py의 정확한
+// 브라우저 라이브 데모용 joint-space A*. python/mrmp/search/joint_astar.py의 정확한
 // 미러 — lazy-deletion A*, (f, seq) tie-break(seq는 1부터), itertools.product와
 // 동일한 successor 순서(마지막 agent가 가장 빨리 변함), 도착한 agent의 self-loop
 // 고정까지 그대로라 trace가 필드 단위로 일치한다. 시각화용이 아니라 parity 검증의

@@ -1,7 +1,7 @@
 import {GridMap} from "../grid";
 import {Cell, TraceEvent} from "../trace/types";
 
-// 브라우저 라이브 데모용 CBS. python/mrmp/mapf/cbs.py의 정확한 미러 — 고정 이웃
+// 브라우저 라이브 데모용 CBS. python/mrmp/search/cbs.py의 정확한 미러 — 고정 이웃
 // 순서(up/down/left/right/wait), (f, seq) lexicographic tie-break(low level)와
 // (cost, seq)(constraint tree queue), earliest-conflict tie-break(cell row/col
 // 그다음 pair i<j), canonical edge constraint까지 trace가 필드 단위로 일치한다.

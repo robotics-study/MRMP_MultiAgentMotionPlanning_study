@@ -3,5 +3,5 @@
 # sum-of-Manhattan heuristic, and FIFO tie-breaking are all fixed by the algorithm's
 # definition, exactly like prioritized_astar.
 algorithm: joint_astar
-category: mapf
+section: search
 params: []

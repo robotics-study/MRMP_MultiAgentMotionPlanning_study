@@ -29,7 +29,7 @@
 ├── maps/                        # 공용 벤치마크 맵 데이터
 │   ├── grid/                    #   occupancy grid (ROS 스타일 yaml + pgm)
 │   └── scenarios/               #   agents(start/goal world 좌표) 시나리오 (yaml, 맵 참조)
-├── configs/mapf/                # 알고리즘별 파라미터 yaml (언어 공용)
+├── configs/search/                # 알고리즘별 파라미터 yaml (언어 공용)
 ├── cpp/
 │   ├── CMakeLists.txt
 │   ├── include/mrmp/
@@ -81,7 +81,7 @@
 
 ### 파라미터 추상화
 - 각 알고리즘은 자신의 `ParamSet` 을 선언한다: 파라미터 이름, 타입, 기본값, 유효 범위/제약. 선언 형식은 `spec/param_schema.json` 을 따른다.
-- 값은 `configs/mapf/<algorithm>.yaml` 에서 로드하고 로드 시점에 선언 기반 검증(범위 밖 → 에러)을 수행한다. 코드에 매직 넘버로 파라미터를 심지 않는다.
+- 값은 `configs/search/<algorithm>.yaml` 에서 로드하고 로드 시점에 선언 기반 검증(범위 밖 → 에러)을 수행한다. 코드에 매직 넘버로 파라미터를 심지 않는다.
 - 같은 yaml 을 C++/Python 양쪽이 그대로 읽는다.
 
 ### Trace (step-by-step 시각화의 계약)
@@ -92,7 +92,7 @@
 - **데모 산출물 형식 (룰)**: 모든 알고리즘의 demo trace 는 `replay.py` 로 (1) 애니메이션 **GIF** (`--gif`, 탐색 진행 + 실행 재생) 와 (2) 탐색 중간 과정 **PNG 스냅샷** 세트 (`--snapshots`, 진행률 균등 분할) 로 렌더링 가능해야 한다. 산출물은 두 언어 데모 각각에 대해 `out/viz/<algo>/py/`, `out/viz/<algo>/cpp/` 아래에 둔다 (`out/` 은 gitignore — 커밋하지 않는다).
 
 ### Benchmark
-- `tools/bench/run_matrix.py` 는 (scenario × algorithm) 조합을 실행하고 metric 을 수집한다: success, sum_of_costs, makespan, expanded_nodes. 알고리즘 열은 `configs/mapf/<algo>.yaml` + `python/demos/demo_<algo>.py` 가 둘 다 존재할 때 발견된다.
+- `tools/bench/run_matrix.py` 는 (scenario × algorithm) 조합을 실행하고 metric 을 수집한다: success, sum_of_costs, makespan, expanded_nodes. 알고리즘 열은 `configs/search/<algo>.yaml` + `python/demos/demo_<algo>.py` 가 둘 다 존재할 때 발견된다.
 - C++ demo 는 같은 CLI 인자로 같은 trace 를 출력하므로 언어 비교가 가능하다.
 
 ## 빌드 / 테스트 / 실행
@@ -112,7 +112,7 @@ PYTHONPATH=$PWD/python .venv/bin/python -m mypy python/mrmp tools
 # Demo (예시 — 두 언어가 동일한 인자 형태를 갖는다)
 python python/demos/demo_prioritized_astar.py --map maps/grid/maze01.yaml \
     --scenario maps/scenarios/maze01_two.yaml \
-    --params configs/mapf/prioritized_astar.yaml --trace out/trace.jsonl
+    --params configs/search/prioritized_astar.yaml --trace out/trace.jsonl
 ./cpp/build/demos/demo_prioritized_astar --map ... --scenario ... \
     --params ... --trace out/trace.cpp.jsonl
 
@@ -126,7 +126,7 @@ PYTHONPATH=$PWD/python python tools/web_export/export_web_assets.py \
 
 ## 새 알고리즘 추가 체크리스트
 
-1. `configs/mapf/<algo>.yaml` 에 파라미터 선언 + 기본값 작성.
+1. `configs/search/<algo>.yaml` 에 파라미터 선언 + 기본값 작성.
 2. `MultiAgentPlanner` 를 상속해 C++/Python 양쪽 구현 (`required_capabilities()` 선언 포함). 계보 순서 유지.
 3. 탐색 단계마다 trace 이벤트 방출. 새 이벤트 타입이 필요하면 `spec/trace_schema.json` 먼저 갱신.
 4. 두 언어 각각 demo 추가 (`demo_common.run(name, factory)` 패턴 — 조립만, 로직 금지).

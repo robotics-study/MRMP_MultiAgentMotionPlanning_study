@@ -2,17 +2,18 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "mrmp/param-declaration.schema.json",
   "title": "mrmp parameter declaration",
-  "description": "알고리즘 ParamSet 선언의 언어 공용 계약. 각 알고리즘의 configs/<category>/<algorithm>.yaml 은 이 구조를 따르며, C++/Python 로더는 로드 시점에 type/range/choices 를 검증한다.",
+  "description": "알고리즘 ParamSet 선언의 언어 공용 계약. 각 알고리즘의 configs/<section>/<algorithm>.yaml 은 이 구조를 따르며, C++/Python 로더는 로드 시점에 type/range/choices 를 검증한다.",
   "type": "object",
-  "required": ["algorithm", "category", "params"],
+  "required": ["algorithm", "section", "params"],
   "properties": {
     "algorithm": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*$",
       "description": "알고리즘 식별자. 파일명(확장자 제외) 및 trace 의 algorithm 필드와 일치해야 한다."
     },
-    "category": {
-      "enum": ["mapf"]
+    "section": {
+      "enum": ["search", "sampling"],
+      "description": "알고리즘이 속한 계열(사이트의 섹션). configs 디렉토리 구조와 1:1 로 대응한다."
     },
     "params": {
       "type": "array",

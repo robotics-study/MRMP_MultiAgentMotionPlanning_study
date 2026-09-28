@@ -13,7 +13,7 @@
 #include "mrmp/core/params.hpp"
 #include "mrmp/core/trace.hpp"
 #include "mrmp/core/types.hpp"
-#include "mrmp/mapf/joint_astar.hpp"
+#include "mrmp/search/joint_astar.hpp"
 #include "mrmp/maps/loader.hpp"
 #include "mrmp/maps/occupancy_grid.hpp"
 #include "test_util.hpp"
@@ -44,7 +44,7 @@ void assert_joint_valid(const std::vector<std::vector<core::Cell>>& paths) {
 }
 
 core::ParamSet config() {
-  return core::ParamSet::from_yaml(test::repo_path("configs/mapf/joint_astar.yaml"));
+  return core::ParamSet::from_yaml(test::repo_path("configs/search/joint_astar.yaml"));
 }
 
 // Load a repo scenario and convert its world-coord endpoints to cells (exactly
@@ -85,7 +85,7 @@ int state_len(const std::string& line) {
 }  // namespace
 
 TEST(JointAStar, ContractMatchesConfig) {
-  mapf::JointAStar planner(config());
+  search::JointAStar planner(config());
   EXPECT_EQ(planner.name(), config().algorithm());
   EXPECT_TRUE(planner.required_capabilities().count(core::Capability::DISCRETE_SPACE) > 0);
   EXPECT_EQ(planner.required_capabilities().size(), 1u);
@@ -94,7 +94,7 @@ TEST(JointAStar, ContractMatchesConfig) {
 TEST(JointAStar, SingleAgentIsPlainOptimalAStar) {
   // With one agent the joint state degenerates to a plain cell: the search must
   // return the Manhattan optimum, exactly like prioritized's single-agent case.
-  mapf::JointAStar planner(config());
+  search::JointAStar planner(config());
   auto grid = test::make_grid({".....", ".....", ".....", ".....", "....."});
   std::vector<core::AgentTask> tasks{{core::Cell{4, 0}, core::Cell{0, 4}}};
   core::MultiPlanResult r = planner.plan(grid, tasks, nullptr);
@@ -109,7 +109,7 @@ TEST(JointAStar, Maze01TwoHeadOnPassesByTiming) {
   // The coupled optimum equals what prioritized achieved by luck of timing:
   // both agents still achieve their unconstrained shortest cost (33 + 33 = 66).
   ScenarioSetupJoint s = scenario_joint("maze01_two");
-  core::MultiPlanResult r = mapf::JointAStar(config()).plan(s.grid, s.tasks, nullptr);
+  core::MultiPlanResult r = search::JointAStar(config()).plan(s.grid, s.tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   EXPECT_DOUBLE_EQ(r.cost, 66.0);
@@ -122,7 +122,7 @@ TEST(JointAStar, Open01CrossBothGoStraight) {
   // The crossing at (10,9) is timed apart without either agent slowing down:
   // both costs equal their Manhattan distance (16 + 17 = 33) — the joint optimum.
   ScenarioSetupJoint s = scenario_joint("open01_cross");
-  core::MultiPlanResult r = mapf::JointAStar(config()).plan(s.grid, s.tasks, nullptr);
+  core::MultiPlanResult r = search::JointAStar(config()).plan(s.grid, s.tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   EXPECT_DOUBLE_EQ(r.cost, 33.0);
@@ -136,7 +136,7 @@ TEST(JointAStar, Open01SwapDetoursAroundTheMovingWall) {
   // exactly 16 and the sum 30 is the joint optimum (prioritized hit it too —
   // here that is a theorem, not luck).
   ScenarioSetupJoint s = scenario_joint("open01_swap");
-  core::MultiPlanResult r = mapf::JointAStar(config()).plan(s.grid, s.tasks, nullptr);
+  core::MultiPlanResult r = search::JointAStar(config()).plan(s.grid, s.tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   EXPECT_DOUBLE_EQ(r.cost, 30.0);
@@ -152,7 +152,7 @@ TEST(JointAStar, HeadOnCorridorSwapIsUnsolvable) {
   auto grid = test::make_grid({"#####", ".....", "#####"});
   std::vector<core::AgentTask> tasks{{core::Cell{1, 0}, core::Cell{1, 4}},
                                      {core::Cell{1, 4}, core::Cell{1, 0}}};
-  core::MultiPlanResult r = mapf::JointAStar(config()).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::JointAStar(config()).plan(grid, tasks, nullptr);
   EXPECT_FALSE(r.success);
   EXPECT_TRUE(r.paths.empty());
 }
@@ -164,7 +164,7 @@ TEST(JointAStar, PocketYieldMakesTheSwapSolvable) {
   auto grid = test::make_grid({"#######", "####.##", ".......", "#######"});
   std::vector<core::AgentTask> tasks{{core::Cell{2, 0}, core::Cell{2, 6}},
                                      {core::Cell{2, 6}, core::Cell{2, 0}}};
-  core::MultiPlanResult r = mapf::JointAStar(config()).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::JointAStar(config()).plan(grid, tasks, nullptr);
   ASSERT_TRUE(r.success);
   assert_joint_valid(r.paths);
   ASSERT_EQ(r.paths.size(), 2u);
@@ -180,7 +180,7 @@ TEST(JointAStar, ParkedGoalBlocksTheOnlyLane) {
   auto grid = test::make_grid({"#####", ".....", "#####" });
   std::vector<core::AgentTask> tasks{{core::Cell{1, 0}, core::Cell{1, 2}},
                                      {core::Cell{1, 4}, core::Cell{1, 0}}};
-  core::MultiPlanResult r = mapf::JointAStar(config()).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::JointAStar(config()).plan(grid, tasks, nullptr);
   EXPECT_FALSE(r.success);
   EXPECT_GT(r.stats.expanded_nodes, 0);
 }
@@ -191,7 +191,7 @@ TEST(JointAStar, DuplicateStartFailsImmediately) {
   auto grid = test::make_grid({"..", ".."});
   std::vector<core::AgentTask> tasks{{core::Cell{0, 0}, core::Cell{1, 1}},
                                      {core::Cell{0, 0}, core::Cell{1, 0}}};
-  core::MultiPlanResult r = mapf::JointAStar(config()).plan(grid, tasks, nullptr);
+  core::MultiPlanResult r = search::JointAStar(config()).plan(grid, tasks, nullptr);
   EXPECT_FALSE(r.success);
   EXPECT_EQ(r.stats.expanded_nodes, 0);
 }
@@ -202,7 +202,7 @@ TEST(JointAStar, TraceEventsAreJointStatesWithoutAgentOrStepFields) {
   std::vector<core::AgentTask> tasks{{core::Cell{2, 0}, core::Cell{2, 2}},
                                      {core::Cell{0, 2}, core::Cell{2, 0}}};
   core::TraceRecorder rec(os);
-  mapf::JointAStar planner(config());
+  search::JointAStar planner(config());
   core::MultiPlanResult r = planner.plan(grid, tasks, &rec);
   ASSERT_TRUE(r.success);
 

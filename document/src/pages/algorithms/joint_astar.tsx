@@ -8,9 +8,9 @@ import Pseudocode from "../../components/Pseudocode";
 import {runJointAStar} from "../../libs/algorithms/joint_astar";
 import {GridMap} from "../../libs/grid";
 import {Cell, TraceEvent} from "../../libs/trace/types";
-import pyImpl from "../../../../python/mrmp/mapf/joint_astar.py?raw";
-import cppHeader from "../../../../cpp/include/mrmp/mapf/joint_astar.hpp?raw";
-import cppImpl from "../../../../cpp/src/mapf/joint_astar.cpp?raw";
+import pyImpl from "../../../../python/mrmp/search/joint_astar.py?raw";
+import cppHeader from "../../../../cpp/include/mrmp/search/joint_astar.hpp?raw";
+import cppImpl from "../../../../cpp/src/search/joint_astar.cpp?raw";
 
 const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
 
@@ -398,9 +398,9 @@ while OPEN not empty:
                         lang: "python",
                         files: [
                             {
-                                name: "python/mrmp/mapf/joint_astar.py",
+                                name: "python/mrmp/search/joint_astar.py",
                                 code: pyImpl,
-                                href: `${REPO}/blob/main/python/mrmp/mapf/joint_astar.py`,
+                                href: `${REPO}/blob/main/python/mrmp/search/joint_astar.py`,
                             },
                         ],
                     },
@@ -409,14 +409,14 @@ while OPEN not empty:
                         lang: "cpp",
                         files: [
                             {
-                                name: "cpp/include/mrmp/mapf/joint_astar.hpp",
+                                name: "cpp/include/mrmp/search/joint_astar.hpp",
                                 code: cppHeader,
-                                href: `${REPO}/blob/main/cpp/include/mrmp/mapf/joint_astar.hpp`,
+                                href: `${REPO}/blob/main/cpp/include/mrmp/search/joint_astar.hpp`,
                             },
                             {
-                                name: "cpp/src/mapf/joint_astar.cpp",
+                                name: "cpp/src/search/joint_astar.cpp",
                                 code: cppImpl,
-                                href: `${REPO}/blob/main/cpp/src/mapf/joint_astar.cpp`,
+                                href: `${REPO}/blob/main/cpp/src/search/joint_astar.cpp`,
                             },
                         ],
                     },

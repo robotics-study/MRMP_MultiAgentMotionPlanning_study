@@ -1,11 +1,11 @@
-#include "mrmp/mapf/prioritized_astar.hpp"
+#include "mrmp/search/prioritized_astar.hpp"
 
 #include <algorithm>
 #include <deque>
 #include <queue>
 #include <utility>
 
-namespace mrmp::mapf {
+namespace mrmp::search {
 
 using core::Cell;
 using core::DiscreteSpace;
@@ -187,4 +187,4 @@ std::pair<std::optional<std::vector<Cell>>, int> PrioritizedAStar::plan_one(
   return {std::nullopt, n};
 }
 
-}  // namespace mrmp::mapf
+}  // namespace mrmp::search

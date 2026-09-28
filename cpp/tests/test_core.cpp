@@ -35,7 +35,7 @@ TEST(Yaml, ParsesRealMapAndScenarioFlowSequences) {
 }
 
 TEST(Yaml, EmptyFlowSequenceIsEmpty) {
-  std::string p = test::write_temp("p.yaml", "algorithm: x\ncategory: mapf\nparams: []\n");
+  std::string p = test::write_temp("p.yaml", "algorithm: x\nsection: search\nparams: []\n");
   core::YamlNode root = core::parse_yaml_file(p);
   EXPECT_TRUE(root.at("params").is_seq());
   EXPECT_TRUE(root.at("params").seq.empty());
@@ -46,24 +46,24 @@ TEST(Yaml, EmptyFlowSequenceIsEmpty) {
 TEST(Params, LoadsDeclaredDefaults) {
   std::string p = test::write_temp(
       "ok.yaml",
-      "algorithm: x\ncategory: mapf\nparams:\n"
+      "algorithm: x\nsection: search\nparams:\n"
       "  - name: weight\n    type: float\n    default: 1.0\n    description: w\n"
       "  - name: n\n    type: int\n    default: 3\n    min: 0\n    max: 10\n    description: n\n");
   auto ps = core::ParamSet::from_yaml(p);
   EXPECT_EQ(ps.algorithm(), "x");
-  EXPECT_EQ(ps.category(), "mapf");
+  EXPECT_EQ(ps.section(), "search");
   EXPECT_DOUBLE_EQ(ps.get_float("weight"), 1.0);
   EXPECT_EQ(ps.get_int("n"), 3);
 }
 
 TEST(Params, UnknownCategoryThrows) {
-  std::string p = test::write_temp("bad.yaml", "algorithm: x\ncategory: global_planning\nparams: []\n");
+  std::string p = test::write_temp("bad.yaml", "algorithm: x\nsection: global_planning\nparams: []\n");
   EXPECT_THROW(core::ParamSet::from_yaml(p), std::runtime_error);
 }
 
 TEST(Params, OutOfRangeDefaultThrows) {
   std::string p = test::write_temp("bad.yaml",
-                                   "algorithm: x\ncategory: mapf\nparams:\n"
+                                   "algorithm: x\nsection: search\nparams:\n"
                                    "  - name: weight\n    type: float\n"
                                    "    default: 9.0\n    min: 1.0\n    max: 5.0\n"
                                    "    description: w\n");
@@ -72,7 +72,7 @@ TEST(Params, OutOfRangeDefaultThrows) {
 
 TEST(Params, WrongTypeAccessThrows) {
   std::string p = test::write_temp("ok.yaml",
-                                   "algorithm: x\ncategory: mapf\nparams:\n"
+                                   "algorithm: x\nsection: search\nparams:\n"
                                    "  - name: n\n    type: int\n    default: 3\n    description: n\n");
   auto ps = core::ParamSet::from_yaml(p);
   EXPECT_EQ(ps.get_int("n"), 3);

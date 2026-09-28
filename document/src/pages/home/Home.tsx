@@ -35,10 +35,10 @@ const AlgoCard = ({slug, title, blurb, supportedExample, onOpen}: {
             {onOpen && langs.length > 0 && (
                 <div className="chips">
                     {langs.map((codeLang) => {
-                        // 저장소 소스 경로 — 알고리즘 파일은 python/mrmp/mapf/ · cpp/include/mrmp/mapf/ 에 있다.
+                        // 저장소 소스 경로 — 알고리즘 파일은 python/mrmp/search/ · cpp/include/mrmp/search/ 에 있다.
                         const file = codeLang === "c++"
-                            ? `cpp/include/mrmp/mapf/${slug}.hpp`
-                            : `python/mrmp/mapf/${slug}.py`
+                            ? `cpp/include/mrmp/search/${slug}.hpp`
+                            : `python/mrmp/search/${slug}.py`
                         return (
                             <a key={codeLang} className="mini-chip" target="_blank" rel="noreferrer"
                                onClick={(e) => e.stopPropagation()}

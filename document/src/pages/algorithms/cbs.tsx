@@ -8,14 +8,14 @@ import Pseudocode from "../../components/Pseudocode";
 import {runCbs} from "../../libs/algorithms/cbs";
 import {GridMap} from "../../libs/grid";
 import {Cell, TraceEvent} from "../../libs/trace/types";
-import pyImpl from "../../../../python/mrmp/mapf/cbs.py?raw";
-import cppHeader from "../../../../cpp/include/mrmp/mapf/cbs.hpp?raw";
-import cppImpl from "../../../../cpp/src/mapf/cbs.cpp?raw";
+import pyImpl from "../../../../python/mrmp/search/cbs.py?raw";
+import cppHeader from "../../../../cpp/include/mrmp/search/cbs.hpp?raw";
+import cppImpl from "../../../../cpp/src/search/cbs.cpp?raw";
 
 const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
 
 // 라이브 sandbox의 엔진 — 모듈 상수여야 identity가 안정적이라 SandboxScene이
-// map/agents 변경에만 재실행한다. 파라미터는 저장소의 configs/mapf/cbs.yaml과
+// map/agents 변경에만 재실행한다. 파라미터는 저장소의 configs/search/cbs.yaml과
 // 같은 값: CT 확장 예산 64 (root가 첫 번째 확장으로 계산된다).
 const runLive = (map: GridMap, tasks: Array<[Cell, Cell]>): TraceEvent[] =>
     runCbs(map, tasks, {max_ct_expansions: 64})
@@ -501,9 +501,9 @@ return failure — queue empty = verdict; budget hit = budget              # 11`
                         lang: "python",
                         files: [
                             {
-                                name: "python/mrmp/mapf/cbs.py",
+                                name: "python/mrmp/search/cbs.py",
                                 code: pyImpl,
-                                href: `${REPO}/blob/main/python/mrmp/mapf/cbs.py`,
+                                href: `${REPO}/blob/main/python/mrmp/search/cbs.py`,
                             },
                         ],
                     },
@@ -512,14 +512,14 @@ return failure — queue empty = verdict; budget hit = budget              # 11`
                         lang: "cpp",
                         files: [
                             {
-                                name: "cpp/include/mrmp/mapf/cbs.hpp",
+                                name: "cpp/include/mrmp/search/cbs.hpp",
                                 code: cppHeader,
-                                href: `${REPO}/blob/main/cpp/include/mrmp/mapf/cbs.hpp`,
+                                href: `${REPO}/blob/main/cpp/include/mrmp/search/cbs.hpp`,
                             },
                             {
-                                name: "cpp/src/mapf/cbs.cpp",
+                                name: "cpp/src/search/cbs.cpp",
                                 code: cppImpl,
-                                href: `${REPO}/blob/main/cpp/src/mapf/cbs.cpp`,
+                                href: `${REPO}/blob/main/cpp/src/search/cbs.cpp`,
                             },
                         ],
                     },

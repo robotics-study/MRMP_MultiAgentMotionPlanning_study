@@ -79,12 +79,12 @@ ctest --test-dir cpp/build     # 55 tests
 # Python
 python python/demos/demo_prioritized_astar.py \
   --map maps/grid/maze01.yaml --scenario maps/scenarios/maze01_two.yaml \
-  --params configs/mapf/prioritized_astar.yaml --trace out/trace.jsonl
+  --params configs/search/prioritized_astar.yaml --trace out/trace.jsonl
 
 # C++ (동일 인자)
 ./cpp/build/demos/demo_prioritized_astar \
   --map maps/grid/maze01.yaml --scenario maps/scenarios/maze01_two.yaml \
-  --params configs/mapf/prioritized_astar.yaml --trace out/trace.cpp.jsonl
+  --params configs/search/prioritized_astar.yaml --trace out/trace.cpp.jsonl
 ```
 
 stdout 에 한 줄 JSON metric(`sum_of_costs`·`makespan`·`expanded_nodes`), `--trace` 경로에 step-by-step JSONL trace 가 남는다.
@@ -118,7 +118,7 @@ python tools/bench/run_matrix.py --out out/report.md
 
 ## 🧭 새 알고리즘 추가
 
-1. `configs/mapf/<algo>.yaml` 파라미터 선언 → 2. 두 언어 구현 (`required_capabilities()` 포함)
+1. `configs/search/<algo>.yaml` 파라미터 선언 → 2. 두 언어 구현 (`required_capabilities()` 포함)
 → 3. trace 이벤트 방출 → 4. 두 언어 demo → 5. 단위 테스트 (최적성/충돌 없음/no-path/param 검증)
 → 6. bench 매트릭스 통과 → 7. `replay.py --gif/--snapshots` 렌더 확인 → 8. parity 표 + 문서 사이트 페이지 갱신.
 

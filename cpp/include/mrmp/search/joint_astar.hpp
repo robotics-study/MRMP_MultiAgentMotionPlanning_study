@@ -8,7 +8,7 @@
 #include "mrmp/core/trace.hpp"
 #include "mrmp/core/types.hpp"
 
-namespace mrmp::mapf {
+namespace mrmp::search {
 
 // Joint-space A* — the coupled baseline of the MAPF genealogy.
 //
@@ -39,7 +39,7 @@ namespace mrmp::mapf {
 // * Successor enumeration order is fixed: the cartesian product of the
 //   per-agent action lists in agent-index order with the LAST agent varying
 //   fastest, each list in the map's fixed up/down/left/right/wait order. Same
-//   tie-breaks, same expansions as python/mrmp/mapf/joint_astar.py bit-for-bit.
+//   tie-breaks, same expansions as python/mrmp/search/joint_astar.py bit-for-bit.
 //
 // The joint state carries no time — arrival times live in the reconstructed
 // paths: agent k's path is its position sequence up to its FIRST arrival (after
@@ -59,4 +59,4 @@ class JointAStar final : public core::MultiAgentPlanner {
                              core::TraceRecorder* recorder) override;
 };
 
-}  // namespace mrmp::mapf
+}  // namespace mrmp::search

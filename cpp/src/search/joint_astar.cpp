@@ -1,11 +1,11 @@
-#include "mrmp/mapf/joint_astar.hpp"
+#include "mrmp/search/joint_astar.hpp"
 
 #include <algorithm>
 #include <map>
 #include <set>
 #include <utility>
 
-namespace mrmp::mapf {
+namespace mrmp::search {
 
 using core::Cell;
 using core::DiscreteSpace;
@@ -207,4 +207,4 @@ core::MultiPlanResult JointAStar::plan(const DiscreteSpace& space,
   return result;
 }
 
-}  // namespace mrmp::mapf
+}  // namespace mrmp::search

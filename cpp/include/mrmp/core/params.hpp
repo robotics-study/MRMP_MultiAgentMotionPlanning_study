@@ -26,11 +26,11 @@ class ParamSet {
 
   const std::map<std::string, ParamValue>& values() const { return values_; }
   const std::string& algorithm() const { return algorithm_; }
-  const std::string& category() const { return category_; }
+  const std::string& section() const { return section_; }
 
  private:
   std::string algorithm_;
-  std::string category_;
+  std::string section_;
   std::map<std::string, ParamValue> values_;
 };
 
