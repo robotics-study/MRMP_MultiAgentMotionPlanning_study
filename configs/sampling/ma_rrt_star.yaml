@@ -1,0 +1,56 @@
+# MA-RRT* (Čáp, Novák, Vokřínek & Pěchouček 2013): RRT* on the joint state space of
+# motion graphs. Unlike the search branch (no knobs at all), sampling-based planning
+# is defined by its randomness: the PRNG seed IS part of the algorithm's identity —
+# every language replays the identical sample stream from it. gamma is the paper's
+# free constant γ in the near-ball radius r_n = max{γ(log n/n)^(1/d), m}; the paper
+# leaves γ unspecified, 5.0 is this repo's fixed choice. goal_sampling_probability is
+# the §4.3/§4.4 informed-sampling bias (sample the goal tuple outright with this
+# probability). greedy_cost_budget is c_max — the GREEDY steering procedure stops
+# accumulating cost past it; max_iterations bounds the main loop ("until interrupted"
+# in Algorithm 1 made finite: MA-RRT* is anytime, more iterations never hurt a found
+# solution, they only refine it).
+algorithm: ma_rrt_star
+section: sampling
+params:
+  - name: seed
+    type: int
+    default: 42
+    min: 1
+    max: 2147483646
+    description: >-
+      MINSTD Lehmer PRNG state (s ← 16807·s mod 2³¹−1). Fixed so every language
+      engine replays byte-identical sample streams; the seed is part of a run's
+      identity, not a tuning knob.
+  - name: gamma
+    type: float
+    default: 5.0
+    min: 0.1
+    description: >-
+      γ in r_n = max{γ(log n/n)^(1/d), m}: the constant inside the shrinking
+      near-ball radius (d = 2k, the joint-space dimension; m = 1 floors the
+      radius at one motion-graph edge so rewiring never dies). The paper leaves
+      γ free — larger rewires more aggressively.
+  - name: goal_sampling_probability
+    type: float
+    default: 0.5
+    min: 0.0
+    max: 1.0
+    description: >-
+      Probability of sampling the goal tuple outright instead of uniform random
+      waypoints (§4.3 informed sampling, §4.4 goal biasing). 0.5 because these
+      instances are sparse — the paper's own setting for exactly this regime.
+  - name: greedy_cost_budget
+    type: int
+    default: 200
+    min: 1
+    description: >-
+      c_max: GREEDY stops accumulating once a segment's summed primitive cost
+      passes this bound, so steering into an unreachable region terminates. Unit
+      steps make it comparable to path costs directly.
+  - name: max_iterations
+    type: int
+    default: 300
+    min: 1
+    description: >-
+      Main-loop iterations ("until interrupted" made finite). The tree only ever
+      improves; the budget is what turns an asymptotic guarantee into a run.

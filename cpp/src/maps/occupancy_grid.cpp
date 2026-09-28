@@ -69,6 +69,17 @@ double OccupancyGrid2D::heuristic(const Cell& a, const Cell& b) const {
   return static_cast<double>(std::abs(a.row - b.row) + std::abs(a.col - b.col));
 }
 
+std::vector<Cell> OccupancyGrid2D::cells() const {
+  // Canonical row-major scan (row ascending, then column) — identical enumeration
+  // order in every language, so a uniform draw over the vertex set is identical.
+  std::vector<Cell> out;
+  for (int r = 0; r < rows_; ++r)
+    for (int c = 0; c < cols_; ++c) {
+      if (is_free(r, c)) out.push_back(Cell{r, c});
+    }
+  return out;
+}
+
 std::set<Capability> OccupancyGrid2D::capabilities() const { return {Capability::DISCRETE_SPACE}; }
 
 }  // namespace mrmp::maps

@@ -2,7 +2,8 @@ import {T, useTr} from "../../libs/i18n";
 import {InlineMath} from "../../components/math/Tex";
 
 // sampling 갈래 소개 페이지 — 연속 configuration space의 표본 채취 갈래와 그 안에서
-// 다시 나타나는 결합 축을 소개한다. 이 갈래의 알고리즘은 아직 planned 상태다.
+// 다시 나타나는 결합 축을 소개한다. 첫 회원 MA-RRT*는 논문 자체의 이산화(G-RRT*)로
+// 구현됐고, sRRT와 dRRT 계열은 planned 상태다.
 const SamplingPlanning = () => {
     const t = useTr()
     return (
@@ -150,24 +151,29 @@ const SamplingPlanning = () => {
             <h2>{t("What Is Coming", "구현 예정")}</h2>
             <T
                 en={<p>
-                    This branch is a roadmap, not yet a library. Reading order follows the coupling
-                    axis like its sibling: <strong>MA-RRT*</strong> (Čáp et al., 2013) — one RRT* on
-                    the joint state space, coupled from the start; then <strong>sRRT</strong>{" "}
-                    (Wagner, Kang & Choset, 2012) — subdimensional expansion over motion trees; then{" "}
-                    <strong>dRRT → dRRT*</strong> (Solovey, Salzman & Halperin 2016; Dobson et al.
-                    2017) — per-robot roadmaps, an implicit tensor-product roadmap searched by
-                    bootstrap sampling, and asymptotic optimality on top. Each lands as its own page
-                    with derivation, proof, and live sandbox when it is implemented.
+                    The branch's first member has landed: <strong>MA-RRT*</strong> (Čáp et al., 2013)
+                    — one RRT* on the joint state space, coupled from the start. It arrived through
+                    its own paper's discretization — waypoints on a grid — so this branch begins on
+                    the very same maps and cost metric as its sibling; continuous configuration space
+                    arrives with what follows. Reading order keeps following the coupling axis:{" "}
+                    <strong>sRRT</strong> (Wagner, Kang & Choset, 2012) — subdimensional expansion
+                    over motion trees; then <strong>dRRT → dRRT*</strong> (Solovey, Salzman &
+                    Halperin 2016; Dobson et al. 2017) — per-robot roadmaps, an implicit
+                    tensor-product roadmap searched by bootstrap sampling, and asymptotic optimality
+                    on top. Each lands as its own page with derivation, proof, and live sandbox when
+                    it is implemented.
                 </p>}
                 ko={<p>
-                    이 갈래는 아직 라이브러리가 아니라 로드맵이다. 읽는 순서는 자매 섹션처럼 결합
-                    축을 따른다: <strong>MA-RRT*</strong>(Čáp 외, 2013) — joint 상태 공간 위의 RRT*
-                    하나, 처음부터 coupled; 이어서 <strong>sRRT</strong>(Wagner, Kang & Choset,
-                    2012) — motion tree 위의 subdimensional expansion; 그리고 <strong>dRRT →
-                    dRRT*</strong>(Solovey, Salzman & Halperin 2016; Dobson 외 2017) — 로봇마다
-                    roadmap, bootstrap sampling으로 훑는 암묵적 tensor-product roadmap, 그리고 그 위
-                    점근 최적성. 각각 구현되는 순간 유도·증명·라이브 sandbox와 함께 각자의 페이지로
-                    들어온다.
+                    이 갈래의 첫 회원은 이미 도착했다: <strong>MA-RRT*</strong>(Čáp 외, 2013) —
+                    joint 상태 공간 위의 RRT* 하나, 처음부터 coupled. 논문 자체의 이산화(격자 위
+                    waypoint)를 통해 도착했으므로 이 갈래는 자매 섹션과 정확히 같은 맵과 같은 비용
+                    척도에서 시작한다. 연속 configuration space는 뒤따르는 것들과 함께 온다. 읽는
+                    순서는 계속 결합 축을 따른다: 다음으로 <strong>sRRT</strong>(Wagner, Kang &
+                    Choset, 2012) — motion tree 위의 subdimensional expansion; 그리고{" "}
+                    <strong>dRRT → dRRT*</strong>(Solovey, Salzman & Halperin 2016; Dobson 외 2017) —
+                    로봇마다 roadmap, bootstrap sampling으로 훑는 암묵적 tensor-product roadmap, 그리고
+                    그 위 점근 최적성. 각각 구현되는 순간 유도·증명·라이브 sandbox와 함께 각자의
+                    페이지로 들어온다.
                 </p>}
             />
         </>

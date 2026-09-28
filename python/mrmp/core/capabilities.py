@@ -27,6 +27,11 @@ class DiscreteSpace(Protocol):
     one time step, so g-values count elapsed steps and sum-of-costs / makespan are
     directly comparable across agents. Successor order is fixed (up, down, left,
     right, then wait) because tie-breaking must be identical across languages.
+
+    `cells()` exposes every passable cell in the same canonical row-major order on
+    every platform: sampling planners (MA-RRT*) draw waypoints uniformly from the
+    motion graph's vertex set, and a uniform draw needs that enumeration to be
+    part of the contract, not an implementation detail.
     """
 
     def neighbors(self, s: Cell) -> list[tuple[Cell, float]]:
@@ -37,6 +42,11 @@ class DiscreteSpace(Protocol):
     def heuristic(self, a: Cell, b: Cell) -> float:
         """Manhattan distance: admissible and consistent for the unit-cost
         4-connected move set (diagonals are not moves here)."""
+        ...
+
+    def cells(self) -> list[Cell]:
+        """Every passable cell in canonical row-major order — the motion graph's
+        vertex set, ordered identically across languages."""
         ...
 
 

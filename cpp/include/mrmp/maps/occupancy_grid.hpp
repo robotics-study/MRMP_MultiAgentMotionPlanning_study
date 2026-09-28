@@ -40,6 +40,9 @@ class OccupancyGrid2D final : public core::MapBase, public core::DiscreteSpace {
   std::vector<std::pair<Cell, double>> neighbors(const Cell& s) const override;
   // Manhattan distance — admissible + consistent for the unit-cost move set.
   double heuristic(const Cell& a, const Cell& b) const override;
+  // Every passable cell in canonical row-major order (row ascending, then column)
+  // — the motion graph's vertex set for uniform waypoint sampling.
+  std::vector<Cell> cells() const override;
 
   int rows() const { return rows_; }
   int cols() const { return cols_; }

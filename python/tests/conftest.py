@@ -1,4 +1,8 @@
-"""Shared test helpers: repo paths, small in-memory grids, temp configs."""
+"""Shared test helpers: repo paths, small in-memory grids, temp configs.
+
+Configs live under configs/<section>/ — the section is part of a config's
+identity (site sections mirror code directories), so lookups search both
+sections by slug; slugs are globally unique across them."""
 
 from __future__ import annotations
 
@@ -11,11 +15,13 @@ from mrmp.core.params import ParamSet
 from mrmp.maps.occupancy_grid import OccupancyGrid2D
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-CONFIG_DIR = REPO_ROOT / "configs" / "search"
+CONFIG_DIR = REPO_ROOT / "configs"
 
 
 def config(algo: str) -> ParamSet:
-    return ParamSet.from_yaml(CONFIG_DIR / f"{algo}.yaml")
+    found = sorted(CONFIG_DIR.rglob(f"{algo}.yaml"))
+    assert len(found) == 1, f"expected exactly one configs/<section>/{algo}.yaml"
+    return ParamSet.from_yaml(found[0])
 
 
 def open_grid(rows: int, cols: int) -> OccupancyGrid2D:
@@ -31,7 +37,9 @@ def grid_from(free_rows: list[str]) -> OccupancyGrid2D:
     return OccupancyGrid2D(pixels=pixels, resolution=1.0, origin=(0.0, 0.0, 0.0))
 
 
-def write_config(path: Path, algorithm: str, params: list[dict[str, object]]) -> Path:
-    doc = {"algorithm": algorithm, "section": "search", "params": params}
+def write_config(
+    path: Path, algorithm: str, params: list[dict[str, object]], section: str = "search"
+) -> Path:
+    doc = {"algorithm": algorithm, "section": section, "params": params}
     path.write_text(yaml.safe_dump(doc), encoding="utf-8")
     return path
