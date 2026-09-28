@@ -43,7 +43,9 @@ void assert_joint_valid(const std::vector<std::vector<core::Cell>>& paths) {
   }
 }
 
-core::ParamSet config() { return core::ParamSet::from_yaml(test::repo_path("configs/mapf/joint_astar.yaml")); }
+core::ParamSet config() {
+  return core::ParamSet::from_yaml(test::repo_path("configs/mapf/joint_astar.yaml"));
+}
 
 // Load a repo scenario and convert its world-coord endpoints to cells (exactly
 // what the demo driver does), so both languages solve identical tasks.

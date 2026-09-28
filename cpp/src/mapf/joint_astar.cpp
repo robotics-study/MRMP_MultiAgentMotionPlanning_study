@@ -86,7 +86,9 @@ core::MultiPlanResult JointAStar::plan(const DiscreteSpace& space,
     if (closed.count(cur.state)) continue;  // stale entry — not an expansion.
     closed.insert(cur.state);
     ++expanded;
-    const int g_now = g_score[cur.state];
+    // Every popped state was pushed with a g — at() makes that invariant loud
+    // (Python's dict lookup raises KeyError on absence too).
+    const int g_now = g_score.at(cur.state);
     if (recorder != nullptr)
       recorder->node_expanded(core::flatten(cur.state), static_cast<double>(g_now));
 

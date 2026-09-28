@@ -150,12 +150,15 @@ class JointAStar(MultiAgentPlanner):
             for combo in itertools.product(*actions):
                 succ = tuple(combo)
                 # Vertex conflict: two agents on one cell at the new step.
-                if any(succ[i] == succ[j] for i, j in itertools.combinations(range(len(goals)), 2)):
+                if any(
+                    succ[i] == succ[j]
+                    for i, j in itertools.combinations(range(len(state)), 2)
+                ):
                     continue
                 # Edge conflict: a pair swaps cells across this step.
                 if any(
                     succ[i] == state[j] and state[i] == succ[j]
-                    for i, j in itertools.combinations(range(len(goals)), 2)
+                    for i, j in itertools.combinations(range(len(state)), 2)
                 ):
                     continue
                 g2 = g_now + step_cost
