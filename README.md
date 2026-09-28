@@ -20,7 +20,7 @@ Single-robot navigation lives in the sibling nav_study repo.*
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)
 ![CMake](https://img.shields.io/badge/CMake-%E2%89%A53.20-064F8C.svg)
-![Tests](https://img.shields.io/badge/tests-51%20py%20%2B%2045%20cpp-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-61%20py%20%2B%2055%20cpp-brightgreen.svg)
 
 </div>
 
@@ -56,7 +56,7 @@ Single-robot navigation lives in the sibling nav_study repo.*
 |---|---|:---:|:---:|---|
 | mapf | Prioritized A* | ✅ | ✅ | Erdmann & Lozano-Pérez (1987) |
 | mapf | Joint-space A* | ✅ | ✅ | joint-state search (관행적 baseline) |
-| mapf | CBS | ⏳ | ⏳ | Sharon, Stern, Felner & Sturtevant (2015) |
+| mapf | CBS | ✅ | ✅ | Sharon, Stern, Felner & Sturtevant (2015) |
 
 ⏳ planned — 계보순(decoupled → coupled → hybrid)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
 
@@ -65,12 +65,12 @@ Single-robot navigation lives in the sibling nav_study repo.*
 ```bash
 # Python (>= 3.10) — mrmp 패키지 + viz/dev extras
 cd python && pip install -e ".[dev,viz]" && cd ..
-PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 51 passed
+PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 61 passed
 
 # C++ (C++20, CMake >= 3.20, GoogleTest 는 FetchContent 자동)
 cmake -S cpp -B cpp/build -DCMAKE_BUILD_TYPE=Release
 cmake --build cpp/build -j
-ctest --test-dir cpp/build     # 45 tests
+ctest --test-dir cpp/build     # 55 tests
 ```
 
 ### 데모 실행 — 두 언어가 동일한 CLI 인자 (알고리즘 구현 시 활성화)
