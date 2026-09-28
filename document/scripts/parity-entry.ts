@@ -2,3 +2,4 @@
 // 알고리즘이 추가되면 run<algo>(map, agents, params) → TraceEvent[] 를 여기에 export 한다.
 export {parseGridMap} from "../src/libs/grid";
 export {runPrioritizedAStar} from "../src/libs/algorithms/prioritized_astar";
+export {runJointAStar} from "../src/libs/algorithms/joint_astar";
