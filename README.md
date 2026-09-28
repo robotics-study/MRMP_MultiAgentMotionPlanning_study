@@ -56,6 +56,8 @@ lives in the sibling nav_study repo.*
 | 섹션 | 알고리즘 | C++ | Python | 원 논문 |
 |---|---|:---:|:---:|---|
 | search | Prioritized A* | ✅ | ✅ | Erdmann & Lozano-Pérez (1987) |
+| search | Push and Swap | ⏳ | ⏳ | Luna & Bekris (IJCAI 2011) |
+| search | Push and Rotate | ⏳ | ⏳ | de Wilde, ter Mors & Witteveen (JAIR 2014) |
 | search | Joint-space A* | ✅ | ✅ | joint-state search (관행적 baseline) |
 | search | CBS | ✅ | ✅ | Sharon, Stern, Felner & Sturtevant (2015) |
 | sampling | MA-RRT* | ⏳ | ⏳ | Čáp, Novák, Vokřínek & Pěchouček (2013) |
@@ -63,7 +65,7 @@ lives in the sibling nav_study repo.*
 | sampling | dRRT | ⏳ | ⏳ | Solovey, Salzman & Halperin (2016) |
 | sampling | dRRT* | ⏳ | ⏳ | Dobson, Mattern, Patterson, Song & Kavraki (2017) |
 
-각 갈래 안에서 계보순(decoupled → coupled → hybrid)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. sampling 갈래는 연속 configuration space 를 다루므로 새 capability(맵 타입)이 함께 들어온다. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
+각 갈래 안에서 계보순(decoupled/priority → coupled → hybrid; priority 갈래는 Push and Swap → Push and Rotate 로 완성 예정 — decentralized 계열)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. sampling 갈래는 연속 configuration space 를 다루므로 새 capability(맵 타입)이 함께 들어온다. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
 
 ## 🚀 빠른 시작
 
