@@ -126,10 +126,10 @@ const SearchPlanning = () => {
                             with single-agent A* in space-time, treating earlier agents' paths as
                             moving obstacles. Fast and scalable, but incomplete: a bad priority order
                             can paint later agents into corners. The planned <strong>Push and Swap</strong>
-                            keeps per-agent planning yet drops the frozen reservations — push shoves a
-                            blocker out of the way along its own shortest path, swap exchanges two
-                            agents outright — complete on any graph with at least two free cells per
-                            connected component.
+                            keeps per-agent planning yet drops the frozen reservations: push clears a
+                            blocker off the high-priority agent's shortest path, swap exchanges two
+                            agents outright — complete, it claims, once at least two cells per component
+                            stay free. Whether that claim holds is exactly what its successor audits.
                         </li>
                         <li>
                             <strong>Coupled — Joint-space A*.</strong> Search the joint space
@@ -153,10 +153,10 @@ const SearchPlanning = () => {
                             <strong>Decoupled (Prioritized A*).</strong> agent에 순서를 매기고, 각자
                             앞선 agent들의 경로를 움직이는 장애물로 취급하며 시공간 A*로
                             계획한다. 빠르고 확장성 있지만 불완전하다: 우선순위를 잘못 매기면 뒤의
-                            agent를 구석에 가둘 수 있다. 이 극단의 완성은 planned인 Push and Swap이다.
-                            예약 동결을 포기하지 않으면서 lower-priority agent를 push로 밀어내고
-                            swap으로 자리를 맞바꿔 완전성을 얻는다. component당 빈 셀이 2개 이상이면
-                            항상 성공한다.
+                            agent를 구석에 가둘 수 있다. 이 극단의 다음 장은 planned인 Push and Swap이다.
+                            예약 동결을 포기하지 않으면서 lower-priority agent를 push로 밀어내고 swap으로
+                            자리를 맞바꾼다. component당 빈 셀이 2개 이상이면 항상 성공한다고 주장하고,
+                            그 주장이 참인지 검증하는 것이 후속 Push and Rotate다.
                         </li>
                         <li>
                             <strong>Coupled (Joint-space A*).</strong> joint 공간을 직접 탐색한다.

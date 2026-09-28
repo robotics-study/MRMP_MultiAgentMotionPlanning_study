@@ -30,8 +30,9 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
-    // priority 갈래의 완성 — 예약을 동결하지 않고 push/swap primitive로 lower-priority
-    // agent를 치워 완전성을 얻는다 (slidable graph: component당 빈 셀 ≥2).
+    // priority 갈래의 다음 장 — 예약을 동결하지 않고 push/swap primitive로
+    // lower-priority agent를 치운다. component당 빈 셀 ≥2이면 완전하다고 주장하고,
+    // 그 주장이 참인지 검증하는 것이 후속 Push and Rotate다.
     {
         slug: "push_and_swap",
         title: {en: "Push and Swap", ko: "Push and Swap"},
