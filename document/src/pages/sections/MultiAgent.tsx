@@ -153,21 +153,22 @@ const MultiAgent = () => {
             />
             <MultiConstraintTree/>
 
-            <h2>{t("What Is Coming", "구현 예정")}</h2>
+            <h2>{t("All Three Poles, in Reading Order", "세 극단, 읽는 순서")}</h2>
             <T
                 en={<p>
-                    The decoupled and coupled poles are both written up and implemented: read{" "}
-                    <strong>Prioritized A*</strong> first, then <strong>Joint-Space A*</strong>, the
-                    baseline that everything else is measured against. Still to come:{" "}
-                    <strong>CBS</strong>, the hybrid in between. Each gets the same derivation, proof,
-                    and live interactive sandbox treatment as the single-robot pages.
+                    All three poles are now written up and implemented. Read{" "}
+                    <strong>Prioritized A*</strong> first (the decoupled pole), then{" "}
+                    <strong>Joint-Space A*</strong> — the coupled baseline that everything else is
+                    measured against — and finally <strong>CBS</strong>, the hybrid in between. Each
+                    gets the same derivation, proof, and live interactive sandbox treatment as the
+                    single-robot pages.
                 </p>}
                 ko={<p>
-                    decoupled와 coupled 극단 모두 집필·구현이 끝났다. 먼저{" "}
-                    <strong>Prioritized A*</strong>를 읽고, 이어서 모든 것이 여기에 대해 저울질되는
-                    baseline <strong>Joint-Space A*</strong>를 읽어라. 아직 남은 것은 그 사이 어딘가의{" "}
-                    hybrid, <strong>CBS</strong>다. 각각 단일 로봇 페이지와 같은 유도·증명과 라이브
-                    sandbox 데모로 다룬다.
+                    세 극단 모두 집필·구현이 끝났다. 먼저 <strong>Prioritized A*</strong> (decoupled
+                    극단)를 읽고, 이어서 모든 것이 여기에 대해 저울질되는 coupled baseline{" "}
+                    <strong>Joint-Space A*</strong>를 읽고, 마지막으로 그 사이 어딘가의 hybrid{" "}
+                    <strong>CBS</strong>를 읽어라. 각각 단일 로봇 페이지와 같은 유도·증명과 라이브
+                    interactive sandbox로 다룬다.
                 </p>}
             />
         </>

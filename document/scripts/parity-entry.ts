@@ -3,3 +3,4 @@
 export {parseGridMap} from "../src/libs/grid";
 export {runPrioritizedAStar} from "../src/libs/algorithms/prioritized_astar";
 export {runJointAStar} from "../src/libs/algorithms/joint_astar";
+export {runCbs} from "../src/libs/algorithms/cbs";

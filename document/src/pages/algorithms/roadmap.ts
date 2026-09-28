@@ -28,6 +28,17 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
                 "존재하는 baseline.",
         },
     },
+    {
+        slug: "cbs",
+        blurb: {
+            en: "Plan each agent alone against explicit constraints and branch a constraint tree on " +
+                "every conflict: optimal like coupled search without ever touching |V|^k, complete up " +
+                "to an honest budget — paid in interference, not in agents.",
+            ko: "모든 agent를 명시적 constraint에 대해 혼자 계획하고 conflict마다 constraint tree를 " +
+                "분기한다: |V|^k를 한 번도 건드리지 않고 coupled처럼 최적, 정직한 예산까지 완전. " +
+                "대가는 agent 수가 아니라 간섭만큼.",
+        },
+    },
 ];
 
 // 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 이 저장소는 MAPF 하나가

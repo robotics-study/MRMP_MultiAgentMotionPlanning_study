@@ -1,0 +1,18 @@
+# CBS (Sharon et al. 2015): best-first constraint-tree search over per-agent space-time
+# A* sub-searches. One declared parameter — and it is not a tuning knob, it is the
+# honest admission of what CBS is: OPTIMAL and COMPLETE but only SEMI-decidable. On an
+# unsolvable instance its tree never dies (every branch just pushes the conflict to a
+# later step), so no run can ever WAIT for an "unsolvable" verdict; this budget on
+# constraint-tree expansions is what stops the search instead. A tree that empties on
+# its own IS a verdict; hitting the budget is only "no solution found within budget".
+algorithm: cbs
+category: mapf
+params:
+  - name: max_ct_expansions
+    type: int
+    default: 64
+    min: 1
+    description: >-
+      Budget on constraint-tree node expansions (the root counts as the first).
+      Solvable instances here need a handful; an unsolvable one branches forever,
+      so this budget is what turns the search off.

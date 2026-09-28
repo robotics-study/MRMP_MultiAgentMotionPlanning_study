@@ -40,7 +40,21 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
-    {slug: "cbs", title: {en: "Conflict-Based Search", ko: "Conflict-Based Search"}},
+    {
+        slug: "cbs",
+        title: {en: "Conflict-Based Search", ko: "Conflict-Based Search"},
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./cbs")),
+        sections: [
+            {en: "From Joint States to Constraint Trees", ko: "joint 상태에서 constraint tree로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
+    },
 ];
 
 export default data;
