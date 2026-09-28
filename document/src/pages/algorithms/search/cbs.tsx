@@ -86,7 +86,7 @@ const Cbs = () => {
                             어느 방향으로든 지나는 것을 금지한다</>],
                         ["p_k", <>agent <InlineMath math="k"/>의 개별 최적 경로. 자기 constraint를 지키는
                             경로 중 가장 짧은 것. wave 1의 시공간 A*가 찾는다</>],
-                        ["\mathrm{cost}", <>노드 비용은 sum-of-costs. queue는 이 값 기준 best-first이고,
+                        ["\\mathrm{cost}", <>노드 비용은 sum-of-costs. queue는 이 값 기준 best-first이고,
                             동률은 생성 순서(FIFO)로 깬다. 이 저장소의 다른 모든 탐색과 같은 관례다</>],
                     ]}/>
                     <p>
@@ -115,7 +115,7 @@ const Cbs = () => {
                             어느 방향으로든 지나는 것을 금지한다</>],
                         ["p_k", <>agent <InlineMath math="k"/>의 개별 최적 경로. 자기 constraint를 지키는
                             경로 중 가장 짧은 것. wave 1의 시공간 A*가 찾는다</>],
-                        ["\mathrm{cost}", <>노드 비용은 sum-of-costs. queue는 이 값 기준 best-first이고 동률은
+                        ["\\mathrm{cost}", <>노드 비용은 sum-of-costs. queue는 이 값 기준 best-first이고 동률은
                             생성 순서(FIFO)로 깬다. 이 저장소의 다른 모든 탐색과 같은 관례다</>],
                     ]}/>
                     <p>

@@ -82,10 +82,10 @@ const JointAStar = () => {
                     <Terms items={[
                         ["s", <>joint 상태. 좌표가 한 칸이라도 다른 순간은 서로 다른 상태다. 상태 공간은{" "}
                             <InlineMath math="|V|^k"/>이고, 이것이 이 페이지의 모든 것이다</>],
-                        ["\text{goal}", <>goal tuple <InlineMath math="(g_0, \dots, g_{k-1})"/>. 좌표가
+                        ["\\text{goal}", <>goal tuple <InlineMath math="(g_0, \dots, g_{k-1})"/>. 좌표가
                             자기 goal에 도달한 agent는 <em>arrived</em>이고, 그 순간부터 유일한 행동은
                             self-loop이다 (stay-at-goal이 구조로 인코딩된다)</>],
-                        ["\delta_i", <>agent <InlineMath math="i"/>의 부분 행동. 도착 전이면 up/down/left/right/wait
+                        ["\\delta_i", <>agent <InlineMath math="i"/>의 부분 행동. 도착 전이면 up/down/left/right/wait
                             중 하나, 도착한 뒤에는 자기 셀에서의 self-loop 하나</>],
                     ]}/>
                     <p>
@@ -110,10 +110,10 @@ const JointAStar = () => {
                     <Terms items={[
                         ["s", <>joint 상태. 좌표가 한 칸이라도 다른 순간은 서로 다른 상태다. 상태 공간은{" "}
                             <InlineMath math="|V|^k"/>이고, 이것이 이 페이지의 전부다</>],
-                        ["\text{goal}", <>goal tuple <InlineMath math="(g_0, \dots, g_{k-1})"/>. 자기 goal에
+                        ["\\text{goal}", <>goal tuple <InlineMath math="(g_0, \dots, g_{k-1})"/>. 자기 goal에
                             도달한 agent는 <em>arrived</em>이고 그 순간부터 유일한 행동은 self-loop이다
                             (stay-at-goal이 구조로 인코딩된다)</>],
-                        ["\delta_i", <>agent <InlineMath math="i"/>의 부분 행동. 도착 전이면 up/down/left/right/wait
+                        ["\\delta_i", <>agent <InlineMath math="i"/>의 부분 행동. 도착 전이면 up/down/left/right/wait
                             중 하나, 도착 뒤에는 자기 셀에서의 self-loop 하나</>],
                     ]}/>
                     <p>

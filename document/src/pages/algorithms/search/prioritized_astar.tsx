@@ -142,7 +142,7 @@ const PrioritizedAStar = () => {
                         <li>
                             <strong>Not complete.</strong> A fixed order can box a later agent in even
                             when some joint plan exists (an earlier path may wall off the only pocket).
-                            The planner reports <InlineMath math="\text{success} = \text{false"/> honestly
+                            The planner reports <InlineMath math="\text{success} = \text{false}"/> honestly
                             instead of pretending otherwise.
                         </li>
                         <li>
