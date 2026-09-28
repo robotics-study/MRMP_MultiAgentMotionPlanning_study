@@ -134,8 +134,10 @@ export function applyPageMeta({title, description, lang, subpath, topics}: PageM
             inLanguage: ["en", "ko"],
             learningResourceType: "Study notes",
             about: [
-                "Robotics", "Multi-Agent Path Finding", "MAPF", "Multi-Robot Motion Planning",
+                "Robotics", "Multi-Agent Motion Planning", "Multi-Agent Path Finding", "MAPF",
+                "Multi-Robot Motion Planning", "Search-Based Planning", "Sampling-Based Planning",
                 "Prioritized Planning", "Joint Space Search", "Conflict-Based Search", "CBS",
+                "MA-RRT*", "sRRT", "dRRT", "dRRT*",
             ],
         })
     }
@@ -143,13 +145,13 @@ export function applyPageMeta({title, description, lang, subpath, topics}: PageM
 
 const HOME_DESC: Record<Lang, string> = {
     en:
-        "Study notes on multi-agent motion planning (MAPF): prioritized planning, joint-space " +
-        "search, and Conflict-Based Search (CBS), with interactive space-time conflict " +
-        "visualizations and C++/Python implementations.",
+        "Study notes on multi-agent motion planning, branch by branch: search-based MAPF " +
+        "(prioritized planning, joint-space search, CBS) and the sampling-based branch " +
+        "(MA-RRT*, sRRT, dRRT*), with interactive visualizations and C++/Python implementations.",
     ko:
-        "multi-agent motion planning(MAPF) 알고리즘 학습 노트: 우선순위 계획, joint-space " +
-        "탐색, Conflict-Based Search(CBS). 충돌과 time step을 함께 재생하는 인터랙티브 " +
-        "시각화와 C++/Python 구현.",
+        "multi-agent motion planning 학습 노트를 계보의 갈래별로: search 기반 MAPF(우선순위 " +
+        "계획, joint-space 탐색, CBS)와 sampling 기반 갈래(MA-RRT*, sRRT, dRRT*). 충돌을 " +
+        "time step과 함께 재생하는 인터랙티브 시각화와 C++/Python 구현.",
 }
 
 // 알고리즘 → 페이지 메타. 설명은 한 줄 소개(내용 요약) + 주요 절 제목으로 만든다.

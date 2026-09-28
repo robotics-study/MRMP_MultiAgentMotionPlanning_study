@@ -1,16 +1,16 @@
 import {ReactNode} from "react";
-import {T, useTr} from "../../libs/i18n";
-import Terms from "../../components/math/Terms";
-import {BlockMath, InlineMath} from "../../components/math/Tex";
-import Sandbox, {ScenarioPreset} from "../../components/panels/Sandbox";
-import CodeTabs from "../../components/CodeTabs";
-import Pseudocode from "../../components/Pseudocode";
-import {runJointAStar} from "../../libs/algorithms/joint_astar";
-import {GridMap} from "../../libs/grid";
-import {Cell, TraceEvent} from "../../libs/trace/types";
-import pyImpl from "../../../../python/mrmp/search/joint_astar.py?raw";
-import cppHeader from "../../../../cpp/include/mrmp/search/joint_astar.hpp?raw";
-import cppImpl from "../../../../cpp/src/search/joint_astar.cpp?raw";
+import {T, useTr} from "../../../libs/i18n";
+import Terms from "../../../components/math/Terms";
+import {BlockMath, InlineMath} from "../../../components/math/Tex";
+import Sandbox, {ScenarioPreset} from "../../../components/panels/Sandbox";
+import CodeTabs from "../../../components/CodeTabs";
+import Pseudocode from "../../../components/Pseudocode";
+import {runJointAStar} from "../../../libs/algorithms/joint_astar";
+import {GridMap} from "../../../libs/grid";
+import {Cell, TraceEvent} from "../../../libs/trace/types";
+import pyImpl from "../../../../../python/mrmp/search/joint_astar.py?raw";
+import cppHeader from "../../../../../cpp/include/mrmp/search/joint_astar.hpp?raw";
+import cppImpl from "../../../../../cpp/src/search/joint_astar.cpp?raw";
 
 const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
 
