@@ -21,7 +21,7 @@ lives in the sibling nav_study repo.*
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)
 ![CMake](https://img.shields.io/badge/CMake-%E2%89%A53.20-064F8C.svg)
-![Tests](https://img.shields.io/badge/tests-80%20py%20%2B%2074%20cpp-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-100%20py%20%2B%2093%20cpp-brightgreen.svg)
 
 </div>
 
@@ -62,22 +62,22 @@ lives in the sibling nav_study repo.*
 | search | CBS | ✅ | ✅ | Sharon, Stern, Felner & Sturtevant (2015) |
 | sampling | MA-RRT* | ✅ | ✅ | Čáp, Novák, Vokřínek & Pěchouček (2013) |
 | sampling | sRRT | ✅ | ✅ | Wagner, Kang & Choset (2012) |
-| sampling | dRRT | ⏳ | ⏳ | Solovey, Salzman & Halperin (2016) |
-| sampling | dRRT* | ⏳ | ⏳ | Dobson, Mattern, Patterson, Song & Kavraki (2017) |
+| sampling | dRRT | ✅ | ✅ | Solovey, Salzman & Halperin (2016) |
+| sampling | dRRT* | ⏳ | ⏳ | Shome, Solovey, Dobson, Halperin & Bekris (Autonomous Robots 2020) |
 
-각 갈래 안에서 계보순(decoupled/priority → coupled → hybrid; priority 갈래는 Push and Swap → Push and Rotate 로 완성 예정 — decentralized 계열)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. sampling 갈래의 첫 회원 MA-RRT* 는 논문 자체의 이산화(G-RRT*)로 DiscreteSpace 위에서 구현됐으므로 새 맵 타입 없이 들어왔고, sRRT 도 개별 policy 가 격자에서 BFS tree 로 정확히 구성되므로 같은 DiscreteSpace 위에 들어왔다. 연속 configuration space 용 새 capability(맵 타입)는 dRRT wave 와 함께 들어온다. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
+각 갈래 안에서 계보순(decoupled/priority → coupled → hybrid; priority 갈래는 Push and Swap → Push and Rotate 로 완성 예정 — decentralized 계열)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. sampling 갈래의 첫 회원 MA-RRT* 는 논문 자체의 이산화(G-RRT*)로 DiscreteSpace 위에서 구현됐으므로 새 맵 타입 없이 들어왔고, sRRT 도 개별 policy 가 격자에서 BFS tree 로 정확히 구성되므로 같은 DiscreteSpace 위에 들어왔다. dRRT 는 연속 configuration space 용 새 capability ContinuousSpace 위에서 구현됐다. 같은 raster 를 그대로 쓰되 robot 을 반지름 있는 disc 로 다루고, 부풀려진 obstacle 은 쓰지 않는다. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
 
 ## 🚀 빠른 시작
 
 ```bash
 # Python (>= 3.10) — mrmp 패키지 + viz/dev extras
 cd python && pip install -e ".[dev,viz]" && cd ..
-PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 80 passed
+PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 100 passed
 
 # C++ (C++20, CMake >= 3.20, GoogleTest 는 FetchContent 자동)
 cmake -S cpp -B cpp/build -DCMAKE_BUILD_TYPE=Release
 cmake --build cpp/build -j
-ctest --test-dir cpp/build     # 74 tests
+ctest --test-dir cpp/build     # 93 tests
 ```
 
 ### 데모 실행 — 두 언어가 동일한 CLI 인자 (알고리즘 구현 시 활성화)

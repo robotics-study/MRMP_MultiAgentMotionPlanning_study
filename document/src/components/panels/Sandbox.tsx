@@ -4,7 +4,7 @@ import TracePlayer from "../player/TracePlayer";
 import {loadGridMap} from "../../libs/trace/load";
 import {buildTimeline} from "../../libs/trace/timeline";
 import {Cell, TraceEvent} from "../../libs/trace/types";
-import {GridMap} from "../../libs/grid";
+import {cellToWorld, freePoint, GridMap} from "../../libs/grid";
 import {useTr} from "../../libs/i18n";
 
 // 라이브 sandbox — 페이지의 알고리즘을 브라우저에서 직접 돌린다. 벽을 그리고,
@@ -17,8 +17,12 @@ export interface ScenarioPreset {
     name: string;
     // data/maps/<map>.json.
     map: string;
-    // agent index 순서 그대로의 [start, goal] 셀.
+    // agent index 순서 그대로의 [start, goal] 셀 — 핸들도 항상 셀에 스냅되고
+    // runLive 래퍼가 cellToWorld로 세계 좌표로 바꾼다(연속 알고리즘도 같은 픽셀).
     agents: Array<[Cell, Cell]>;
+    // 연속 preset(dRRT 계열): 모든 agent disc의 반지름(미터). 있으면 핸들 드래그와
+    // agent 추가가 디스크가 장애물과 겹치는 셀을 거부한다 (planner의 instance 판정 규칙).
+    radius?: number;
 }
 
 export interface SandboxProps {
@@ -81,9 +85,12 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
         })
     }
 
-    // 벽 위로는 옮길 수 없다 (캔버스의 페인팅 가드와 같은 규칙을 여기서도).
+    // 벽 위로는 옮길 수 없다 (캔버스의 페인팅 가드와 같은 규칙을 여기서도). 연속
+    // preset은 disc가 장애물 셀과 strict overlap하는 위치도 거부 — planner의 instance
+    // 판정을 드래그로 유도하지 않는다.
     const moveAgent = (agent: number, which: "start" | "goal", cell: Cell) => {
         if (!map || map.occupied[cell[0] * map.width + cell[1]]) return
+        if (preset.radius !== undefined && !freePoint(map, cellToWorld(map, cell), preset.radius)) return
         setAgents((prev) => prev.map((a, k) => k !== agent ? a
             : (which === "start"
                 ? [[cell[0], cell[1]] as Cell, a[1]]
@@ -91,7 +98,8 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
     }
 
     // agent 추가: start는 행 우선로에서 endpoint로 쓰이지 않은 첫 빈 셀, goal은
-    // 반대쪽 끝에서 같은 식으로 고른다. agent 제거는 마지막을 뺀다 (최소 1명).
+    // 반대쪽 끝에서 같은 식으로 고른다(연속 preset은 disc가 들어가는 셀만). agent
+    // 제거는 마지막을 뺀다 (최소 1명).
     const freeUnused = (fromEnd: boolean): Cell | null => {
         if (!map) return null
         const taken = new Set(agents.flat().map(([r, c]) => `${r},${c}`))
@@ -100,6 +108,7 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
             const idx = fromEnd ? n - 1 - i : i
             if (map.occupied[idx]) continue
             const cell: Cell = [Math.floor(idx / map.width), idx % map.width]
+            if (preset.radius !== undefined && !freePoint(map, cellToWorld(map, cell), preset.radius)) continue
             if (!taken.has(`${cell[0]},${cell[1]}`)) return cell
         }
         return null

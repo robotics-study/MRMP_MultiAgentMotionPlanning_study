@@ -35,7 +35,8 @@ TEST(Yaml, ParsesRealMapAndScenarioFlowSequences) {
 }
 
 TEST(Yaml, EmptyFlowSequenceIsEmpty) {
-  std::string p = test::write_temp("p.yaml", "algorithm: x\nsection: search\nparams: []\n");
+  std::string p = test::write_temp(
+      "p.yaml", "algorithm: x\nsection: search\nscenarios: []\nparams: []\n");
   core::YamlNode root = core::parse_yaml_file(p);
   EXPECT_TRUE(root.at("params").is_seq());
   EXPECT_TRUE(root.at("params").seq.empty());
@@ -46,24 +47,36 @@ TEST(Yaml, EmptyFlowSequenceIsEmpty) {
 TEST(Params, LoadsDeclaredDefaults) {
   std::string p = test::write_temp(
       "ok.yaml",
-      "algorithm: x\nsection: search\nparams:\n"
+      "algorithm: x\nsection: search\nscenarios: [open01_cross]\nparams:\n"
       "  - name: weight\n    type: float\n    default: 1.0\n    description: w\n"
       "  - name: n\n    type: int\n    default: 3\n    min: 0\n    max: 10\n    description: n\n");
   auto ps = core::ParamSet::from_yaml(p);
   EXPECT_EQ(ps.algorithm(), "x");
   EXPECT_EQ(ps.section(), "search");
+  // The per-config routing list round-trips in declaration order.
+  ASSERT_EQ(ps.scenarios().size(), 1u);
+  EXPECT_EQ(ps.scenarios()[0], "open01_cross");
   EXPECT_DOUBLE_EQ(ps.get_float("weight"), 1.0);
   EXPECT_EQ(ps.get_int("n"), 3);
 }
 
+TEST(Params, ScenariosKeyIsRequiredAndMustBeASequence) {
+  // Missing key throws (at() on a missing key throws); a scalar is not a sequence.
+  std::string missing = test::write_temp("bad.yaml", "algorithm: x\nsection: search\nparams: []\n");
+  EXPECT_THROW(core::ParamSet::from_yaml(missing), std::runtime_error);
+  std::string scalar = test::write_temp("bad2.yaml", "algorithm: x\nsection: search\nscenarios: nope\nparams: []\n");
+  EXPECT_THROW(core::ParamSet::from_yaml(scalar), std::runtime_error);
+}
+
 TEST(Params, UnknownCategoryThrows) {
-  std::string p = test::write_temp("bad.yaml", "algorithm: x\nsection: global_planning\nparams: []\n");
+  std::string p = test::write_temp("bad.yaml",
+                                   "algorithm: x\nsection: global_planning\nscenarios: []\nparams: []\n");
   EXPECT_THROW(core::ParamSet::from_yaml(p), std::runtime_error);
 }
 
 TEST(Params, OutOfRangeDefaultThrows) {
   std::string p = test::write_temp("bad.yaml",
-                                   "algorithm: x\nsection: search\nparams:\n"
+                                   "algorithm: x\nsection: search\nscenarios: []\nparams:\n"
                                    "  - name: weight\n    type: float\n"
                                    "    default: 9.0\n    min: 1.0\n    max: 5.0\n"
                                    "    description: w\n");
@@ -72,7 +85,7 @@ TEST(Params, OutOfRangeDefaultThrows) {
 
 TEST(Params, WrongTypeAccessThrows) {
   std::string p = test::write_temp("ok.yaml",
-                                   "algorithm: x\nsection: search\nparams:\n"
+                                   "algorithm: x\nsection: search\nscenarios: []\nparams:\n"
                                    "  - name: n\n    type: int\n    default: 3\n    description: n\n");
   auto ps = core::ParamSet::from_yaml(p);
   EXPECT_EQ(ps.get_int("n"), 3);
@@ -138,8 +151,23 @@ TEST(Grid, HeuristicIsManhattan) {
 }
 
 TEST(Grid, Capabilities) {
+  // One raster answers both queries: the discrete move set AND the continuous
+  // free space of a disc robot (the dRRT family plans on the latter).
   auto g = test::make_grid({"..", ".."});
   EXPECT_TRUE(g.supports(core::Capability::DISCRETE_SPACE));
+  EXPECT_TRUE(g.supports(core::Capability::CONTINUOUS_SPACE));
+  EXPECT_EQ(g.capabilities().size(), 2u);
+}
+
+TEST(Grid, ExtentIsWorldFootprint) {
+  // 3 rows x 4 cols at resolution 1.0, origin (0,0): footprint [0,4] x [0,3]
+  // — the rectangle continuous planners sample configurations uniformly from.
+  maps::OccupancyGrid2D g(3, 4, 1.0, 0.0, 0.0, std::vector<bool>(12, true));
+  auto e = g.extent();
+  EXPECT_EQ(e[0], 0.0);
+  EXPECT_EQ(e[1], 0.0);
+  EXPECT_EQ(e[2], 4.0);
+  EXPECT_EQ(e[3], 3.0);
 }
 
 // --- Trace --------------------------------------------------------------------
@@ -207,6 +235,36 @@ TEST(Trace, EdgeConflictCarriesBothCells) {
   EXPECT_NE(s.find("\"t\":3"), std::string::npos);
   EXPECT_NE(s.find("\"agents\":[1,0]"), std::string::npos);
   EXPECT_NE(s.find("\"to\":[2,3]"), std::string::npos);
+}
+
+TEST(Trace, PlanningStartedDeclaresWorldCoordsAndRadius) {
+  // Continuous traces declare the state reading and carry each agent's disc radius;
+  // field order is part of the wire contract (byte-identical to Python).
+  std::ostringstream os;
+  core::TraceRecorder rec(os);
+  rec.planning_started("drrt", "maps/grid/open01.yaml", {}, core::Coords::World,
+                       std::vector<double>{0.2, 0.2});
+  EXPECT_EQ(os.str(),
+            R"({"seq":0,"event":"planning_started","algorithm":"drrt","map":"maps/grid/open01.yaml","params":{},"coords":"world","radius":[0.2,0.2]})"
+            "\n");
+}
+
+TEST(Trace, RoadmapBuiltCarriesVerticesAndEdges) {
+  std::ostringstream os;
+  core::TraceRecorder rec(os);
+  rec.roadmap_built(1, {core::Point{0.5, 2.5}, core::Point{3.5, 0.5}}, {{0, 1}});
+  EXPECT_EQ(os.str(),
+            R"({"seq":0,"event":"roadmap_built","agent":1,"vertices":[[0.5,2.5],[3.5,0.5]],"edges":[[0,1]]})"
+            "\n");
+}
+
+TEST(Trace, FloatStatesUseShortestRoundTripForm) {
+  // std::format("{}") emits the shortest decimal that re-reads to the same double —
+  // byte-identical to Python's repr; integers stay integer bytes (parsed equal).
+  std::ostringstream os;
+  core::TraceRecorder rec(os);
+  rec.node_expanded(std::vector<double>{0.5, 0.1});
+  EXPECT_NE(os.str().find("\"state\":[0.5,0.1]"), std::string::npos);
 }
 
 // --- PGM reader ---------------------------------------------------------------

@@ -100,3 +100,19 @@ def test_bad_default_types_raise(tmp_path: Path) -> None:
         cfg = write_config(tmp_path / "bad.yaml", "x", [bad])
         with pytest.raises(ParamError):
             ParamSet.from_yaml(cfg)
+
+
+def test_scenarios_round_trip_and_gate(tmp_path: Path) -> None:
+    # scenarios is a REQUIRED top-level key (per-config routing for bench/export).
+    cfg = write_config(
+        tmp_path / "ok.yaml", "x", [], section="sampling",
+        scenarios=["open01_cross_discs"],
+    )
+    assert ParamSet.from_yaml(cfg).scenarios == ["open01_cross_discs"]
+    # Missing key raises (the params-key check above already proves requiredness
+    # is enforced per key); a non-list value raises too.
+    bad = tmp_path / "bad.yaml"
+    bad.write_text("algorithm: x\nsection: search\nscenarios: nope\nparams: []",
+                   encoding="utf-8")
+    with pytest.raises(ParamError):
+        ParamSet.from_yaml(bad)

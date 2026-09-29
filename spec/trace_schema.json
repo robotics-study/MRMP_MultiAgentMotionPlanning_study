@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "mrmp/trace-event.schema.json",
   "title": "mrmp trace event",
-  "description": "step-by-step 시각화의 언어 공용 계약. trace 파일은 JSON Lines(.jsonl)이며 한 줄이 이벤트 하나다. C++/Python 구현 모두 이 스키마를 따르는 이벤트만 방출한다. 내러티브는 seq 순서뿐 — wall-clock 시간은 담지 않는다. 이벤트가 실어 나르는 유일한 시간은 space-time 이벤트의 이산 시각 필드 t다.",
+  "description": "step-by-step 시각화의 언어 공용 계약. trace 파일은 JSON Lines(.jsonl)이며 한 줄이 이벤트 하나다. C++/Python 구현 모두 이 스키마를 따르는 이벤트만 방출한다. 내러티브는 seq 순서뿐 — wall-clock 시간은 담지 않는다. 이벤트가 실어 나르는 유일한 시간은 space-time 이벤트의 이산 시각 필드 t다. 숫자는 파싱 후 값으로 비교한다 (Python 5.0 과 C++ 5 는 같은 값; 정수는 양쪽 모두 정수 바이트로 직렬화된다).",
   "type": "object",
   "required": ["seq", "event"],
   "properties": {
@@ -14,6 +14,7 @@
     "event": {
       "enum": [
         "planning_started",
+        "roadmap_built",
         "node_expanded",
         "path_found",
         "conflict_found",
@@ -33,18 +34,28 @@
       "type": "object",
       "description": "planning_started 전용: 실행에 사용된 파라미터 값 스냅샷. 키는 사전순으로 정렬해 두 언어가 같은 순서로 직렬화한다."
     },
+    "coords": {
+      "enum": ["cell", "world"],
+      "description": "planning_started 선택: 숫자 상태 페어가 어떤 해석인지 선언한다. 생략하면 cell (이산 기본값, 기존 trace 바이트 불변); world 는 연속 알고리즘(dRRT 계열)의 world-point 페어."
+    },
+    "radius": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 1,
+      "description": "planning_started 선택 (연속 trace 전용): agent index 순서대로 각 disc 반지름(미터)."
+    },
     "state": {
       "$ref": "#/$defs/state",
-      "description": "node_expanded 전용: 확장한 노드의 상태. agent 필드가 있으면 그 agent의 개별 탐색 노드(셀 하나), 없으면 joint state — 모든 agent의 셀을 [r0,c0,r1,c1,...]로 평면화한 것."
+      "description": "node_expanded 전용: 확장한 노드의 상태. agent 필드가 있으면 그 agent의 개별 탐색 노드 (coords 해석의 페어 하나), 없으면 joint state — 모든 agent의 상태를 coords 해석의 페어로 평면화한 것 [x0,y0,x1,y1,...]."
     },
     "cost": {
       "type": "number",
-      "description": "node_expanded 선택: 그 노드의 g-value (모든 action이 1 스텝이라 g = 경과 시각)."
+      "description": "node_expanded 선택: 그 노드의 g-value (이산에서는 모든 action 이 1 스텝이라 g = 경과 시각)."
     },
     "agent": {
       "type": "integer",
       "minimum": 0,
-      "description": "사건이 속한 agent의 인덱스. node_expanded에서는 개별 탐색일 때만 (joint state 확장에는 없음), path_found/constraint_added에서는 필수."
+      "description": "사건이 속한 agent의 인덱스. node_expanded에서는 개별 탐색일 때만 (joint state 확장에는 없음), path_found/roadmap_built/constraint_added에서는 필수."
     },
     "t": {
       "type": "integer",
@@ -54,7 +65,22 @@
     "path": {
       "type": "array",
       "items": { "$ref": "#/$defs/state" },
-      "description": "path_found 전용: 그 agent의 space-time 경로. path[t]가 시각 t에 차지하는 셀."
+      "description": "path_found 전용: 그 agent의 space-time 경로. path[t]가 시각 t에 차지하는 상태 (이산: 셀, 연속: world point — 연속은 인접 웨이포인트 사이 직선 이동)."
+    },
+    "vertices": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/state" },
+      "description": "roadmap_built 전용: 개별 roadmap 의 정점(world point) 삽입 순서 그대로. [start, goal] 이 먼저, 그 다음 샘플 순서."
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": { "type": "integer" },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "description": "roadmap_built 전용: 정점 인덱스 쌍 [i, j], i < j, (min index, max index) 순서로 정렬."
     },
     "kind": {
       "enum": ["vertex", "edge"],
@@ -86,7 +112,7 @@
   },
   "$defs": {
     "state": {
-      "description": "상태 표현. 항상 격자 셀의 [row, col] (int)이며 joint state는 여러 셀의 평면화.",
+      "description": "상태 표현. 항상 숫자 페어 [x, y]: coords 생략(cell 기본)이면 격자 셀의 [row, col] (int), coords=world 면 world point(float). joint state 는 여러 페어의 평면화.",
       "type": "array",
       "items": { "type": "number" },
       "minItems": 2

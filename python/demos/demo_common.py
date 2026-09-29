@@ -2,7 +2,10 @@
 
 Demos are assembly only — they wire params + map + scenario + planner and emit
 `planning_started` (the one event the planner cannot emit, since the map path is
-known only here). Everything else is emitted by the planner.
+known only here). Everything else is emitted by the planner. Discrete demos use
+run() (world coords -> Cells, cell-interpreted traces); continuous demos use
+run_continuous() (raw world Points + disc radius, world-point traces declared via
+the planning_started `coords` field).
 """
 
 from __future__ import annotations
@@ -11,14 +14,21 @@ import argparse
 import json
 from collections.abc import Callable
 
+from mrmp.core.capabilities import Capability
 from mrmp.core.params import ParamSet
-from mrmp.core.planner import MultiAgentPlanner
+from mrmp.core.planner import ContinuousMultiAgentPlanner, MultiAgentPlanner
 from mrmp.core.trace import open_trace
-from mrmp.core.types import AgentTask, MultiPlanResult
+from mrmp.core.types import (
+    AgentTask,
+    ContinuousPlanResult,
+    ContinuousTask,
+    MultiPlanResult,
+)
 from mrmp.maps.loader import load_map, load_scenario
 from mrmp.maps.occupancy_grid import OccupancyGrid2D
 
 PlannerFactory = Callable[[ParamSet], MultiAgentPlanner]
+ContinuousFactory = Callable[[ParamSet], ContinuousMultiAgentPlanner]
 
 
 def _parse_args(name: str) -> argparse.Namespace:
@@ -52,7 +62,33 @@ def run(name: str, factory: PlannerFactory) -> None:
     _report(planner.name, result)
 
 
-def _report(name: str, result: MultiPlanResult) -> None:
+def run_continuous(name: str, factory: ContinuousFactory) -> None:
+    args = _parse_args(name)
+    params = ParamSet.from_yaml(args.params)
+    grid = load_map(args.map)
+    assert isinstance(grid, OccupancyGrid2D)
+    scenario = load_scenario(args.scenario)
+    # Continuous planners keep the scenario's world coords as-is and take the
+    # disc radius straight from the scenario (agent index == list position).
+    tasks: list[ContinuousTask] = [
+        ContinuousTask(start=spec.start, goal=spec.goal, radius=spec.radius)
+        for spec in scenario.agents
+    ]
+    planner = factory(params)
+    assert Capability.CONTINUOUS_SPACE in planner.required_capabilities()
+    with open_trace(args.trace) as recorder:
+        recorder.planning_started(
+            planner.name,
+            args.map,
+            params.values(),
+            coords="world",
+            radius=[task.radius for task in tasks],
+        )
+        result = planner.plan(grid, tasks, recorder)
+    _report(planner.name, result)
+
+
+def _report(name: str, result: MultiPlanResult | ContinuousPlanResult) -> None:
     # One-line JSON metrics on stdout (bench + web export read it). makespan is the
     # arrival step of the last agent; sum_of_costs is the summed path costs.
     summary = {

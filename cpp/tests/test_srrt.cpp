@@ -60,8 +60,9 @@ core::ParamSet override_config(int seed, int max_iterations) {
       "    max: 1.0\n    description: test bias\n"
       "  - name: max_iterations\n    type: int\n    default: " +
       std::to_string(max_iterations) + "\n    min: 1\n    description: test iterations\n";
-  return core::ParamSet::from_yaml(
-      test::write_temp("srrt_override.yaml", "algorithm: srrt\nsection: sampling\nparams:\n" + params));
+  return core::ParamSet::from_yaml(test::write_temp(
+      "srrt_override.yaml",
+      "algorithm: srrt\nsection: sampling\nscenarios: []\nparams:\n" + params));
 }
 
 // Load a repo scenario and convert its world-coord endpoints to cells (exactly

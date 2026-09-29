@@ -1,4 +1,8 @@
-"""TraceRecorder JSON Lines output + null-recorder behavior."""
+"""TraceRecorder JSON Lines output + null-recorder behavior.
+
+Field order and number formatting are wire contract: the C++ recorder must emit
+byte-identical lines for integer values and shortest-round-trip decimals for floats
+(json writes repr(float)); parsed traces match across languages field-for-field."""
 
 from __future__ import annotations
 
@@ -35,7 +39,9 @@ def test_required_fields_per_event() -> None:
     assert started["algorithm"] == "prioritized_astar"
     assert started["map"] == "maps/grid/maze01.yaml"
     # params sorted by key, values keep their types.
-    assert list(started["params"].keys()) == ["alpha", "zeta"]  # type: ignore[union-attr]
+    params = started["params"]
+    assert isinstance(params, dict)
+    assert list(params.keys()) == ["alpha", "zeta"]
     expanded = events["node_expanded"]
     assert expanded["state"] == [3, 4]
     assert expanded["cost"] == 5.0
@@ -50,6 +56,44 @@ def test_required_fields_per_event() -> None:
     finished = events["planning_finished"]
     assert finished["success"] is True
     assert finished["metrics"] == {"expanded_nodes": 3.0, "sum_of_costs": 4.0}
+    # Discrete traces omit both continuous fields — their bytes stay exactly as before.
+    assert "coords" not in started and "radius" not in started
+
+
+def test_planning_started_declares_world_coords_and_radius() -> None:
+    # Continuous traces declare the state reading and carry each agent's disc radius.
+    buf = io.StringIO()
+    rec = TraceRecorder(buf)
+    rec.planning_started("drrt", "maps/grid/open01.yaml", {}, coords="world", radius=[0.2, 0.2])
+    event = json.loads(buf.getvalue())
+    assert event["coords"] == "world"
+    assert event["radius"] == [0.2, 0.2]
+    # Field order is part of the wire contract (C++ emits in the same order).
+    assert list(event) == ["seq", "event", "algorithm", "map", "params", "coords", "radius"]
+
+
+def test_roadmap_built_carries_vertices_and_edges() -> None:
+    # Continuous planners prebuild one individual roadmap per agent: vertices in
+    # insertion order, edges as index pairs [i, j], i < j.
+    buf = io.StringIO()
+    rec = TraceRecorder(buf)
+    rec.roadmap_built(1, [[0.5, 2.5], [3.5, 0.5]], [(0, 1)])
+    event = json.loads(buf.getvalue())
+    assert set(event) == {"seq", "event", "agent", "vertices", "edges"}
+    assert event["agent"] == 1
+    assert event["vertices"] == [[0.5, 2.5], [3.5, 0.5]]
+    assert event["edges"] == [[0, 1]]
+
+
+def test_float_states_use_shortest_round_trip_repr() -> None:
+    # Floats serialize via repr (shortest round-trip decimal); C++ std::format("{}")
+    # emits the same bytes, and parsed values are equal either way.
+    buf = io.StringIO()
+    rec = TraceRecorder(buf)
+    rec.node_expanded((0.5, 0.1))
+    line = buf.getvalue()
+    assert '"state":[0.5,0.1]' in line
+    assert json.loads(line)["state"] == [0.5, 0.1]
 
 
 def test_edge_conflict_carries_both_cells_and_no_wall_clock() -> None:

@@ -39,6 +39,11 @@ ParamSet ParamSet::from_yaml(const std::string& path) {
   if (set.section_ != "search" && set.section_ != "sampling") {
     fail("unknown section '" + set.section_ + "'");
   }
+  // Scenario slugs this algorithm runs on — required list of scalars (possibly
+  // empty). The matrix runner and web exporter route per config. Mirrored in Python.
+  const YamlNode& scenarios = root.at("scenarios");
+  if (!scenarios.is_seq() && !scenarios.is_null()) fail("'scenarios' must be a sequence");
+  for (const YamlNode& s : scenarios.seq) set.scenarios_.push_back(s.as_string());
 
   const YamlNode& params = root.at("params");
   if (!params.is_seq() && !params.is_null()) fail("'params' must be a sequence");

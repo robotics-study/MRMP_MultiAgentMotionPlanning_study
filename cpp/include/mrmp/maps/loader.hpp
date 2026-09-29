@@ -9,11 +9,14 @@
 
 namespace mrmp::maps {
 
-// One agent's world-coord start/goal — the demo driver converts to Cells via
-// world_to_cell (coordinate frames stay owned by the map layer).
+// One agent's world-coord start/goal and disc radius — the discrete demo driver
+// converts to Cells via world_to_cell (coordinate frames stay owned by the map
+// layer); continuous planners use the raw Points and the radius (0.0 = point
+// robot when the scenario omits it).
 struct AgentSpec {
   core::Point start;
   core::Point goal;
+  double radius = 0.0;
 };
 
 // Multi-agent problem definition resolved from a scenario yaml: one entry per

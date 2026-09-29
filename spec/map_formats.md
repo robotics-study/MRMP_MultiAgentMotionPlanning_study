@@ -22,6 +22,14 @@ free_thresh: 0.196         # (1 - pixel/255) <= 이 값 → free (사이 값은 
 
 - capability: `DiscreteSpace` — 이동은 4-connected + wait(self-loop), 모든 action 비용 1 스텝.
   대각선 이동은 없으므로 corner-cut 규칙도 없다. 휴리스틱은 Manhattan.
+- 같은 래스터가 `ContinuousSpace` 도 제공한다 (disc 로봇용 연속 free space):
+  - configuration q 가 free ⟺ 반지름 r 원판이 obstacle 셀과 겹치지 않음 — 장애물 셀은 닫힌 정사각형이고,
+    중심에서 셀까지 거리가 r **보다 strictly 작을 때만** blocked. 정확히 r 만큼 닿는 것(grazing)은 free.
+    점 로봇(r=0)은 셀 위/안에 있을 때(거리 0)만 blocked.
+  - segment free ⟺ 쓸려 지나가는 원판이 clear — segment 와 각 obstacle 셀의 거리가 r 이상.
+  - 판정식은 전부 고정 순서의 exact float 연산 (양 언어 비트 단위 동일). 부동소수 비교는 알고리즘 내부에서
+    `<` / `>=` 로만 하고 재직렬화하지 않는다.
+  - 연속 샘플링은 맵의 world footprint `[x_min, y_min, x_max, y_max]` 위에서 균일하게 이뤄진다.
 
 ## scenario (`maps/scenarios/`)
 
@@ -31,10 +39,11 @@ free_thresh: 0.196         # (1 - pixel/255) <= 이 값 → free (사이 값은 
 ```yaml
 map: ../grid/maze01.yaml   # scenario 파일 기준 상대 경로
 agents:                    # 목록 순서가 agent index (0부터) — trace 의 agent 필드와 일치
-  - start: [0.75, 1.25]    # world 좌표. 데모 드라이버가 grid.world_to_cell 로 셀로 변환한다
-    goal: [8.25, 7.25]
+  - start: [0.75, 1.25]    # world 좌표. 이산 알고리즘 데모는 grid.world_to_cell 로 셀로 변환한다
+    goal: [8.25, 7.25]     # (좌표계 소유는 맵 레이어 규칙)
   - start: [8.25, 1.25]
     goal: [0.75, 7.25]
+    radius: 0.2            # 선택: disc 반지름(미터). 생략 시 0.0 = 점 로봇. 연속 알고리즘(dRRT 계열)만 쓴다
 ```
 
 - agent 수에 상한은 없지만, joint-space 탐색의 상태 공간은 agent 수에 대해 지수로 커진다 —

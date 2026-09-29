@@ -113,11 +113,26 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
+    // implicit roadmap 갈래의 첫 회원 — 개별 PRM의 tensor product를 표본으로 더듬는다.
+    // 논문 자체의 continuous 설정을 그대로 따른다(저장소의 raster 위에 disc robot).
     {
         slug: "drrt",
         title: {en: "dRRT", ko: "dRRT"},
         section: "sampling",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./sampling/drrt")),
+        sections: [
+            {en: "From Joint Trees to Implicit Roadmaps", ko: "joint 트리에서 implicit roadmap으로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
     },
+    // 같은 implicit roadmap 위의 informed asymptotically-optimal 후속 (Shome, Solovey,
+    // Dobson, Halperin & Bekris 2020) — 계보상 dRRT의 다음 장.
     {
         slug: "drrt_star",
         title: {en: "dRRT*", ko: "dRRT*"},

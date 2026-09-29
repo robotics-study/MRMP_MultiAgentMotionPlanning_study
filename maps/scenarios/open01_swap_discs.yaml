@@ -1,0 +1,14 @@
+# open01_swap의 연속판: 같은 높이(y = 4.75)를 서로 반대 방향으로 가로지르는 정면
+# swap을 반지름 0.2 disc robot 둘이 수행한다(discrete판과 좌표는 완전히 동일). 열린
+# 평면이라 discrete판처럼 셀 하나 폭의 우회를 강제당하지는 않지만, 같은 선상을 정면으로
+# 지나는 tensor edge는 두 disc가 겹치므로(edge validity: moving-pair 거리 < r_i+r_j)
+# 거부된다 — 표본으로 채워진 roadmap이 비켜가는 경로를 만들어야 하고, 우선순위 DAG가
+# 통과 순서를 결정한다.
+map: ../grid/open01.yaml   # scenario 파일 기준 상대 경로
+agents:                    # agent 순서 = agent index (우선순위와 무관, 표시 순서)
+  - start: [1.25, 4.75]    # cell (10, 2) 중심 — 오른쪽으로
+    goal: [8.25, 4.75]     # cell (10, 16) 중심
+    radius: 0.2
+  - start: [8.25, 4.75]    # cell (10, 16) 중심 — 왼쪽으로
+    goal: [1.25, 4.75]     # cell (10, 2) 중심
+    radius: 0.2

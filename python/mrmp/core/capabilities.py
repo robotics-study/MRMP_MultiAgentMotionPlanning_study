@@ -1,9 +1,11 @@
 """Capability model: algorithms require capabilities, map types provide them.
 
 Mirrors the C++ `core/capabilities.hpp`. Capabilities are structural Protocols
-so one concrete map can satisfy a planner without a class hierarchy, and a planner
-depends only on the capability it needs (never on a concrete map class). MRMP has
-exactly one capability: every planner searches the same discrete grid.
+so one concrete map can satisfy several of them without a class hierarchy, and a
+planner depends only on the capability it needs (never on a concrete map class).
+MRMP has exactly two capabilities: every search-branch planner searches the same
+discrete grid; every sampling-branch planner whose robots are geometric discs
+plans on that same map's continuous free space instead.
 """
 
 from __future__ import annotations
@@ -12,11 +14,12 @@ import enum
 from abc import ABC, abstractmethod
 from typing import Protocol
 
-from .types import Cell
+from .types import Cell, Point
 
 
 class Capability(enum.Enum):
     DISCRETE_SPACE = "discrete_space"
+    CONTINUOUS_SPACE = "continuous_space"
 
 
 class DiscreteSpace(Protocol):
@@ -46,7 +49,36 @@ class DiscreteSpace(Protocol):
 
     def cells(self) -> list[Cell]:
         """Every passable cell in canonical row-major order — the motion graph's
-        vertex set, ordered identically across languages."""
+        vertex set for uniform waypoint sampling."""
+        ...
+
+
+class ContinuousSpace(Protocol):
+    """Continuous free-space view of a map for disc robots.
+
+    A configuration q is free iff the disc of radius r around q overlaps no
+    obstacle cell (touching counts as free — collision means strict overlap).
+    A straight segment is free iff the swept disc stays clear, i.e. the segment's
+    distance to every obstacle cell is >= r. Every predicate is an exact float
+    expression evaluated in an identical operation order in Python and C++, so all
+    engines decide every boundary case on identical bits (floats are compared with
+    ``<`` / ``>=``, never re-serialized, inside the algorithms).
+
+    `extent()` returns the world rectangle [x_min, x_max] x [y_min, y_max] the
+    planner samples its configurations uniformly from.
+    """
+
+    def extent(self) -> tuple[float, float, float, float]:
+        """(x_min, y_min, x_max, y_max) of the map's world footprint."""
+        ...
+
+    def free_point(self, q: Point, radius: float) -> bool:
+        """True iff the disc of `radius` around q overlaps no obstacle cell."""
+        ...
+
+    def segment_free(self, a: Point, b: Point, radius: float) -> bool:
+        """True iff every point of segment a->b is free for a disc of `radius`
+        (the swept-disc check between two roadmap vertices)."""
         ...
 
 

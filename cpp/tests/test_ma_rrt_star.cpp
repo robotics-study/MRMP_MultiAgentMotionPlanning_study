@@ -54,7 +54,7 @@ core::ParamSet config() {
 core::ParamSet seed_config(int seed) {
   return core::ParamSet::from_yaml(test::write_temp(
       "ma_rrt_star_seed.yaml",
-      "algorithm: ma_rrt_star\nsection: sampling\nparams:\n"
+      "algorithm: ma_rrt_star\nsection: sampling\nscenarios: []\nparams:\n"
       "  - name: seed\n    type: int\n    default: " +
           std::to_string(seed) +
           "\n    min: 1\n    max: 2147483646\n    description: test seed\n"

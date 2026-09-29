@@ -1,0 +1,56 @@
+# dRRT (Solovey, Salzman & Halperin 2016): the implicit-roadmap pole. Each robot gets
+# its OWN PRM over the continuous free space of the same raster — start and goal are
+# always vertices, then n rejection samples per robot, k-nearest edges — and the
+# composite roadmap is their TENSOR product (every joint edge moves EVERY robot). The
+# tree grows over that exponentially-large implicit graph; the goal tuple is connected
+# by the paper's prioritized local connector. Like every sampler here the PRNG seed is
+# part of the algorithm's identity — every language replays the identical sample
+# stream from it. samples_per_robot and roadmap_k are the roadmap's own knobs (the
+# paper leaves both free): more vertices cover the space denser, a larger fanout makes
+# each individual roadmap connected at fewer samples. max_rounds bounds the main loop
+# ("until CONNECT_TO_TARGET succeeds" made finite — dRRT is probabilistically complete,
+# not complete, and has no anytime refinement to keep running for).
+algorithm: drrt
+section: sampling
+# discs 시나리오 전용 — dRRT는 연속 free space 위의 disc robot planner이고,
+# discrete 셀 시나리오에는 radius가 없다 (spec/param_schema.json의 config별 라우팅).
+scenarios: [open01_cross_discs, open01_swap_discs]
+params:
+  - name: seed
+    type: int
+    default: 42
+    min: 1
+    max: 2147483646
+    description: >-
+      MINSTD Lehmer PRNG state (s ← 16807·s mod 2³¹−1). Fixed so every language
+      engine replays byte-identical sample streams; the seed is part of a run's
+      identity, not a tuning knob. Roadmap samples draw first (agent 0's n points,
+      then agent 1's, …), the tree's joint samples after them.
+  - name: samples_per_robot
+    type: int
+    default: 40
+    min: 0
+    description: >-
+      n rejection samples per robot (the roadmap G_i has n + 2 vertices: start and
+      goal are always vertices first). Rejection sampling over the map's world
+      extent — on an obstacle-free map nothing is ever rejected.
+  - name: roadmap_k
+    type: int
+    default: 6
+    min: 1
+    description: >-
+      k-nearest fanout of each individual roadmap (Euclidean distance, ties to the
+      lower insertion index). A PRM connectivity knob: too small and G_i splits
+      into components the local connector can never cross; large enough and every
+      free placement is reachable along roadmap edges.
+  - name: max_rounds
+    type: int
+    default: 6
+    min: 1
+    max: 30
+    description: >-
+      Round budget — round i runs N = 2^i EXPAND iterations (the paper's
+      parameter-free doubling schedule; the cap keeps that count inside the
+      int64 both languages count it in) then one CONNECT_TO_TARGET with K = i
+      candidates. The loop stops the moment a connector succeeds; exhausting the
+      budget is "no solution found", never "unsolvable".

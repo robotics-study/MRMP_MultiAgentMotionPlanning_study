@@ -21,6 +21,7 @@ from mrmp.core.params import ParamSet
 from mrmp.core.trace import TraceRecorder
 from mrmp.core.types import AgentTask, Cell
 from mrmp.maps.loader import load_map, load_scenario
+from mrmp.maps.occupancy_grid import OccupancyGrid2D
 from mrmp.search import Cbs
 
 
@@ -41,9 +42,10 @@ def assert_joint_valid(paths: list[list[Cell]]) -> None:
                 assert not (a_now == b_prev and a_prev == b_now), f"swap at step {t}"
 
 
-def _scenario(name: str) -> tuple[object, list[AgentTask]]:
+def _scenario(name: str) -> tuple[OccupancyGrid2D, list[AgentTask]]:
     scenario = load_scenario(REPO_ROOT / "maps" / "scenarios" / f"{name}.yaml")
     grid = load_map(scenario.map_path)
+    assert isinstance(grid, OccupancyGrid2D)  # the only map type; narrow for the type checker
     tasks = [
         AgentTask(grid.world_to_cell(*spec.start), grid.world_to_cell(*spec.goal))
         for spec in scenario.agents

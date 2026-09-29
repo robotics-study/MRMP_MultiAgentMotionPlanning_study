@@ -1,0 +1,13 @@
+# open01_cross의 연속판: 같은 교차(셀 (10,1)×(1,9) → 세계 좌표 (4.75, 4.75))를
+# 반지름 0.2 disc robot 둘이 지나다닌다(discrete판과 좌표는 완전히 동일). 개별
+# roadmap에 self-loop이 없으므로 tensor edge는 항상 모든 robot을 동시에 움직인다 —
+# 교차점을 같은 순간에 함께 지나려는 이동은 moving-pair 거리가 r_i+r_j 아래로
+# 내려가므로 edge validity가 거부하고, 순차적 우선순위 connector가 나머지를 처리한다.
+map: ../grid/open01.yaml   # scenario 파일 기준 상대 경로
+agents:                    # agent 순서 = agent index (우선순위와 무관, 표시 순서)
+  - start: [0.75, 4.75]    # cell (10, 1) 중심 — 오른쪽으로
+    goal: [8.75, 4.75]     # cell (10, 17) 중심
+    radius: 0.2
+  - start: [4.75, 9.25]    # cell (1, 9) 중심 — 아래로
+    goal: [4.75, 0.75]     # cell (18, 9) 중심
+    radius: 0.2

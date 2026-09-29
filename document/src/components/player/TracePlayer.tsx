@@ -8,9 +8,12 @@ import cn from "../../libs/cn";
 
 // 탐색 재생: 이벤트 수와 무관하게 체감 속도를 맞춘다 (고정 배속). 탐색이 끝나면
 // 실행 재생으로 넘어가 각 agent가 자기 space-time 경로를 스텝마다 걸어간다.
+// continuous trace(coords=world)는 같은 속도로 1/5 스텝씩 — 웨이포인트 사이를
+// 디스크가 선형 보간으로 미끄러지므로 소수 τ가 재생의 기본 단위다.
 const SEARCH_MS = 3000;
 const TICK_MS = 30;
 const EXEC_STEP_MS = 250;
+const WORLD_SUBSTEPS = 5;
 
 interface TracePlayerProps {
     map: GridMap;
@@ -68,17 +71,18 @@ const TracePlayer = ({map, timeline, autoPlay = true, agents, onPaintCell, onMov
     // 실행 단계: 탐색이 끝나면 τ를 0 → makespan으로 고정 스텝 속도로 굴린다.
     useEffect(() => {
         if (!playing || !finished) return
+        const sub = timeline.coords === "world" ? WORLD_SUBSTEPS : 1
         let cur = 0
         const timer = window.setInterval(() => {
             cur += 1
-            if (cur >= timeline.makespan) {
+            if (cur >= timeline.makespan * sub) {
                 window.clearInterval(timer)
                 setPlaying(false)
                 setExecStep(timeline.makespan)
             } else {
-                setExecStep(cur)
+                setExecStep(cur / sub)
             }
-        }, EXEC_STEP_MS)
+        }, EXEC_STEP_MS / sub)
         return () => window.clearInterval(timer)
     }, [playing, finished, timeline])
 

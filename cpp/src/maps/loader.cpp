@@ -58,9 +58,11 @@ Scenario load_scenario(const std::string& path) {
   for (const YamlNode& a : root.at("agents").seq) {
     const YamlNode& start = a.at("start");
     const YamlNode& goal = a.at("goal");
+    // Optional per-agent disc radius (continuous planners); 0.0 = point robot.
+    double radius = a.has("radius") ? a.at("radius").as_double() : 0.0;
     sc.agents.push_back(AgentSpec{
         core::Point{start.seq.at(0).as_double(), start.seq.at(1).as_double()},
-        core::Point{goal.seq.at(0).as_double(), goal.seq.at(1).as_double()}});
+        core::Point{goal.seq.at(0).as_double(), goal.seq.at(1).as_double()}, radius});
   }
   return sc;
 }

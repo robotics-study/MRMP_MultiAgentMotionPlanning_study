@@ -48,6 +48,7 @@ def assert_joint_valid(paths: list[list[Cell]]) -> None:
 def _scenario(name: str) -> tuple[OccupancyGrid2D, list[AgentTask]]:
     scenario = load_scenario(REPO_ROOT / "maps" / "scenarios" / f"{name}.yaml")
     grid = load_map(scenario.map_path)
+    assert isinstance(grid, OccupancyGrid2D)  # the only map type; narrow for the type checker
     tasks = [
         AgentTask(grid.world_to_cell(*spec.start), grid.world_to_cell(*spec.goal))
         for spec in scenario.agents

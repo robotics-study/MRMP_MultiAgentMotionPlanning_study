@@ -13,7 +13,10 @@ using ParamValue = std::variant<int, double, bool, std::string>;
 // Loads and validates an algorithm's parameter set from its configs yaml
 // (spec/param_schema.json). Validation (type match, [min,max] range, enum
 // choices) runs at load time and throws std::runtime_error ("param error: ...")
-// on failure — this is the "param validation failure" contract.
+// on failure — this is the "param validation failure" contract. A config also
+// declares the scenario slugs its algorithm is run on (`scenarios:`); the
+// matrix runner and web exporter route per config instead of running every
+// algorithm against every scenario.
 class ParamSet {
  public:
   static ParamSet from_yaml(const std::string& path);
@@ -27,10 +30,12 @@ class ParamSet {
   const std::map<std::string, ParamValue>& values() const { return values_; }
   const std::string& algorithm() const { return algorithm_; }
   const std::string& section() const { return section_; }
+  const std::vector<std::string>& scenarios() const { return scenarios_; }
 
  private:
   std::string algorithm_;
   std::string section_;
+  std::vector<std::string> scenarios_;
   std::map<std::string, ParamValue> values_;
 };
 

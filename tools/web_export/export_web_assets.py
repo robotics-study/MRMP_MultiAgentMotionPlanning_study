@@ -9,12 +9,13 @@ alone and stored gzipped for static serving (gzip mtime is pinned to 0 so the
 same input always produces the same bytes — stable git diffs).
 
 Traces are keyed by SCENARIO name (not map): one map can host several scenarios,
-so the scenario name is the only unambiguous key. The map JSON stays keyed by map
-name; a scenario's own `map:` field names which JSON the page loads.
+so the scenario name is the only unambiguous key. Each algorithm's own config
+declares the scenarios it runs on (`scenarios:` — the same routing as
+run_matrix.py), and each scenario's `map:` field names which map JSON to export.
 
 Usage:
-    python tools/web_export/export_web_assets.py --algos prioritized_astar \
-        --maps maze01 --scenario maze01_two
+    python tools/web_export/export_web_assets.py \
+        --algos prioritized_astar,joint_astar,cbs,ma_rrt_star,srrt,drrt
 """
 
 from __future__ import annotations
@@ -157,21 +158,37 @@ def export_traces(algo: str, map_name: str, scenario: Path,
 def main() -> None:
     parser = argparse.ArgumentParser(description="export web data assets for document/")
     parser.add_argument(
-        "--algos", default="", help="comma-separated algorithm slugs (empty: maps only)"
+        "--algos", default="", help="comma-separated algorithm slugs (empty: nothing to do)"
     )
-    parser.add_argument("--maps", required=True, help="comma-separated grid map names")
-    parser.add_argument("--scenario", required=True,
-                        help="scenario name under maps/scenarios/ (no .yaml suffix)")
     parser.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
                         help="param default override for the demo run (repeatable)")
     args = parser.parse_args()
     algos = [a for a in args.algos.split(",") if a]
     overrides = dict(kv.split("=", 1) for kv in args.set)
-    scenario = REPO / "maps" / "scenarios" / f"{args.scenario}.yaml"
-    for map_name in args.maps.split(","):
+
+    # Each config declares ITS scenarios (`scenarios:`); each scenario's `map:` field
+    # names the map JSON. Raw reads only — this tool stays free of mrmp.core.
+    scenario_map: dict[str, str] = {}   # scenario stem -> grid map name
+    per_algo: list[tuple[str, list[str]]] = []
+    for algo in algos:
+        matches = sorted((REPO / "configs").rglob(f"{algo}.yaml"))
+        if len(matches) != 1:
+            raise SystemExit(
+                f"expected exactly one configs/<section>/{algo}.yaml, found {len(matches)}"
+            )
+        declared = yaml.safe_load(matches[0].read_text(encoding="utf-8")).get("scenarios", [])
+        for name in declared:
+            raw = yaml.safe_load(
+                (REPO / "maps" / "scenarios" / f"{name}.yaml").read_text(encoding="utf-8"))
+            scenario_map[name] = Path(str(raw["map"])).stem
+        per_algo.append((algo, list(declared)))
+
+    for map_name in sorted(set(scenario_map.values())):
         export_map(map_name)
-        for algo in algos:
-            export_traces(algo, map_name, scenario, overrides)
+    for algo, names in per_algo:
+        for name in names:
+            export_traces(algo, scenario_map[name],
+                          REPO / "maps" / "scenarios" / f"{name}.yaml", overrides)
 
 
 if __name__ == "__main__":
