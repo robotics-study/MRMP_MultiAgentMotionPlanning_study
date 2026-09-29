@@ -82,8 +82,8 @@ const PushAndSwap = () => {
                     <BlockMath math="A \in V^{n} \text{ injective}, \qquad U = \{\, T_k : \text{agent } k \text{ has reached its goal}\,\, \}"/>
                     <Terms items={[
                         ["A", <>현재 배정. agent index → 셀의 단사 함수이고, 모든 이동은 이 배정을 갱신한다</>],
-                        ["T", <>목표 배정. A와 마찬가지로 단사여야 한다 — 위반 입력은 문제의 인스턴스가 아니다</>],
-                        ["U", <>goal에 이미 도착한 agent들의 goal 셀 집합. push의 hole 찾기 BFS는 이 셀들을 벽으로 취급한다 — 주차된 agent는 결코 밀릴 수 없다</>],
+                        ["T", <>목표 배정. A와 마찬가지로 단사여야 한다. 위반 입력은 문제의 인스턴스가 아니다</>],
+                        ["U", <>goal에 이미 도착한 agent들의 goal 셀 집합. push의 hole 찾기 BFS는 이 셀들을 벽으로 취급한다. 주차된 agent는 결코 밀릴 수 없다</>],
                     ]}/>
                     <p>
                         Two primitives do all the work, and both are pure graph operations on the grid. PUSH
@@ -115,15 +115,15 @@ const PushAndSwap = () => {
                     <BlockMath math="A \in V^{n} \text{ injective}, \qquad U = \{\, T_k : \text{agent } k \text{ has reached its goal}\,\, \}"/>
                     <Terms items={[
                         ["A", <>현재 배정. agent index → 셀의 단사 함수이고, 모든 이동은 이 배정을 갱신한다</>],
-                        ["T", <>목표 배정. A와 마찬가지로 단사여야 한다 — 위반 입력은 문제의 인스턴스가 아니다</>],
-                        ["U", <>goal에 이미 도착한 agent들의 goal 셀 집합. push의 hole 찾기 BFS는 이 셀들을 벽으로 취급한다 — 주차된 agent는 결코 밀릴 수 없다</>],
+                        ["T", <>목표 배정. A와 마찬가지로 단사여야 한다. 위반 입력은 문제의 인스턴스가 아니다</>],
+                        ["U", <>goal에 이미 도착한 agent들의 goal 셀 집합. push의 hole 찾기 BFS는 이 셀들을 벽으로 취급한다. 주차된 agent는 결코 밀릴 수 없다</>],
                     ]}/>
                     <p>
                         두 primitive가 모든 작업을 한다. 둘 다 격자 위의 순수 그래프 연산이다. PUSH는{" "}
                         <InlineMath math="r"/>을 최단경로를 따라 걷히고, 다음 셀이 점유돼 있으면 blocker에서
                         BFS(<InlineMath math="\{A[r]\} \cup U"/>를 벽으로 취급)로 가장 가까운 도달 가능 빈 셀을
                         찾아 그 체인 위의 점유자들이 r에서 먼 쪽부터 한 칸씩 hole을 향해 밀린다. SWAP은 push가
-                        길을 못 열 때다 — 보통 blocker가 <InlineMath math="U"/>의 주차된 agent이기 때문인데,
+                        길을 못 열 때다. 보통 blocker가 <InlineMath math="U"/>의 주차된 agent이기 때문인데,
                         구성상 주차된 agent는 밀 수 없다. 논문은 swap 후보의 POP() 순서를 비워뒀고, 이 저장소는
                         이를 <InlineMath math="A[r]"/>에서 BFS dequeue 순서(index가 아니라 거리순이 아니라 탐색
                         순서)로 고정해 모든 실행이 언어 간 바이트 단위로 동일하다.
@@ -132,7 +132,7 @@ const PushAndSwap = () => {
                         격자라는 사실이 swap의 기하를 하나 바꾼다: 격자 그래프는 이분그래프이고 삼각형이 없다.
                         그래서 이웃 둘을 맞바꾸는 것은 물리적으로 빈 2×2 block을 필요로 한다. 논문의 Figure-1
                         T자 접합 스케치는 개략도일 뿐이고, 격자에서는 사각형 경우만 존재한다. 이 사실 하나가
-                        완전성도 미묘하게 만든다 — 다음 섹션이 폭 1 통로가 아무것도 못 푸는 사례로 보여준다.
+                        완전성도 미묘하게 만든다. 다음 섹션이 폭 1 통로가 아무것도 못 푸는 사례로 보여준다.
                     </p>
                 </>}
             />
@@ -179,7 +179,7 @@ const PushAndSwap = () => {
                             결정론적으로 고정된다. 이건 논문의 설계 판단이지 구현의 편법이 아니다.
                         </li>
                         <li>
-                            <strong>최적과 무관 — 거리가 멀다.</strong> 비용은 push와 swap 춤이 우연히 소모한
+                            <strong>최적과 무관하다. 그것도 아주 멀리.</strong> 비용은 push와 swap 춤이 우연히 소모한
                             만큼이다. 아래 open01_swap 시나리오에서 이 planner는 joint 최적 30에 대해 38을
                             쓰고, maze01_two에서는 66에 대해 74를 쓴다. 우선순위가 이미 joint 최적성을 포기했고,
                             plan-and-repair은 개별 최적성까지 포기한다. 그 대가로 복구 능력을 산다.
@@ -188,7 +188,7 @@ const PushAndSwap = () => {
                             <strong>완전성은 격자가 만족하지 않는 조건 아래에서만.</strong> 논문은 충분한 연결성을
                             가진 그래프에서 agent 수 ≤{" "}
                             <InlineMath math="|V|-2"/>일 때 완전성을 증명한다. 격자 트리(폭 1 통로)는 어디에도
-                            swap 자리가 없으므로 폭 1 통로의 정면 교환 두 agent도 여기서 정직하게 실패한다 —
+                            swap 자리가 없으므로 폭 1 통로의 정면 교환 두 agent도 여기서 정직하게 실패한다.
                             corridor01_head_on preset을 보라. 고정된 semantics는 faithful한 알고리즘이지 전지전능한
                             복구 oracle이 아니다.
                         </li>
@@ -211,7 +211,7 @@ const PushAndSwap = () => {
                 </p>}
                 ko={<p>
                     절차는 index 순서로 agent를 도는 루프 하나이고, 그 안에서 push를 먼저 시도하고 swap을 나중에
-                    시도한다. 나머지 전부 — 사슬 밀기, 짝 걷기, 네 이동 교환, 실패한 후보의 rollback — 은 이 두
+                    시도한다. 나머지 전부(사슬 밀기, 짝 걷기, 네 이동 교환, 실패한 후보의 rollback)는 이 두
                     동사를 위한 장치다.
                 </p>}
             />
@@ -268,7 +268,7 @@ const PushAndSwap = () => {
                         the original swap — honest failure.</li>
                 </ol>}
                 ko={<ol>
-                    <li>agent는 index 순서로 처리한다 — 우선순위는 순서로서만 남는다. agent{" "}
+                    <li>agent는 index 순서로 처리한다. 우선순위는 순서로서만 남는다. agent{" "}
                         <InlineMath math="r"/>이 goal에 도착하면 그 셀은 <InlineMath math="U"/>에 합류하고
                         밀 수 없는 셀이 된다.</li>
                     <li>push를 항상 먼저 시도한다. push는 blocker를 길에서 치울 수 없을 때만 실패하는데, 실질적으로는
@@ -278,7 +278,7 @@ const PushAndSwap = () => {
                         액션이 아니다. parent 체인이 곧 push 체인이 된다.</li>
                     <li>빈 셀인 동안 r은 걷는다. 다음 셀이 점유되는 순간 push는 사슬 밀기로 바뀌고, r은 앞 열이
                         재배열되는 동안 한 스텝 대기한다.</li>
-                    <li>hole은 blocker에서 BFS 인입 순서상 첫 빈 셀이다 — 언어마다 같은 hole을 고르도록 고정된다.
+                    <li>hole은 blocker에서 BFS 인입 순서상 첫 빈 셀이다. 언어마다 같은 hole을 고르도록 고정된다.
                         blocker→hole parent 체인의 점유자들은 r에서 먼 쪽부터 움직여서 각 대상 셀이 이동자가 밟기
                         전에 이미 비어 있게 된다.</li>
                     <li>SWAP은 r과 s(<InlineMath math="p^*"/>의 첫 수를 막는 점유자)를 맞바꾼다. 실패한 후보는
@@ -295,7 +295,7 @@ const PushAndSwap = () => {
                         <InlineMath math="w_4 \in N(w_1) \setminus \{v\} \cap N(w_2)"/>이 clearable할 때만 존재한다
                         (점유자는 자기 첫 빈 이웃으로 한 칸 물러남). 그러면 네 이동이 block을 돈다.</li>
                     <li>맞바꿔 쫓겨난 s가 이미 goal에 있던 agent면 둘 다 되돌려야 한다. r을 <InlineMath math="T[s]"/>에서
-                        밀어내고 같은 방식으로 s를 집으로 보낸다. 여기서 swap이 실패하면 원래 swap까지 무효화된다 —
+                        밀어내고 같은 방식으로 s를 집으로 보낸다. 여기서 swap이 실패하면 원래 swap까지 무효화된다.
                         정직한 실패.</li>
                 </ol>}
             />
@@ -310,7 +310,7 @@ const PushAndSwap = () => {
                     actually is here.
                 </p>}
                 ko={<p>
-                    보장은 조건부 완전성이다 — 충분히 연결된 그래프에 빈 셀이 충분하면 planner는 항상 계획을 찾는다.
+                    보장은 조건부 완전성이다. 충분히 연결된 그래프에 빈 셀이 충분하면 planner는 항상 계획을 찾는다.
                     실패도 똑같이 정확하다: 격자 트리에는 swap 자리가 아예 없으므로, 완전성 조건은 증명에서가 아니라
                     기하에서 무너진다. 왜 격자의 swap에 2×2 block이 필요한지, 여기서 정직한 실패가 실제로 무엇인지
                     증명을 펼쳐 보라.
@@ -349,7 +349,7 @@ const PushAndSwap = () => {
                         <p>
                             <strong>증명.</strong> 교환은 사이클이다: r이 <InlineMath math="w_2 \neq w_1"/>로
                             떠나고, s는 이어 v에 들어가야 하고, s가 w1의 셀을 밟지 않고 v에 닿으려면 v와 w2의 공통
-                            이웃 <InlineMath math="w_4"/>에서 와야 한다 — 네 셀이 4-cycle을 이룬다. 격자 그래프는
+                            이웃 <InlineMath math="w_4"/>에서 와야 한다. 네 셀이 4-cycle을 이룬다. 격자 그래프는
                             이분그래프이고(row+col 홀짝으로 색칠), 모든 사이클은 길이 ≥4이며 삼각형은 어떤 교환도
                             담지 못한다. 가능한 최소 목격자는 정확히 사각형{" "}
                             <InlineMath math="\{v, w_1, w_2, w_4\}"/>이다. 폭 1 통로는 4-cycle이 아예 없으므로 이
@@ -368,7 +368,7 @@ const PushAndSwap = () => {
                     </p>}
                     ko={<p>
                         <strong>주장.</strong> 자유 셀이 트리를 이루고 두 agent가 끝을 맞바꿔야 할 때 이 planner는
-                        실패를 보고한다 — 그리고 그것은 논문의 faithful한 해석이지 구현의 구멍이 아니다.
+                        실패를 보고한다. 그리고 그것은 논문의 faithful한 해석이지 구현의 구멍이 아니다.
                     </p>}
                 />
                 <T
@@ -387,7 +387,7 @@ const PushAndSwap = () => {
                         <InlineMath math="U"/> 셀을 벽으로 취급하기 때문이다. 논문의 완전성 정리는 트리가 가지지 않는
                         연결성을 가정한다. 통로 정면 교환을 "풀었다"고 하는 구현은 Push and Swap가 아닌 다른 것을
                         하고 있는 것이고, 그래서 이 구현은 실패까지 센 확장 수와 함께{" "}
-                        <InlineMath math="\text{success} = \text{false}"/>를 정직하게 보고한다 — 앞선 우선순위 갈래와
+                        <InlineMath math="\text{success} = \text{false}"/>를 정직하게 보고한다. 앞선 우선순위 갈래와
                         똑같이.
                     </p>}
                 />
@@ -417,7 +417,7 @@ const PushAndSwap = () => {
                     아래 sandbox는 이 planner를 브라우저에서 직접 실행합니다. 아래 Python/C++ 코드가 내뱉는 것과
                     바이트 단위로 같은 엔진입니다. 벽을 그리고, 번호가 적힌 점이나 그 링을 끌어 agent의 start/goal을
                     옮기고, agent를 더하면 모든 편집이 즉시 재계획되고 재생은 스텝 0부터 다시 돕니다. preset들은 각
-                    primitive가 무엇인지로 골랐습니다. <code>open01_cross</code>는 충돌이 아예 없습니다 — agent 0이
+                    primitive가 무엇인지로 골랐습니다. <code>open01_cross</code>는 충돌이 아예 없습니다. agent 0이
                     row 10을 먼저 걷고 주차하고, agent 1이 같은 셀을 나중에 지나므로 둘 다 제약 없는 최단 비용을
                     유지합니다(16 + 17). <code>pocket01_swap</code>은 폭 1 통로에 pocket 하나가 붙은 맵으로 swap의
                     해부학 전부를 보여줍니다. push가 blocker를 pocket으로 밀어 넣고, 두 번째 agent의 경로가 주차된
@@ -427,13 +427,13 @@ const PushAndSwap = () => {
                     일어납니다. agent 0의 주차된 몸이 <InlineMath math="(10,16)"/>에 자리 잡아 벽 모서리에서의 실제
                     교환을 강제하고, joint 최적 30에 38을 씁니다. <code>maze01_two</code>는 두 agent를 폭 1 통로 gap으로
                     반대 방향으로 통과시키고, 최적 66에 74를 씁니다. 재생이 보여주는 것을 보세요: 이 planner엔 search
-                    frontier가 없어서 확장 bloom이 없고, 실행만 흐릅니다 — 우선순위 planner라면 절대 할 수 없었을 밀기와
+                    frontier가 없어서 확장 bloom이 없고, 실행만 흐릅니다. 우선순위 planner라면 절대 할 수 없었을 밀기와
                     rotation을 포함해서.
                 </p>}
             />
             <Sandbox label={t(
                 "Live push_and_swap sandbox — the browser engine is a byte-identical mirror of the Python/C++ planner. Draw walls, drag endpoints, add agents; every edit re-plans and replays",
-                "라이브 push_and_swap sandbox — 브라우저 엔진은 Python/C++ planner와 바이트 단위로 동일한 미러입니다. 벽을 그리고, endpoint를 끌어 옮기고, agent를 더하면 모든 편집이 즉시 재계획과 재생으로 이어집니다",
+                "라이브 push_and_swap sandbox. 브라우저 엔진은 Python/C++ planner와 바이트 단위로 동일한 미러입니다. 벽을 그리고, endpoint를 끌어 옮기고, agent를 더하면 모든 편집이 즉시 재계획과 재생으로 이어집니다",
             )} presets={PRESETS} run={runLive}/>
 
             <h2>Implementation</h2>
