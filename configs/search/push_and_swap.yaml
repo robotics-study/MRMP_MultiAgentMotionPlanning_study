@@ -1,0 +1,13 @@
+# Push and Swap (Luna & Bekris 2011): sequential primitives, not a search — PUSH walks
+# the BFS-shortest path while blockers can be pushed aside, SWAP exchanges adjacent
+# agents at a degree-3+ vertex. Every tie-break is structural (fixed neighbor order,
+# row-major swap-vertex iteration), so the algorithm has no tunable parameters by
+# design and runs deterministically on every engine.
+algorithm: push_and_swap
+section: search
+# 매트릭스 러너/웹 수출기가 이 알고리즘을 돌리는 시나리오 목록 (spec/param_schema.json).
+# discrete 알고리즘이므로 셀 시나리오만 — discs 시나리오는 dRRT 영역이다.
+# open01/maze01 은 push 만으로도 풀리는 기존 시나리오(우선순위 계획과의 동일 조건 비교용)이고,
+# corridor01 은 swap 이 실제로 필요한 정황(막힌 통로 head-on = 정직한 불능 포함)을 고정한다.
+scenarios: [maze01_two, open01_cross, open01_swap, corridor01_head_on, corridor01_pocket]
+params: []
