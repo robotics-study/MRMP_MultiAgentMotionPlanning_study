@@ -69,7 +69,7 @@ def test_contract_matches_config() -> None:
     assert planner.name == config("cbs").algorithm == "cbs"
     assert planner.required_capabilities() == {Capability.DISCRETE_SPACE}
     # The semi-decidability budget is the one declared parameter.
-    assert config("cbs").get_int("max_ct_expansions") == 64
+    assert config("cbs").get_int("max_ct_expansions") == 256
 
 
 def test_single_agent_is_plain_optimal_a_star() -> None:
