@@ -2,6 +2,7 @@
 // 알고리즘이 추가되면 run<algo>(map, agents, params[, radius]) → TraceEvent[] 를 여기에 export 한다.
 export {parseGridMap} from "../src/libs/grid";
 export {runPrioritizedAStar} from "../src/libs/algorithms/prioritized_astar";
+export {runPushAndSwap} from "../src/libs/algorithms/push_and_swap";
 export {runJointAStar} from "../src/libs/algorithms/joint_astar";
 export {runCbs} from "../src/libs/algorithms/cbs";
 export {runMaRrtStar} from "../src/libs/algorithms/ma_rrt_star";

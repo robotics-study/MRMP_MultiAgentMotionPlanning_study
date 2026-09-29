@@ -30,13 +30,24 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
-    // priority 갈래의 다음 장 — 예약을 동결하지 않고 push/swap primitive로
-    // lower-priority agent를 치운다. component당 빈 셀 ≥2이면 완전하다고 주장하고,
-    // 그 주장이 참인지 검증하는 것이 후속 Push and Rotate다.
+    // priority 갈래의 완성 — 예약을 동결하지 않고 push/swap primitive로 끝난 agent를 치운다.
+    // 파라미터 무의존 plan-and-repair이고, component당 빈 셀 ≥2이면 완전하다는 주장이
+    // 격자에서 어떻게 무너지는지(폭 1 통로)가 후속 Push and Rotate의 출발점이다.
     {
         slug: "push_and_swap",
         title: {en: "Push and Swap", ko: "Push and Swap"},
         section: "search",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./search/push_and_swap")),
+        sections: [
+            {en: "From Frozen Reservations to Push and Swap", ko: "얼린 예약에서 Push and Swap으로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
     },
     {
         slug: "push_and_rotate",

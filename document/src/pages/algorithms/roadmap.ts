@@ -18,6 +18,17 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
         },
     },
     {
+        slug: "push_and_swap",
+        blurb: {
+            en: "Keep the order, drop the frozen reservations: each agent drives its static shortest path and " +
+                "whatever blocks it is chain-pushed into the nearest reachable hole — or swapped around through a " +
+                "free 2×2 block. Parameter-free, honest about the tree-shaped maps where no swap site exists.",
+            ko: "순서는 유지하고 얼린 예약은 버린다: 각 agent는 정적 최단경로를 스스로 운전하고, 막히는 것은 " +
+                "chain-push로 가장 가까운 도달 가능 빈 셀에 밀어 넣고, 그것도 안 되면 빈 2×2 block을 통해 swap으로 " +
+                "맞바꾼다. 파라미터 무의존이고, swap 자리가 없는 트리 모양 맵에서 정직하게 실패한다.",
+        },
+    },
+    {
         slug: "joint_astar",
         blurb: {
             en: "Treat all k positions as one state and run a single A* over that product space: " +
