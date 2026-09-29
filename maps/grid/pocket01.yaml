@@ -1,0 +1,6 @@
+type: occupancy_grid
+image: pocket01.pgm        # 0(black)=occupied, 255(white)=free
+resolution: 0.5            # meters / pixel -> 7x3 grid = 3.5m x 1.5m world
+origin: [0.0, 0.0, 0.0]    # world pose of bottom-left pixel [x, y, theta]
+occupied_thresh: 0.65
+free_thresh: 0.196

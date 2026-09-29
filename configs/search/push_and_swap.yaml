@@ -1,0 +1,16 @@
+# Push and Swap (Luna & Bekris 2011): decentralized plan-and-repair — agents are processed in
+# index order; each PUSHes along its static shortest path (blocking occupants chain-pushed into
+# the nearest reachable empty cell) and SWAPs with the blocker when a push cannot clear the way.
+# No tunable parameters by design — parameter-free IS the paper's selling point ("no dependence
+# on parameter selection", unlike windowed decoupled planners). Every choice the algorithm must
+# still make (BFS neighbor order, candidate swap-vertex iteration order, clear-cell step order)
+# is pinned deterministically in code for cross-language parity, never exposed as a knob.
+algorithm: push_and_swap
+section: search
+# 매트릭스 러너/웹 수출기가 이 알고리즘을 돌리는 시나리오 목록 (spec/param_schema.json).
+# discrete 알고리즘이므로 셀 시나리오만 — discs 시나리오는 dRRT 영역이다.
+# corridor01_head_on 은 폭 1 통로라 swap 자리에 2×2 블록이 없어 정면 교환이 불가능하다 —
+# 완전성 주장(n ≤ |V|−2)이 격자에서 어떻게 무너지는지 그 실패를 정직하게 시연한다.
+# pocket01_swap 은 같은 정면 교환이 통로 옆 pocket 하나 때문에 swap으로 풀린다.
+scenarios: [maze01_two, open01_cross, open01_swap, pocket01_swap, corridor01_head_on]
+params: []
