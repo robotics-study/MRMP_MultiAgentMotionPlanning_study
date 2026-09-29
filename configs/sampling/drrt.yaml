@@ -47,8 +47,10 @@ params:
     type: int
     default: 6
     min: 1
+    max: 30
     description: >-
       Round budget — round i runs N = 2^i EXPAND iterations (the paper's
-      parameter-free doubling schedule) then one CONNECT_TO_TARGET with K = i
+      parameter-free doubling schedule; the cap keeps that count inside the
+      int64 both languages count it in) then one CONNECT_TO_TARGET with K = i
       candidates. The loop stops the moment a connector succeeds; exhausting the
       budget is "no solution found", never "unsolvable".
