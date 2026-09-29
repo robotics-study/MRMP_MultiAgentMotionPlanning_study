@@ -1,15 +1,17 @@
-"""dRRT: seeded determinism (the PRNG stream — roadmap samples first, joint samples
-after — is part of the algorithm's identity), valid collision-free joint paths on
-both disc scenarios, and the two FAILURE verdicts dRRT gives — an instant instance
-verdict (a start/goal disc overlapping an obstacle cell, or two discs overlapping at
-BOTH starts or BOTH goals: no valid initial/final configuration exists at all), and an
-honest budget failure that is NOT a verdict (the roadmap's individual component
-never reaches the goal vertex; more samples might change that, so dRRT can only
-say "no solution found within budget").
+"""dRRT*: seeded determinism (the PRNG stream — roadmap samples first, per-iteration
+bias/coordinate/pick draws after — is part of the algorithm's identity), valid
+collision-free joint paths on both disc scenarios, ANYTIME MONOTONICITY (a longer
+budget never costs more: growth + rewiring only improve the incumbent), the same
+instance verdicts as dRRT (a start/goal disc overlapping an obstacle cell, or two
+discs overlapping at BOTH starts or BOTH goals — zero expansions), and an honest
+budget failure that is NOT a verdict (the roadmap's component never reaches the
+goal vertex; more samples might change that).
 
-The validity check mirrors the planner's own collision semantics: a joint edge is
-legal iff the moving-pair distance stays >= r_i + r_j for every pair (strict
-overlap is collision), and every waypoint must itself be free for its disc."""
+The validity check is the shared joint-edge mirror of the planner's collision
+semantics (conftest.assert_joint_valid): a joint edge is legal iff the
+moving-pair distance stays >= r_i + r_j for every pair, and every waypoint must
+itself be free for its disc. Waiting is native here: a waypoint equal to the
+previous one is a wait, and trimmed paths clamp past their end."""
 
 from __future__ import annotations
 
@@ -33,7 +35,7 @@ from mrmp.core.trace import TraceRecorder
 from mrmp.core.types import ContinuousTask
 from mrmp.maps.loader import load_map, load_scenario
 from mrmp.maps.occupancy_grid import OccupancyGrid2D
-from mrmp.sampling import Drrt
+from mrmp.sampling import DrrtStar
 
 
 def _scenario(name: str) -> tuple[OccupancyGrid2D, list[ContinuousTask]]:
@@ -51,41 +53,43 @@ def _with_params(tmp_path: Path, **overrides: object) -> ParamSet:
     """The declared config with selected defaults overridden (same declarations,
     different defaults — the loader validates them like the real file)."""
     doc = yaml.safe_load(
-        next((REPO_ROOT / "configs").rglob("drrt.yaml")).read_text(encoding="utf-8")
+        next((REPO_ROOT / "configs").rglob("drrt_star.yaml")).read_text(encoding="utf-8")
     )
     for entry in doc["params"]:
         if entry["name"] in overrides:
             entry["default"] = overrides[entry["name"]]
     return ParamSet.from_yaml(
-        write_config(tmp_path / "drrt.yaml", "drrt", doc["params"], section="sampling")
+        write_config(tmp_path / "drrt_star.yaml", "drrt_star", doc["params"], section="sampling")
     )
 
 
 def test_contract_matches_config() -> None:
-    planner = Drrt(config("drrt"))
-    assert planner.name == config("drrt").algorithm == "drrt"
+    planner = DrrtStar(config("drrt_star"))
+    assert planner.name == config("drrt_star").algorithm == "drrt_star"
     assert planner.required_capabilities() == {Capability.CONTINUOUS_SPACE}
 
 
 def test_same_seed_replays_byte_identical_plans() -> None:
-    # The MINSTD stream (roadmap samples first, joint samples after) is part of
+    # The MINSTD stream (roadmap samples first, tree-phase draws after) is part of
     # the algorithm's identity: all three language engines must replay identical
     # roadmaps and trees from one seed. Same-seed reruns are the first line.
     grid, tasks = _scenario("open01_cross_discs")
-    a = Drrt(config("drrt")).plan(grid, tasks)
-    b = Drrt(config("drrt")).plan(grid, tasks)
+    a = DrrtStar(config("drrt_star")).plan(grid, tasks)
+    b = DrrtStar(config("drrt_star")).plan(grid, tasks)
     assert a.success and b.success
     assert a.paths == b.paths
     assert a.cost == pytest.approx(b.cost)
+    assert a.makespan == pytest.approx(b.makespan)
     assert a.stats.expanded_nodes == b.stats.expanded_nodes
 
 
 def test_open01_cross_discs_solves_with_valid_joint_paths() -> None:
     # The crossing at (4.75, 4.75): every tensor edge that would overlap the two
     # discs is rejected by the moving-pair check, so the tree only grows through
-    # safe simultaneous motion and the prioritized connector sequences the rest.
+    # safe simultaneous motion — and sequencing (one robot waits while the other
+    # crosses) is native: a self-loop edge IS a wait here.
     grid, tasks = _scenario("open01_cross_discs")
-    result = Drrt(config("drrt")).plan(grid, tasks)
+    result = DrrtStar(config("drrt_star")).plan(grid, tasks)
     assert result.success
     assert_joint_valid(result.paths, [t.radius for t in tasks], grid)
     # Each path starts at its start point and ends at its goal point.
@@ -95,20 +99,32 @@ def test_open01_cross_discs_solves_with_valid_joint_paths() -> None:
 
 
 def test_open01_swap_discs_solves_with_valid_joint_paths() -> None:
-    # Head-on swap on the open plane: no timing alone separates two discs on one
-    # line, so the accepted tree edges route around each other through sampled
-    # vertices and/or the priority DAG sequences the pass.
+    # Head-on swap on the open plane: two discs cannot pass one another on one
+    # line without one of them deviating, so the sampled roadmaps must supply a
+    # detour and the tree search sequences who moves when.
     grid, tasks = _scenario("open01_swap_discs")
-    result = Drrt(config("drrt")).plan(grid, tasks)
+    result = DrrtStar(config("drrt_star")).plan(grid, tasks)
     assert result.success
     assert_joint_valid(result.paths, [t.radius for t in tasks], grid)
+
+
+def test_longer_budget_never_costs_more(tmp_path: Path) -> None:
+    # The anytime contract: the loop never stops on first success — growth and
+    # rewiring only ever replace the incumbent with a strictly cheaper chain. Same
+    # seed, same samples; 300 iterations must not cost more than 20 (and on these
+    # scenarios they measurably cost LESS).
+    grid, tasks = _scenario("open01_cross_discs")
+    short = DrrtStar(_with_params(tmp_path, max_iterations=20)).plan(grid, tasks)
+    long_ = DrrtStar(config("drrt_star")).plan(grid, tasks)
+    assert short.success and long_.success
+    assert long_.cost <= short.cost + 1e-9
 
 
 def test_goal_on_obstacle_fails_immediately_as_an_instance_verdict() -> None:
     # A goal whose disc overlaps an obstacle cell admits no valid configuration —
     # a verdict on the instance itself at zero expansions (unlike budget
     # exhaustion, which is never a verdict).
-    planner = Drrt(config("drrt"))
+    planner = DrrtStar(config("drrt_star"))
     grid = grid_from(["#."])
     tasks = [ContinuousTask(start=(1.5, 0.5), goal=(0.5, 0.5), radius=0.4)]
     result = planner.plan(grid, tasks)
@@ -120,7 +136,7 @@ def test_goal_on_obstacle_fails_immediately_as_an_instance_verdict() -> None:
 def test_overlapping_start_discs_fail_immediately() -> None:
     # Two start discs overlapping each other: no valid initial configuration
     # exists at all — the same kind of instance verdict, still zero expansions.
-    planner = Drrt(config("drrt"))
+    planner = DrrtStar(config("drrt_star"))
     grid = grid_from(["#.#"])
     tasks = [
         ContinuousTask(start=(1.5, 0.5), goal=(3.5, 0.5), radius=0.4),
@@ -137,11 +153,8 @@ def test_overlapping_goal_discs_fail_immediately() -> None:
     # configuration exists — an instance verdict at zero expansions, not a budget
     # failure that depends on the seed. (A start overlapping the OTHER robot's
     # goal is deliberately NOT a verdict: i can vacate before j arrives.)
-    planner = Drrt(config("drrt"))
+    planner = DrrtStar(config("drrt_star"))
     grid = grid_from(["#.", "#.", "#."])
-    # Starts sit 1.0 apart (>= r_i + r_j = 0.8 — no start verdict fires), every
-    # point is free (x = 1.5 keeps every disc clear of the obstacle column), and
-    # only the two GOALS overlap: |0.9 - 0.4| = 0.5 < 0.8.
     tasks = [
         ContinuousTask(start=(1.5, 2.5), goal=(1.5, 0.4), radius=0.4),
         ContinuousTask(start=(1.5, 1.5), goal=(1.5, 0.9), radius=0.4),
@@ -151,13 +164,14 @@ def test_overlapping_goal_discs_fail_immediately() -> None:
     assert result.stats.expanded_nodes == 0
 
 
-def test_unreachable_goal_is_a_budget_failure_not_a_verdict(tmp_path) -> None:
+def test_unreachable_goal_is_a_budget_failure_not_a_verdict(tmp_path: Path) -> None:
     # The wall separates start from goal for the single agent — but free_point
     # holds at both endpoints, so this is NOT an instance verdict: every roadmap
     # edge crossing the wall is segment_blocked, the tree grows on the start's
-    # side and CONNECT_TO_TARGET never reaches vertex 1. Honest "no solution
-    # found within budget" — with a grown tree (expanded_nodes > 0).
-    planner = Drrt(_with_params(tmp_path, samples_per_robot=8, max_rounds=2))
+    # side and the goal vertex never enters T. Honest "no solution found within
+    # budget" — with a grown tree (expanded_nodes > 0). The all-inf H argument
+    # also runs here: every guided pick resolves to its lowest-index neighbor.
+    planner = DrrtStar(_with_params(tmp_path, samples_per_robot=8, max_iterations=20))
     grid = grid_from(["#.#.#"])
     tasks = [ContinuousTask(start=(1.5, 0.5), goal=(3.5, 0.5), radius=0.4)]
     result = planner.plan(grid, tasks)
@@ -169,7 +183,7 @@ def test_unreachable_goal_is_a_budget_failure_not_a_verdict(tmp_path) -> None:
 def test_trace_events_are_roadmaps_then_joint_states() -> None:
     buf = io.StringIO()
     grid, tasks = _scenario("open01_cross_discs")
-    Drrt(config("drrt")).plan(grid, tasks, TraceRecorder(buf))
+    DrrtStar(config("drrt_star")).plan(grid, tasks, TraceRecorder(buf))
 
     events = [json.loads(line) for line in buf.getvalue().splitlines()]
     kinds = [ev["event"] for ev in events]

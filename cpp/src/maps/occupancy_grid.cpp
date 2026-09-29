@@ -87,6 +87,14 @@ std::array<double, 4> OccupancyGrid2D::extent() const {
   return {origin_x_, origin_y_, origin_x_ + cols_ * resolution_, origin_y_ + rows_ * resolution_};
 }
 
+double OccupancyGrid2D::area() const {
+  // mu(C_f) = free cell count x resolution^2 — the raster's own free-space
+  // measure, evaluated ((count * res) * res) exactly like the Python map layer.
+  long long count = 0;
+  for (bool is_free_cell : free_) count += is_free_cell ? 1 : 0;
+  return static_cast<double>(count) * resolution_ * resolution_;
+}
+
 std::array<double, 4> OccupancyGrid2D::cell_rect(int row, int col) const {
   // World rectangle (x_lo, y_lo, x_hi, y_hi) of one cell — the same float
   // expressions in every language, so boundary cases land on identical bits.

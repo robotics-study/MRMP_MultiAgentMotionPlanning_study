@@ -456,6 +456,7 @@ core::ContinuousPlanResult Drrt::plan(const core::ContinuousSpace& space,
   result.success = true;
   result.paths = trimmed;
   result.cost = cost;
+  result.makespan = makespan;
   result.stats.expanded_nodes = static_cast<int>(states.size());
   return result;
 }

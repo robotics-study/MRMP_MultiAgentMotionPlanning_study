@@ -89,13 +89,18 @@ def run_continuous(name: str, factory: ContinuousFactory) -> None:
 
 
 def _report(name: str, result: MultiPlanResult | ContinuousPlanResult) -> None:
-    # One-line JSON metrics on stdout (bench + web export read it). makespan is the
-    # arrival step of the last agent; sum_of_costs is the summed path costs.
+    # One-line JSON metrics on stdout (bench + web export read it). Discrete
+    # results derive makespan = arrival step of the last agent; continuous results
+    # carry cost AND makespan explicitly (dRRT counts steps, dRRT* reports arc
+    # lengths — see ContinuousPlanResult). Parsed values are what must match.
     summary = {
         "algorithm": name,
         "success": result.success,
         "sum_of_costs": round(result.cost, 4),
-        "makespan": max((len(p) - 1 for p in result.paths), default=0),
+        "makespan": (
+            result.makespan if isinstance(result, ContinuousPlanResult)
+            else float(max((len(p) - 1 for p in result.paths), default=0))
+        ),
         "expanded_nodes": result.stats.expanded_nodes,
     }
     print(json.dumps(summary))

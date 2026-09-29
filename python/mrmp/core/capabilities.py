@@ -65,11 +65,18 @@ class ContinuousSpace(Protocol):
     ``<`` / ``>=``, never re-serialized, inside the algorithms).
 
     `extent()` returns the world rectangle [x_min, x_max] x [y_min, y_max] the
-    planner samples its configurations uniformly from.
+    planner samples its configurations uniformly from. `area()` is mu(C_f), the
+    free-space MEASURE the asymptotic-optimality radius bound reads: free cell
+    count x resolution^2 — the raster's own measure (the disc-inflated region is
+    deliberately NOT modeled; the algorithm's eta constant absorbs that slack).
     """
 
     def extent(self) -> tuple[float, float, float, float]:
         """(x_min, y_min, x_max, y_max) of the map's world footprint."""
+        ...
+
+    def area(self) -> float:
+        """mu(C_f): free cell count x resolution^2 (the raster's own measure)."""
         ...
 
     def free_point(self, q: Point, radius: float) -> bool:

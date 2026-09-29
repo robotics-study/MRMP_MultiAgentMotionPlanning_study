@@ -62,9 +62,11 @@ inline mrmp::maps::OccupancyGrid2D& as_grid(mrmp::core::MapBase& map) {
   return *grid;
 }
 
-// One-line JSON metrics on stdout (bench + web export read it): makespan = the
-// arrival step of the last agent (an empty path list reports 0); sum_of_costs and
-// expanded_nodes pass through unchanged — parsed values are what must match.
+// One-line JSON metrics on stdout (bench + web export read it): discrete results
+// derive makespan = the arrival step of the last agent (an empty path list reports
+// 0); continuous results carry cost AND makespan explicitly (dRRT counts steps,
+// dRRT* reports arc lengths — see ContinuousPlanResult). Parsed values are what
+// must match across languages.
 inline void report(const std::string& name, const mrmp::core::MultiPlanResult& res) {
   int makespan = 0;
   for (const auto& p : res.paths) makespan = std::max(makespan, static_cast<int>(p.size()) - 1);
@@ -75,11 +77,8 @@ inline void report(const std::string& name, const mrmp::core::MultiPlanResult& r
 }
 
 inline void report(const std::string& name, const mrmp::core::ContinuousPlanResult& res) {
-  int makespan = 0;
-  for (const auto& p : res.paths) makespan = std::max(makespan, static_cast<int>(p.size()) - 1);
-  if (res.paths.empty()) makespan = 0;
   std::cout << "{\"algorithm\":\"" << name << "\",\"success\":" << (res.success ? "true" : "false")
-            << ",\"sum_of_costs\":" << res.cost << ",\"makespan\":" << makespan
+            << ",\"sum_of_costs\":" << res.cost << ",\"makespan\":" << res.makespan
             << ",\"expanded_nodes\":" << res.stats.expanded_nodes << "}\n";
 }
 

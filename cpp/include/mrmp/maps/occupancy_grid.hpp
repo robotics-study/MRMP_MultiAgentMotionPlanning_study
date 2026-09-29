@@ -57,6 +57,10 @@ class OccupancyGrid2D final : public core::MapBase,
   // World footprint (x_min, y_min, x_max, y_max) — the rectangle continuous
   // planners sample configurations uniformly from.
   std::array<double, 4> extent() const override;
+  // mu(C_f): free cell count x resolution^2, evaluated left-to-right
+  // ((count * res) * res) so every language lands on identical bits — the
+  // asymptotic-optimality radius bound reads this.
+  double area() const override;
   // Free iff the disc of `radius` around q overlaps no obstacle cell in more than
   // a boundary point — blocked iff dist(q, cell) < radius (and for a point robot,
   // radius 0, blocked exactly when q lies on/inside a cell: distance 0). Exact

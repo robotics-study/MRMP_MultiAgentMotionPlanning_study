@@ -8,11 +8,14 @@
 # motionless robots (Adj includes self-loops), each tree vertex carries a cost-to-come
 # (sum of per-robot arc lengths — the paper's primary cost function), candidates are
 # re-parented when cheaper, and branch-and-bound prunes any expansion whose cost
-# exceeds the best solution so far. The oracle becomes I_d: goal-biased samples switch
+# exceeds the best solution so far. The oracle becomes I_d: a goal-biased draw switches
 # every robot to argmin-H (H = shortest path length on G_i to that robot's goal vertex,
-# precomputed by Dijkstra), unbiased samples pick a uniformly random neighbor. It is an
-# ANYTIME planner — the iteration budget is spent improving, not finding; the returned
-# plan is the best chain found. Like every sampler here the PRNG seed is part of the
+# precomputed by Dijkstra), unbiased draws pick a uniformly random neighbor; a node that
+# improves H over its parent becomes the next expansion point (greedy child propagation)
+# until an already-existing state ends the chain. It is an ANYTIME planner — the loop
+# never stops on first success; growth and rewiring keep improving the incumbent while
+# branch-and-bound prunes what cannot beat it, so the returned plan is the best chain
+# found within the budget. Like every sampler here the PRNG seed is part of the
 # algorithm's identity — every language replays the identical sample stream from it.
 algorithm: drrt_star
 section: sampling
@@ -34,17 +37,18 @@ params:
       neighbor pick per agent; guided iterations draw nothing.
   - name: samples_per_robot
     type: int
-    default: 40
+    default: 120
     min: 1
     description: >-
       n rejection samples per robot (the roadmap G_i has n + 2 vertices: start and
       goal are always vertices first). Rejection sampling over the map's world
       extent — on an obstacle-free map nothing is ever rejected. The same n feeds
       the connection radius r(n) below; asymptotic optimality needs n → ∞ with this
-      radius law, fixed-n runs are honest approximations of it.
+      radius law, fixed-n runs are honest approximations of it (the default is
+      dense enough that both disc scenarios solve near-optimally at seed 42).
   - name: eta
     type: float
-    default: 0.5
+    default: 2.0
     min: 0.05
     max: 4.0
     description: >-
