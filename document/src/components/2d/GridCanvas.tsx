@@ -1,12 +1,14 @@
 import {Fragment, useMemo, useRef} from "react";
 import {Circle, Group, Layer, Line, Rect, Shape, Stage, Text} from "react-konva";
 import Konva from "konva";
-import {GridMap} from "../../libs/grid";
+import {GridMap, worldToCellFloat} from "../../libs/grid";
 import {AGENT_COLORS, CONFLICT_COLOR, MultiTimeline} from "../../libs/trace/timeline";
-import {Cell} from "../../libs/trace/types";
+import {Cell, Point} from "../../libs/trace/types";
 import {useCanvasColors} from "../../libs/useTheme";
 
 // agent 색은 AGENT_COLORS(공용 팔레트)를 쓰고, conflict 마커만 구분되는 빨강이다.
+// endpoint 핸들은 항상 셀에 스냅된다 — world 모드에서도 드래그는 셀 단위로 움직이고
+// 변환(cellToWorld)이 같은 픽셀을 가리킨다.
 export interface AgentMarker {
     start: Cell;
     goal: Cell;
@@ -19,8 +21,8 @@ export interface GridCanvasProps {
     timeline?: MultiTimeline;
     // 이 step 이하의 이벤트만 그린다 (탐색 재생/스크럽).
     step?: number;
-    // 실행 재생 스텝 τ — null이면 탐색 단계(디스크 숨김), 아니면 각 agent가
-    // 자기 space-time 경로의 min(τ, 끝) 셀에 디스크로 서 있다.
+    // 실행 재생 스텝 τ — null이면 탐색 단계(디스크 숨김). discrete는 정수 스텝,
+    // world(timeline.coords="world")는 소수 τ: 웨이포인트 사이 선형 보간으로 디스크가 미끄러진다.
     execStep?: number | null;
     // sandbox: agent별 endpoint (start 점 + goal 링). 발표된 경로와 무관하게 항상 보인다 —
     // 계획 실패 때도 핸들을 잡아 옮겨야 하므로.
@@ -36,27 +38,42 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
     const cell = panel / Math.max(map.width, map.height);
     const stageW = Math.round(cell * map.width);
     const stageH = Math.round(cell * map.height);
+    // world 모드: 상태 페어는 world point이고 디스크는 진짜 반지름(미터→픽셀)을 그린다.
+    const world = timeline?.coords === "world";
 
-    // 셀별 확장 이벤트(step 이하) — 한 Shape로 배치 드로잉한다.
+    // 상태 페어 → 픽셀. discrete는 셀 중심, world는 (x-origin)/res 변환 — cell center의
+    // world 점은 정확히 같은 픽셀에 착지하므로 두 모드가 한 캔버스에서 섞이지 않아도 된다.
+    const toXY = (p: Point): [number, number] => {
+        if (!world) return [(p[1] + 0.5) * cell, (p[0] + 0.5) * cell];
+        const [rf, cf] = worldToCellFloat(map, p);
+        return [cf * cell, rf * cell];
+    }
+
+    // 셀별 확장 이벤트(step 이하) — discrete는 한 Shape로 배치 드로잉, world는 점들.
     const expandedByAgent = useMemo(() => {
-        if (!timeline) return [] as Array<{color: string; cells: Cell[]}>
-        const buckets = new Map<number, Cell[]>()
+        if (!timeline) return [] as Array<{color: string; points: Point[]}>
+        const buckets = new Map<number, Point[]>()
         for (const e of timeline.expanded) {
             if (e.step > step) continue
             const k = e.agent % AGENT_COLORS.length
             const arr = buckets.get(k) ?? []
-            arr.push(e.cell)
+            arr.push(e.point)
             buckets.set(k, arr)
         }
         return Array.from(buckets.entries())
             .sort((a, b) => a[0] - b[0])
-            .map(([k, cells]) => ({color: AGENT_COLORS[k], cells}))
+            .map(([k, points]) => ({color: AGENT_COLORS[k], points}))
     }, [timeline, step])
 
-    const center = (c: Cell): [number, number] => [(c[1] + 0.5) * cell, (c[0] + 0.5) * cell]
+    // world 모드만: agent별 roadmap(간선 + 정점 점) — 트리 탐색과 개별 PRM을 구분해 그린다.
+    const roadmapsByAgent = useMemo(() => {
+        if (!world || !timeline) return []
+        return timeline.roadmaps
+            .filter((r) => r.step <= step)
+            .map((r) => ({color: AGENT_COLORS[r.agent % AGENT_COLORS.length], ...r}))
+    }, [timeline, step, world])
 
-    // 발표된 space-time 경로 (step 이하). start/goal 마커는 agents에서 따로 그리므로
-    // 여기서는 선만 그린다.
+    // 발표된 space-time 경로 (start/goal 마커는 agents가 그리므로 여기서는 선만).
     const visiblePaths = useMemo(
         () => (timeline ? timeline.paths.filter((p) => p.step <= step) : []),
         [timeline, step],
@@ -75,7 +92,7 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
     // 클릭 셀과 마커 셀이 어긋나, 마커를 잡으려는 클릭이 페인팅으로 새기기 때문이다.
     const nearMarker = (c: Cell | undefined, px: number, py: number): boolean => {
         if (!c) return false
-        const [mx, my] = center(c)
+        const [mx, my] = toXY(c)
         return Math.hypot(px - mx, py - my) <= cell * 0.75
     }
     const nearAnyMarker = (px: number, py: number): boolean => {
@@ -93,8 +110,7 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
     }
     const paint = (c: Cell) => {
         if (!onPaintCell || paintValue.current === null) return
-        const px = (c[1] + 0.5) * cell
-        const py = (c[0] + 0.5) * cell
+        const [px, py] = [(c[1] + 0.5) * cell, (c[0] + 0.5) * cell]
         if (nearAnyMarker(px, py)) return
         onPaintCell(c[0], c[1], paintValue.current)
     }
@@ -108,7 +124,7 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
         return (
             <Fragment key={`m${i}`}>
                 {[("start" as const), ("goal" as const)].map((which) => {
-                    const [x, y] = center(a[which])
+                    const [x, y] = toXY(a[which])
                     const isStart = which === "start"
                     return (
                         <Group key={which} x={x} y={y} draggable={!!onMoveAgent}
@@ -139,6 +155,16 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
         )
     }
 
+    // world 실행 재생: 소수 τ에서 웨이포인트 사이 선형 보간 (연속 계획의 움직임은 직선).
+    const pathAt = (path: Point[], tau: number): Point => {
+        if (tau <= 0) return path[0]
+        if (tau >= path.length - 1) return path[path.length - 1]
+        const t = Math.floor(tau)
+        const f = tau - t
+        const a = path[t], b = path[t + 1]
+        return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]
+    }
+
     return (
         <Stage width={stageW} height={stageH}
                className="bg-surface border border-border rounded-lg overflow-hidden w-fit"
@@ -165,30 +191,64 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
                     <Rect key={`w${i}`} x={(i % map.width) * cell} y={Math.floor(i / map.width) * cell}
                           width={cell} height={cell} fill={colors.text} opacity={0.78} listening={false}/>
                 ))}
-                {/* 격자 선 — 셀이 충분히 클 때만 (작으면 노이즈) */}
-                {cell >= 9 && Array.from({length: map.width + 1}, (_, k) => (
+                {/* 격자 선 — 셀이 충분히 클 때만 (작으면 노이즈). world 모드는 점/선 위주라 더 드물게. */}
+                {(!world && cell >= 9) && Array.from({length: map.width + 1}, (_, k) => (
                     <Line key={`gv${k}`} points={[k * cell, 0, k * cell, stageH]} listening={false}
                           stroke={colors.border} strokeWidth={0.5} opacity={0.6}/>
                 ))}
-                {cell >= 9 && Array.from({length: map.height + 1}, (_, k) => (
+                {(!world && cell >= 9) && Array.from({length: map.height + 1}, (_, k) => (
                     <Line key={`gh${k}`} points={[0, k * cell, stageW, k * cell]} listening={false}
                           stroke={colors.border} strokeWidth={0.5} opacity={0.6}/>
                 ))}
-                {/* agent별 확장 셀 — 자기 hue로 반투명 채움 (joint 확장은 풀어서 전 agent 색) */}
-                {expandedByAgent.map(({color, cells}) => (
+                {/* world 모드: agent별 개별 roadmap — 옅은 간선 + 정점 점 (tree 탐색의 무대) */}
+                {roadmapsByAgent.map((rm) => (
+                    <Shape key={`re${rm.color}`} listening={false}
+                           sceneFunc={(ctx, shape) => {
+                               for (const [a, b] of rm.edges) {
+                                   const pa = toXY(rm.vertices[a])
+                                   const pb = toXY(rm.vertices[b])
+                                   ctx.beginPath()
+                                   ctx.moveTo(pa[0], pa[1])
+                                   ctx.lineTo(pb[0], pb[1])
+                                   // fill 미설정 — stroke만 shape에 적용된다.
+                                   ctx.fillStrokeShape(shape)
+                               }
+                           }}
+                           stroke={rm.color} opacity={0.25} strokeWidth={Math.max(0.6, cell * 0.05)}/>
+                ))}
+                {roadmapsByAgent.map((rm) => (
+                    <Shape key={`rv${rm.color}`} listening={false}
+                           sceneFunc={(ctx, shape) => {
+                               for (const v of rm.vertices) {
+                                   const [x, y] = toXY(v)
+                                   ctx.beginPath()
+                                   ctx.arc(x, y, Math.max(1.2, cell * 0.1), 0, Math.PI * 2)
+                                   ctx.fillStrokeShape(shape)
+                               }
+                           }}
+                           fill={rm.color} opacity={0.5}/>
+                ))}
+                {/* agent별 확장 — discrete는 셀 채움, world는 점 (joint 확장은 풀어 전 agent 색) */}
+                {expandedByAgent.map(({color, points}) => (
                     <Shape key={`e${color}`} listening={false}
                            sceneFunc={(ctx, shape) => {
-                               for (const c of cells) {
-                                   ctx.fillRect(c[1] * cell, c[0] * cell, cell, cell)
+                               for (const p of points) {
+                                   if (!world) {
+                                       ctx.fillRect(p[1] * cell, p[0] * cell, cell, cell)
+                                       continue
+                                   }
+                                   const [x, y] = toXY(p)
+                                   ctx.beginPath()
+                                   ctx.arc(x, y, Math.max(1.6, cell * 0.18), 0, Math.PI * 2)
+                                   ctx.fillStrokeShape(shape)
                                }
-                               ctx.fillStrokeShape(shape)
                            }}
-                           fill={color} opacity={0.28}/>
+                           fill={color} opacity={world ? 0.95 : 0.28}/>
                 ))}
                 {/* 발표된 space-time 경로 (start/goal 마커는 agents가 그린다) */}
                 {visiblePaths.map((p) => {
                     const color = AGENT_COLORS[p.agent % AGENT_COLORS.length]
-                    const pts = p.path.flatMap((c) => center(c))
+                    const pts = p.path.flatMap((pt) => toXY(pt))
                     return (
                         <Line key={`p${p.agent}`} points={pts} stroke={color} listening={false}
                               strokeWidth={Math.max(1.6, cell * 0.18)} opacity={0.9}
@@ -216,17 +276,21 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
                 }))}
                 {/* agent endpoint 핸들: 번호가 적힌 start 점 + goal 링 (sandbox) */}
                 {agents?.map((a, i) => marker(a, i))}
-                {/* 실행 재생: agent 디스크 (번호 표시) — 경로 끝에 도착하면 거기 고정. */}
+                {/* 실행 재생: agent 디스크 — world는 진짜 반지름(미터), discrete는 셀 크기.
+                    경로 끝에 도착하면 거기 고정이고 world의 소수 τ는 웨이포인트 선형 보간. */}
                 {execStep !== null && visiblePaths.map((p) => {
                     const color = AGENT_COLORS[p.agent % AGENT_COLORS.length]
-                    const [x, y] = center(p.path[Math.min(execStep, p.path.length - 1)])
+                    const rPx = world && timeline?.radius
+                        ? timeline.radius[p.agent % timeline.radius.length] * (cell / map.resolution)
+                        : cell * 0.38
+                    const [x, y] = toXY(pathAt(p.path, execStep))
                     return (
                         <Fragment key={`d${p.agent}`}>
-                            <Circle x={x} y={y} radius={cell * 0.38} fill={color} listening={false}
-                                    stroke={colors.bg} strokeWidth={Math.max(1, cell * 0.06)}/>
-                            <Text text={String(p.agent)} width={cell * 0.76} height={cell * 0.76}
-                                  x={x - cell * 0.38} y={y - cell * 0.38} align="center" verticalAlign="middle"
-                                  fontSize={Math.max(8, cell * 0.4)} fill="#ffffff" fontStyle="bold" listening={false}/>
+                            <Circle x={x} y={y} radius={rPx} fill={color} listening={false}
+                                    stroke={colors.bg} strokeWidth={Math.max(1, rPx * 0.25)}/>
+                            <Text text={String(p.agent)} width={rPx * 2} height={rPx * 2}
+                                  x={x - rPx} y={y - rPx} align="center" verticalAlign="middle"
+                                  fontSize={Math.max(8, rPx * 1.05)} fill="#ffffff" fontStyle="bold" listening={false}/>
                         </Fragment>
                     )
                 })}

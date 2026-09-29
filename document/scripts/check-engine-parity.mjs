@@ -29,14 +29,16 @@ const loadTrace = (algo, name) =>
 
 const finalOf = (events) => events[events.length - 1];
 
-// (map, agents, params) → TS 엔진 실행 (events 반환). 알고리즘이 추가되면 여기에 러너를
-// 등록한다 — agents 는 시나리오 yaml 의 cell 좌표값(데모가 world→cell 변환한 결과).
+// (map, agents, params, ctx) → TS 엔진 실행 (events 반환). 알고리즘이 추가되면 여기에 러너를
+// 등록한다 — discrete 는 agents 가 시나리오 yaml 의 cell 좌표값(데모가 world→cell 변환한
+// 결과)이고, continuous(drrt)는 world 점 페어에 planning_started 의 radius 를 함께 넘긴다.
 const RUNNERS = {
     prioritized_astar: (map, agents, params) => engines.runPrioritizedAStar(map, agents, params),
     joint_astar: (map, agents, params) => engines.runJointAStar(map, agents, params),
     cbs: (map, agents, params) => engines.runCbs(map, agents, params),
     ma_rrt_star: (map, agents, params) => engines.runMaRrtStar(map, agents, params),
     srrt: (map, agents, params) => engines.runSrrt(map, agents, params),
+    drrt: (map, agents, params, ctx) => engines.runDrrt(map, agents, ctx.radius, params),
 };
 
 // algo × scenario 조합. trace 파일은 시나리오 이름으로 키를 잡는다 (한 맵에 여러
@@ -83,6 +85,17 @@ const CHECKS = [
             {map: "open01", name: "open01_swap", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
         ],
     },
+    // dRRT 는 연속 planner — agents 는 시나리오 yaml 의 world 점 그대로 (데모가 변환 없이
+    // 그대로 넘긴다)이고 radius 는 planning_started 에서 온다.
+    {
+        algo: "drrt",
+        scenarios: [
+            {map: "open01", name: "open01_cross_discs",
+                agents: [[[0.75, 4.75], [8.75, 4.75]], [[4.75, 9.25], [4.75, 0.75]]]},
+            {map: "open01", name: "open01_swap_discs",
+                agents: [[[1.25, 4.75], [8.25, 4.75]], [[8.25, 4.75], [1.25, 4.75]]]},
+        ],
+    },
 ];
 
 let failures = 0;
@@ -96,8 +109,9 @@ for (const check of CHECKS) {
         }
         const expected = finalOf(events);
         const started = events[0];
+        const ctx = {coords: started.coords ?? "cell", radius: started.radius};
         const got = finalOf(RUNNERS[check.algo](loadMap(scenario.map), scenario.agents,
-            started.params ?? {}));
+            started.params ?? {}, ctx));
 
         const problems = [];
         if (Boolean(got.success) !== Boolean(expected.success)) {

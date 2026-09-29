@@ -63,6 +63,18 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
                 "약속하지 않는다.",
         },
     },
+    {
+        slug: "drrt",
+        blurb: {
+            en: "Stop searching the continuous space and grind it into a graph instead: one PRM per robot, " +
+                "their tensor product as the composite roadmap — never built, always queried through a " +
+                "direction oracle. An RRT on that implicit graph, with prioritized planning as the local " +
+                "connector. Probabilistically complete, no optimality claim.",
+            ko: "continuous 공간을 탐색하는 대신 graph로 갈아엎는다: robot마다 PRM 하나, 그 tensor product가 " +
+                "composite roadmap이고 절대 구성되지 않으면서 direction oracle으로만 조회된다. 그 implicit " +
+                "graph 위의 RRT이고 local connector는 prioritized planning. 확률적으로 완전하고 최적성 주장은 없다.",
+        },
+    },
 ];
 
 // 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 갈래는 survey(Bui 2023)가

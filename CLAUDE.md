@@ -9,9 +9,9 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 두 갈�
 | 섹션 (= 코드 디렉토리) | 알고리즘 (⏳ = planned) | 베이스 클래스 |
 |---|---|---|
 | `search` | Prioritized A*, Push and Swap ⏳, Push and Rotate ⏳, Joint-space A*, CBS | `MultiAgentPlanner` |
-| `sampling` | MA-RRT*, sRRT, dRRT ⏳, dRRT* ⏳ | `MultiAgentPlanner` — MA-RRT*는 논문의 자체 이산화(G-RRT*)로, sRRT는 individual policy(BFS tree)가 격자에서 정확히 구성되므로 `DiscreteSpace` 위에서 구현; 연속 공간 capability은 dRRT wave와 함께 |
+| `sampling` | MA-RRT*, sRRT, dRRT, dRRT* ⏳ | `MultiAgentPlanner` — MA-RRT*는 논문의 자체 이산화(G-RRT*)로, sRRT는 individual policy(BFS tree)가 격자에서 정확히 구성되므로 `DiscreteSpace` 위에서 구현. dRRT는 연속 configuration space용 새 capability `ContinuousSpace`(같은 raster + disc robot) 위에서 구현 |
 
-계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. priority 갈래의 완성인 decentralized 계열 — Push and Swap(Luna & Bekris, IJCAI 2011) → Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014) — 은 planned(예약 동결 대신 push/swap primitive로 치우며, component당 빈 셀 ≥2이면 완전하다고 주장 — 그 주장을 검증·보완하는 것이 Push and Rotate). sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled — 논문 자체의 이산화 G-RRT*로 DiscreteSpace 위에서 구현 완료) → sRRT(Wagner, Kang & Choset 2012, subdimensional — individual policy + collision set, 같은 DiscreteSpace 위에서 구현 완료) → dRRT(Solovey, Salzman & Halperin 2016) ⏳ → dRRT*(Dobson et al. 2017) ⏳ 순서. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
+계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. priority 갈래의 완성인 decentralized 계열 — Push and Swap(Luna & Bekris, IJCAI 2011) → Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014) — 은 planned(예약 동결 대신 push/swap primitive로 치우며, component당 빈 셀 ≥2이면 완전하다고 주장 — 그 주장을 검증·보완하는 것이 Push and Rotate). sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled — 논문 자체의 이산화 G-RRT*로 DiscreteSpace 위에서 구현 완료) → sRRT(Wagner, Kang & Choset 2012, subdimensional — individual policy + collision set, 같은 DiscreteSpace 위에서 구현 완료) → dRRT(Solovey, Salzman & Halperin 2016, 구현 완료. 같은 raster를 그대로 쓰되 robot을 disc로 다루는 새 capability ContinuousSpace 위에서 연속 free space를 표본 채취) → dRRT*(Shome, Solovey, Dobson, Halperin & Bekris, Autonomous Robots 2020) ⏳ 순서. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
 
 모든 알고리즘은 추상 클래스 기반으로 다음 세 가지가 자동으로 성립해야 한다:
 1. **Performance estimate** — 공통 metric(sum_of_costs, makespan, expanded nodes, success)을 benchmark runner가 수집.
@@ -71,11 +71,12 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 두 갈�
 - 언어 간 공유물(trace schema, param yaml, map 데이터, 시나리오)은 반드시 `spec/`, `configs/`, `maps/` 에 두고 양쪽에서 로드한다. 언어 디렉토리 안에 복제 금지.
 
 ### 맵 추상화 — capability 모델
-알고리즘은 구체 맵 타입이 아니라 **capability 인터페이스**를 요구한다. MRMP는 현재 capability가 하나뿐이다:
+알고리즘은 구체 맵 타입이 아니라 **capability 인터페이스**를 요구한다. 현재 capability는 둘:
 
 | capability | 핵심 메서드 | 요구 알고리즘 |
 |---|---|---|
-| `DiscreteSpace` | `neighbors(state) -> [(state, cost)]`, `heuristic(a, b)`, `cells()` | Prioritized A*, Joint-space A*, CBS, MA-RRT* |
+| `DiscreteSpace` | `neighbors(state) -> [(state, cost)]`, `heuristic(a, b)`, `cells()` | Prioritized A*, Joint-space A*, CBS, MA-RRT*, sRRT |
+| `ContinuousSpace` | `free_point(q,r)`, `segment_free(a,b,r)`, `extent()` | dRRT (disc robot 위 같은 raster — 부풀려진 obstacle 없이 원시 격자 그대로) |
 
 - `neighbors`는 4-connected 이동 + wait(self-loop)를 **고정 순서**(up, down, left, right, wait)로 반환하고 모든 action 비용은 1.0 — g-value가 곧 경과 시각이고 언어 간 tie-breaking을 동일하게 유지해야 한다.
 - `heuristic`은 Manhattan (단위 비용 4-connected에 admissible + consistent).
@@ -89,7 +90,7 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 두 갈�
 
 ### Trace (step-by-step 시각화의 계약)
 - trace 는 JSON Lines 파일. 한 줄이 이벤트 하나이고 `seq` 순서가 내러티브다 — wall-clock 시간은 담지 않는다. 유일한 시간 필드는 space-time 이벤트의 이산 시각 `t`.
-- 이벤트: `planning_started`(algorithm/map/params 스냅샷, demo가 방출), `node_expanded`(state = 셀 또는 평면화 joint state `[r0,c0,r1,c1,...]`, agent 필드가 있으면 개별 탐색 노드), `path_found`(agent 필수), `conflict_found`(vertex/edge), `constraint_added`, `planning_finished`(success/metrics).
+- 이벤트: `planning_started`(algorithm/map/params 스냅샷 + 좌표계 선언 `coords`(`cell` 이산 / `world` 연속 float)와 disc radius, demo가 방출), `node_expanded`(state = 셀 또는 평면화 joint state `[r0,c0,r1,c1,...]`, agent 필드가 있으면 개별 탐색 노드. world 모드에서는 point가 float 쌍), `roadmap_built`(dRRT만 — agent별 roadmap vertices/edges), `path_found`(agent 필수), `conflict_found`(vertex/edge), `constraint_added`, `planning_finished`(success/metrics).
 - float 직렬화는 byte-equality가 아니라 **parse 후 수치 equality** 계약 (Python `5.0` vs C++ `5` 는 같은 값).
 - trace 방출은 demo·viz 시 on. hot loop 에서 recorder 가 null 이면 zero-cost 여야 한다.
 - **데모 산출물 형식 (룰)**: 모든 알고리즘의 demo trace 는 `replay.py` 로 (1) 애니메이션 **GIF** (`--gif`, 탐색 진행 + 실행 재생) 와 (2) 탐색 중간 과정 **PNG 스냅샷** 세트 (`--snapshots`, 진행률 균등 분할) 로 렌더링 가능해야 한다. 산출물은 두 언어 데모 각각에 대해 `out/viz/<algo>/py/`, `out/viz/<algo>/cpp/` 아래에 둔다 (`out/` 은 gitignore — 커밋하지 않는다).
@@ -124,7 +125,7 @@ python tools/viz/replay.py out/trace.jsonl                                      
 python tools/viz/replay.py out/trace.jsonl --gif out/viz/x.gif --snapshots out/snaps/
 python tools/bench/run_matrix.py --out out/report.md
 PYTHONPATH=$PWD/python python tools/web_export/export_web_assets.py \
-    --maps maze01,open01 --scenario maze01_two --algos prioritized_astar          # 사이트용 자산
+    --algos prioritized_astar,joint_astar,cbs,ma_rrt_star,srrt,drrt                 # 사이트용 자산 (시나리오는 각 config의 scenarios: 가 라우팅)
 ```
 
 ## 새 알고리즘 추가 체크리스트

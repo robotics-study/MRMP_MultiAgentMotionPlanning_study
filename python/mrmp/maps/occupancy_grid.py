@@ -62,6 +62,12 @@ class OccupancyGrid2D(MapBase):
     def resolution(self) -> float:
         return self._resolution
 
+    @property
+    def origin(self) -> tuple[float, float]:
+        """World pose (x, y) of the bottom-left pixel — readers outside the map layer
+        (tools/viz rendering world traces) convert with the same frame."""
+        return (self._origin_x, self._origin_y)
+
     def free_mask(self) -> np.ndarray:
         """Boolean [H, W] mask of traversable cells (read-only view for viz)."""
         return self._free
