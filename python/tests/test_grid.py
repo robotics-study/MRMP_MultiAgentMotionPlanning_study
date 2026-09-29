@@ -64,4 +64,14 @@ def test_heuristic_is_manhattan() -> None:
 
 
 def test_capabilities() -> None:
-    assert open_grid(2, 2).capabilities() == {Capability.DISCRETE_SPACE}
+    # One raster answers both queries: the discrete move set AND the continuous
+    # free space of a disc robot (the dRRT family plans on the latter).
+    assert open_grid(2, 2).capabilities() == {
+        Capability.DISCRETE_SPACE,
+        Capability.CONTINUOUS_SPACE,
+    }
+
+
+def test_extent_is_world_footprint() -> None:
+    grid = open_grid(3, 4)  # resolution 1.0, origin (0,0)
+    assert grid.extent() == (0.0, 0.0, 4.0, 3.0)

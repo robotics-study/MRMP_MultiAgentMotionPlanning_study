@@ -1,20 +1,21 @@
 #include "mrmp/core/trace.hpp"
 
 #include <cmath>
-#include <cstdio>
+#include <format>
 
 namespace mrmp::core {
 namespace {
 
 // JSON numbers: emit integral values without a decimal point (so cells read as
-// [row, col] ints) and others with enough precision to round-trip coordinates.
+// [row, col] ints) and others in the shortest round-trip form — std::format's
+// default float format is the shortest decimal that re-reads to the same double,
+// exactly what Python's json emits via repr. Parsed values are equal on both
+// sides; integers stay integer bytes (Python 5.0 vs C++ 5 parse identically).
 void write_num(std::ostream& os, double v) {
   if (std::isfinite(v) && std::abs(v) < 9e15 && v == std::floor(v)) {
     os << static_cast<long long>(v);
   } else {
-    char buf[32];
-    std::snprintf(buf, sizeof(buf), "%.10g", v);
-    os << buf;
+    os << std::format("{}", v);
   }
 }
 
@@ -71,7 +72,9 @@ void TraceRecorder::begin_event(const char* event) {
 void TraceRecorder::end_event() { os_ << "}\n"; }
 
 void TraceRecorder::planning_started(const std::string& algorithm, const std::string& map_path,
-                                    const std::map<std::string, ParamValue>& params) {
+                                    const std::map<std::string, ParamValue>& params,
+                                    const std::optional<Coords>& coords,
+                                    const std::optional<std::vector<double>>& radius) {
   begin_event("planning_started");
   os_ << ",\"algorithm\":";
   write_str(os_, algorithm);
@@ -88,6 +91,16 @@ void TraceRecorder::planning_started(const std::string& algorithm, const std::st
     write_param(os_, v);
   }
   os_ << '}';
+  // Omitted for discrete traces (the default reading); continuous traces declare
+  // their state pairs are world points and carry each agent's disc radius.
+  if (coords) {
+    os_ << ",\"coords\":";
+    write_str(os_, to_string(*coords));
+  }
+  if (radius) {
+    os_ << ",\"radius\":";
+    write_array(os_, *radius);
+  }
   end_event();
 }
 
@@ -133,6 +146,35 @@ void TraceRecorder::path_found(const std::vector<Cell>& path, int agent) {
     write_array(os_, to_trace(path[i]));
   }
   os_ << "],\"agent\":" << agent;
+  end_event();
+}
+
+void TraceRecorder::path_found(const std::vector<Point>& path, int agent) {
+  begin_event("path_found");
+  os_ << ",\"path\":[";
+  for (size_t i = 0; i < path.size(); ++i) {
+    if (i) os_ << ',';
+    write_array(os_, to_trace(path[i]));
+  }
+  os_ << "],\"agent\":" << agent;
+  end_event();
+}
+
+void TraceRecorder::roadmap_built(int agent, const std::vector<Point>& vertices,
+                                  const std::vector<std::pair<int, int>>& edges) {
+  begin_event("roadmap_built");
+  os_ << ",\"agent\":" << agent;
+  os_ << ",\"vertices\":[";
+  for (size_t i = 0; i < vertices.size(); ++i) {
+    if (i) os_ << ',';
+    write_array(os_, to_trace(vertices[i]));
+  }
+  os_ << "],\"edges\":[";
+  for (size_t i = 0; i < edges.size(); ++i) {
+    if (i) os_ << ',';
+    os_ << '[' << edges[i].first << ',' << edges[i].second << ']';
+  }
+  os_ << ']';
   end_event();
 }
 

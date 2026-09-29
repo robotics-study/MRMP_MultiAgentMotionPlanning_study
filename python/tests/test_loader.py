@@ -27,11 +27,22 @@ def test_load_occupancy_grid() -> None:
 def test_load_scenario_resolves_map_path_and_agents() -> None:
     scenario = load_scenario(_SCENARIO)
     assert Path(scenario.map_path) == _MAZE.resolve()
-    # World coords arrive untouched — the demo driver converts to cells.
+    # World coords arrive untouched — the demo driver converts to cells. A scenario
+    # without a radius declares a point robot (radius 0).
     assert scenario.agents == (
-        AgentSpec(start=(0.75, 1.25), goal=(8.25, 7.25)),
-        AgentSpec(start=(8.25, 1.25), goal=(0.75, 7.25)),
+        AgentSpec(start=(0.75, 1.25), goal=(8.25, 7.25), radius=0.0),
+        AgentSpec(start=(8.25, 1.25), goal=(0.75, 7.25), radius=0.0),
     )
+
+
+def test_load_scenario_radius(tmp_path: Path) -> None:
+    p = tmp_path / "s.yaml"
+    p.write_text(
+        f"map: {_MAZE}\nagents:\n  - start: [1.5, 1.5]\n    goal: [7.5, 7.5]\n    radius: 0.2\n",
+        encoding="utf-8",
+    )
+    scenario = load_scenario(p)
+    assert scenario.agents[0].radius == 0.2
 
 
 def test_unsupported_map_type_raises(tmp_path: Path) -> None:

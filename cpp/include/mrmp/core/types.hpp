@@ -32,6 +32,15 @@ struct AgentTask {
   Cell goal;
 };
 
+// One agent's planning task on the shared continuous space: a disc robot of
+// `radius` (meters) with world-coord start/goal. The scenario file carries the
+// radius; discrete planners never see these tasks.
+struct ContinuousAgentTask {
+  Point start;
+  Point goal;
+  double radius = 0.0;
+};
+
 struct PlanStats {
   int expanded_nodes = 0;
 };
@@ -48,10 +57,35 @@ struct MultiPlanResult {
   PlanStats stats;
 };
 
-// A state serializes to trace as a numeric JSON array of ints ([row, col]);
-// to_trace gives the pair for one Cell — joint states flatten at the call site.
+// Continuous-space counterpart of MultiPlanResult: paths[k][t] is agent k's world
+// point at time step t (motion between consecutive waypoints is linear); the same
+// per-step unit-cost metric applies.
+struct ContinuousPlanResult {
+  bool success = false;
+  std::vector<std::vector<Point>> paths;
+  double cost = 0.0;
+  PlanStats stats;
+};
+
+// A state serializes to trace as a numeric JSON array of two numbers (cell pair
+// for grid algorithms, world-point pair when planning_started says coords=world);
+// to_trace gives the pair — joint states flatten at the call site.
 inline std::vector<double> to_trace(const Cell& c) {
   return {static_cast<double>(c.row), static_cast<double>(c.col)};
+}
+
+inline std::vector<double> to_trace(const Point& p) { return {p.x, p.y}; }
+
+// Flattens a joint state's per-agent points into the trace wire form
+// [x0, y0, x1, y1, ...] (what node_expanded carries for joint-space search).
+inline std::vector<double> flatten_points(const std::vector<Point>& pts) {
+  std::vector<double> out;
+  out.reserve(pts.size() * 2);
+  for (const Point& p : pts) {
+    out.push_back(p.x);
+    out.push_back(p.y);
+  }
+  return out;
 }
 
 // Flattens a joint state's per-agent cells into the trace wire form
