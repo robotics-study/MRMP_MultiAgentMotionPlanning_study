@@ -18,10 +18,14 @@ struct Cell {
   bool operator<(const Cell& o) const { return row < o.row || (row == o.row && col < o.col); }
 };
 
-// World point (x, y), meters — map-layer coordinates only (scenario start/goal).
+// World point (x, y), meters — map-layer coordinates only (scenario start/goal,
+// continuous planner states). Exact equality is a real predicate here: every float
+// decision upstream is bit-identical across languages, so equal points are exactly
+// equal doubles (dRRT's path trimming relies on it).
 struct Point {
   double x = 0.0;
   double y = 0.0;
+  bool operator==(const Point& o) const { return x == o.x && y == o.y; }
 };
 
 // One agent's planning task on the shared grid (the demo driver converts the
