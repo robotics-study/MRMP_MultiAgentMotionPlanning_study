@@ -4,7 +4,7 @@ import LangToggle from "./LangToggle";
 import {useAlgoNav} from "../libs/nav";
 import {useTr} from "../libs/i18n";
 
-const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
+const REPO = "https://github.com/robotics-study/mrmp_introduction"
 // 상위 학습 아카이브(robotics-study.github.io). 이 앱은 그 하위 프로젝트라 브랜드만으로는
 // 허브로 되돌아갈 방법이 없어, 브레드크럼 부모 링크로 탈출로를 제공한다.
 const HUB = "https://robotics-study.github.io/"

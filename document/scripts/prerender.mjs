@@ -11,7 +11,7 @@ import {fileURLToPath} from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ORIGIN = "https://robotics-study.github.io";
-const BASE = "/MRMP_MultiAgentMotionPlanning_study/";
+const BASE = "/mrmp_introduction/";
 const SITE = "MRMP · Study";
 
 // {en: "..", ko: ".."} 리터럴에서 en 문자열을 뽑는다 ("a" + "b" 연결 포함).

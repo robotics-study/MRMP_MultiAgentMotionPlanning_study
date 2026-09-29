@@ -1,6 +1,6 @@
 import {T} from "../libs/i18n";
 
-const LICENSE_URL = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study/blob/main/LICENSE"
+const LICENSE_URL = "https://github.com/robotics-study/mrmp_introduction/blob/main/LICENSE"
 
 const Footer = () => (
     <footer className="site-footer">

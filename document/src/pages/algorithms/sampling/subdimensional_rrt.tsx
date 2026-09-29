@@ -12,7 +12,7 @@ import pyImpl from "../../../../../python/mrmp/sampling/srrt.py?raw";
 import cppHeader from "../../../../../cpp/include/mrmp/sampling/srrt.hpp?raw";
 import cppImpl from "../../../../../cpp/src/sampling/srrt.cpp?raw";
 
-const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
+const REPO = "https://github.com/robotics-study/mrmp_introduction"
 
 // 라이브 sandbox의 엔진 — 모듈 상수여야 identity가 안정적이라 SandboxScene이
 // map/agents 변경에만 재실행한다. 파라미터는 저장소의 configs/sampling/srrt.yaml
