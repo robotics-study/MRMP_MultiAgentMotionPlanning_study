@@ -24,7 +24,7 @@ const PRESETS: ScenarioPreset[] = [
     {name: "open01_swap", map: "open01", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
 ]
 
-const REPO = "https://github.com/robotics-study/MRMP_MultiAgentMotionPlanning_study"
+const REPO = "https://github.com/robotics-study/mrmp_introduction"
 
 // 접이식 증명 블록 — 본문 흐름은 직관 중심으로 유지하고, 형식 증명은 원할 때만 편다.
 const Proof = ({title, children}: {title: string; children: ReactNode}) => (

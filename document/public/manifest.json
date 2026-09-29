@@ -1,8 +1,8 @@
 {
-  "name": "Navigation · Study",
-  "short_name": "Navigation",
-  "description": "Interactive study notes on robot navigation algorithms — graph search and sampling-based global planners with step-by-step search visualizations, in C++ and Python.",
-  "start_url": "/MRMP_MultiAgentMotionPlanning_study",
+  "name": "MRMP · Study",
+  "short_name": "MRMP",
+  "description": "Study notes on multi-agent motion planning, branch by branch: search-based MAPF (prioritized planning, joint-space search, CBS) and the sampling-based branch (MA-RRT*, sRRT, dRRT*), with interactive visualizations and C++/Python implementations.",
+  "start_url": "/mrmp_introduction",
   "display": "standalone",
   "background_color": "#0b1020",
   "theme_color": "#0b1020"

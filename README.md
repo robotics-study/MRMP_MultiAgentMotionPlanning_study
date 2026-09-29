@@ -2,7 +2,7 @@
 
 # 🤖 MRMP · Multi-Agent Motion Planning study
 
-### 🌐 [robotics-study.github.io/MRMP_MultiAgentMotionPlanning_study](https://robotics-study.github.io/MRMP_MultiAgentMotionPlanning_study/)
+### 🌐 [robotics-study.github.io/mrmp_introduction](https://robotics-study.github.io/mrmp_introduction/)
 
 문서 사이트가 라이브입니다 — 알고리즘마다 유도·증명·라이브 sandbox 페이지. (한국어/English 토글 내장)
 
@@ -37,7 +37,7 @@ lives in the sibling nav_study repo.*
 
 ## 📚 문서 사이트
 
-**[📖 robotics-study.github.io/MRMP_MultiAgentMotionPlanning_study](https://robotics-study.github.io/MRMP_MultiAgentMotionPlanning_study/)** — 우상단 토글로 한국어/English 전환.
+**[📖 robotics-study.github.io/mrmp_introduction](https://robotics-study.github.io/mrmp_introduction/)** — 우상단 토글로 한국어/English 전환.
 
 알고리즘별 페이지: 개념 유도 + 성질(완전성·최적성·복잡도) 증명 + pseudocode 해설 +
 라이브 sandbox 데모(편집하면 즉시 재계획) + 실제 C++/Python 소스 + **원 논문 레퍼런스(DOI)**.
