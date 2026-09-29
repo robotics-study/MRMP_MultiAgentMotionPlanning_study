@@ -50,7 +50,8 @@ core::ParamSet config() {
 core::ParamSet budget_config(int budget) {
   return core::ParamSet::from_yaml(test::write_temp(
       "cbs_budget.yaml",
-      "algorithm: cbs\nsection: search\nparams:\n  - name: max_ct_expansions\n    type: int\n"
+      "algorithm: cbs\nsection: search\nscenarios: []\nparams:\n"
+      "  - name: max_ct_expansions\n    type: int\n"
       "    default: " +
           std::to_string(budget) + "\n    min: 1\n    description: test budget\n"));
 }

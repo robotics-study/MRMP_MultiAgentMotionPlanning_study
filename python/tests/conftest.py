@@ -38,8 +38,19 @@ def grid_from(free_rows: list[str]) -> OccupancyGrid2D:
 
 
 def write_config(
-    path: Path, algorithm: str, params: list[dict[str, object]], section: str = "search"
+    path: Path,
+    algorithm: str,
+    params: list[dict[str, object]],
+    section: str = "search",
+    scenarios: list[str] | None = None,
 ) -> Path:
-    doc = {"algorithm": algorithm, "section": section, "params": params}
+    # scenarios is a required config key (routing for bench/export); tests that do
+    # not route anywhere just declare the empty list.
+    doc = {
+        "algorithm": algorithm,
+        "section": section,
+        "scenarios": list(scenarios or []),
+        "params": params,
+    }
     path.write_text(yaml.safe_dump(doc), encoding="utf-8")
     return path

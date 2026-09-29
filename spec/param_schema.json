@@ -2,9 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "mrmp/param-declaration.schema.json",
   "title": "mrmp parameter declaration",
-  "description": "알고리즘 ParamSet 선언의 언어 공용 계약. 각 알고리즘의 configs/<section>/<algorithm>.yaml 은 이 구조를 따르며, C++/Python 로더는 로드 시점에 type/range/choices 를 검증한다.",
+  "description": "알고리즘 ParamSet 선언의 언어 공용 계약. 각 알고리즘의 configs/<section>/<algorithm>.yaml 은 이 구조를 따르며, C++/Python 로더는 로드 시점에 type/range/choices 를 검증한다. scenarios 는 그 알고리즘을 실행하는 시나리오 slug 목록 — 매트릭스 러너와 웹 수출기가 config별 라우팅에 읽는다.",
   "type": "object",
-  "required": ["algorithm", "section", "params"],
+  "required": ["algorithm", "section", "params", "scenarios"],
   "properties": {
     "algorithm": {
       "type": "string",
@@ -14,6 +14,11 @@
     "section": {
       "enum": ["search", "sampling"],
       "description": "알고리즘이 속한 계열(사이트의 섹션). configs 디렉토리 구조와 1:1 로 대응한다."
+    },
+    "scenarios": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+      "description": "이 알고리즘을 실행하는 시나리오 slug 목록 (maps/scenarios/<slug>.yaml). 매트릭스 러너와 웹 수출기는 모든 알고리즘을 모든 시나리오에 돌리지 않고 이 목록만 돈다. 빈 목록도 합법 — 그때는 어디에도 라우팅되지 않는다."
     },
     "params": {
       "type": "array",

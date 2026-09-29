@@ -7,6 +7,9 @@
 # its own IS a verdict; hitting the budget is only "no solution found within budget".
 algorithm: cbs
 section: search
+# 매트릭스 러너/웹 수출기가 이 알고리즘을 돌리는 시나리오 목록 (spec/param_schema.json).
+# discrete 알고리즘이므로 셀 시나리오만 — discs 시나리오는 dRRT 영역이다.
+scenarios: [maze01_two, open01_cross, open01_swap]
 params:
   - name: max_ct_expansions
     type: int

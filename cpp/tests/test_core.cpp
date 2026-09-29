@@ -35,7 +35,8 @@ TEST(Yaml, ParsesRealMapAndScenarioFlowSequences) {
 }
 
 TEST(Yaml, EmptyFlowSequenceIsEmpty) {
-  std::string p = test::write_temp("p.yaml", "algorithm: x\nsection: search\nparams: []\n");
+  std::string p = test::write_temp(
+      "p.yaml", "algorithm: x\nsection: search\nscenarios: []\nparams: []\n");
   core::YamlNode root = core::parse_yaml_file(p);
   EXPECT_TRUE(root.at("params").is_seq());
   EXPECT_TRUE(root.at("params").seq.empty());
@@ -46,24 +47,36 @@ TEST(Yaml, EmptyFlowSequenceIsEmpty) {
 TEST(Params, LoadsDeclaredDefaults) {
   std::string p = test::write_temp(
       "ok.yaml",
-      "algorithm: x\nsection: search\nparams:\n"
+      "algorithm: x\nsection: search\nscenarios: [open01_cross]\nparams:\n"
       "  - name: weight\n    type: float\n    default: 1.0\n    description: w\n"
       "  - name: n\n    type: int\n    default: 3\n    min: 0\n    max: 10\n    description: n\n");
   auto ps = core::ParamSet::from_yaml(p);
   EXPECT_EQ(ps.algorithm(), "x");
   EXPECT_EQ(ps.section(), "search");
+  // The per-config routing list round-trips in declaration order.
+  ASSERT_EQ(ps.scenarios().size(), 1u);
+  EXPECT_EQ(ps.scenarios()[0], "open01_cross");
   EXPECT_DOUBLE_EQ(ps.get_float("weight"), 1.0);
   EXPECT_EQ(ps.get_int("n"), 3);
 }
 
+TEST(Params, ScenariosKeyIsRequiredAndMustBeASequence) {
+  // Missing key throws (at() on a missing key throws); a scalar is not a sequence.
+  std::string missing = test::write_temp("bad.yaml", "algorithm: x\nsection: search\nparams: []\n");
+  EXPECT_THROW(core::ParamSet::from_yaml(missing), std::runtime_error);
+  std::string scalar = test::write_temp("bad2.yaml", "algorithm: x\nsection: search\nscenarios: nope\nparams: []\n");
+  EXPECT_THROW(core::ParamSet::from_yaml(scalar), std::runtime_error);
+}
+
 TEST(Params, UnknownCategoryThrows) {
-  std::string p = test::write_temp("bad.yaml", "algorithm: x\nsection: global_planning\nparams: []\n");
+  std::string p = test::write_temp("bad.yaml",
+                                   "algorithm: x\nsection: global_planning\nscenarios: []\nparams: []\n");
   EXPECT_THROW(core::ParamSet::from_yaml(p), std::runtime_error);
 }
 
 TEST(Params, OutOfRangeDefaultThrows) {
   std::string p = test::write_temp("bad.yaml",
-                                   "algorithm: x\nsection: search\nparams:\n"
+                                   "algorithm: x\nsection: search\nscenarios: []\nparams:\n"
                                    "  - name: weight\n    type: float\n"
                                    "    default: 9.0\n    min: 1.0\n    max: 5.0\n"
                                    "    description: w\n");
@@ -72,7 +85,7 @@ TEST(Params, OutOfRangeDefaultThrows) {
 
 TEST(Params, WrongTypeAccessThrows) {
   std::string p = test::write_temp("ok.yaml",
-                                   "algorithm: x\nsection: search\nparams:\n"
+                                   "algorithm: x\nsection: search\nscenarios: []\nparams:\n"
                                    "  - name: n\n    type: int\n    default: 3\n    description: n\n");
   auto ps = core::ParamSet::from_yaml(p);
   EXPECT_EQ(ps.get_int("n"), 3);

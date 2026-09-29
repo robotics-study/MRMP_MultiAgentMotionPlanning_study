@@ -2,7 +2,11 @@
 
 Mirrors the C++ `core/params.hpp`. The yaml *is* the declaration (per
 `spec/param_schema.json`) carrying defaults; the loader validates type / range /
-choices at load time so no magic numbers leak into algorithm code.
+choices at load time so no magic numbers leak into algorithm code. A config also
+declares the scenarios its algorithm is run on (`scenarios:`) — the matrix runner
+and the web exporter read that list instead of running every algorithm against
+every scenario (a continuous-planner config does not belong on discrete-only
+scenarios and vice versa).
 """
 
 from __future__ import annotations
@@ -72,9 +76,17 @@ def _check_range(decl: ParamDecl, as_float: float, value: ParamValue) -> ParamVa
 
 
 class ParamSet:
-    def __init__(self, algorithm: str, section: str, decls: dict[str, ParamDecl]) -> None:
+    def __init__(
+        self,
+        algorithm: str,
+        section: str,
+        decls: dict[str, ParamDecl],
+        scenarios: list[str] | None = None,
+    ) -> None:
         self.algorithm = algorithm
         self.section = section
+        # Scenario slugs (maps/scenarios/<slug>.yaml) this algorithm is run on.
+        self.scenarios: list[str] = list(scenarios or [])
         self._decls = decls
         self._values: dict[str, ParamValue] = {
             name: _check_default(decl) for name, decl in decls.items()
@@ -86,13 +98,19 @@ class ParamSet:
             raw = yaml.safe_load(fh)
         if not isinstance(raw, dict):
             raise ParamError(f"param error: {path} is not a mapping")
-        for key in ("algorithm", "section", "params"):
+        for key in ("algorithm", "section", "params", "scenarios"):
             if key not in raw:
                 raise ParamError(f"param error: {path} missing required key '{key}'")
         # A config declares which family (site section) its algorithm belongs to —
         # a config declaring anything else is stale. Mirrored in C++.
         if raw["section"] not in ("search", "sampling"):
             raise ParamError(f"param error: unknown section {raw['section']!r}")
+        # Scenario slugs this algorithm runs on — required, list of strings
+        # (possibly empty). The matrix runner and web exporter route per config.
+        if not isinstance(raw["scenarios"], list) or any(
+            not isinstance(s, str) for s in raw["scenarios"]
+        ):
+            raise ParamError(f"param error: {path} 'scenarios' must be a list of strings")
         params = raw["params"]
         if not isinstance(params, list):
             raise ParamError(f"param error: {path} 'params' must be a list")
@@ -115,7 +133,7 @@ class ParamSet:
                 description=entry["description"],
             )
             decls[decl.name] = decl
-        return cls(raw["algorithm"], raw["section"], decls)
+        return cls(raw["algorithm"], raw["section"], decls, list(raw["scenarios"]))
 
     def _typed(self, name: str, expected: str) -> ParamValue:
         if name not in self._decls:
