@@ -63,10 +63,16 @@ class MultiPlanResult:
 class ContinuousPlanResult:
     """Continuous-space counterpart of MultiPlanResult. paths[k][t] is agent k's
     world point at time step t (motion between consecutive waypoints is linear);
-    a finished agent's path simply ends, and the same per-step unit-cost metric as
-    the discrete result applies (a waypoint equal to the previous one is a wait)."""
+    a finished agent's path simply ends (a waypoint equal to the previous one is a
+    wait). Unlike the discrete result, the METRICS here are what each planner's
+    own paper defines as cost — dRRT counts steps like the discrete branch (cost =
+    steps that move, makespan = arrival step of the last agent), while dRRT*
+    reports geometric arc lengths (sum and max over agents) because its own cost
+    functions are reparameterization-invariant lengths. Both fields are explicit
+    here so no caller ever derives a metric from paths by convention."""
 
     success: bool
     paths: list[list[Point]] = field(default_factory=list)
     cost: float = 0.0
+    makespan: float = 0.0
     stats: PlanStats = field(default_factory=PlanStats)

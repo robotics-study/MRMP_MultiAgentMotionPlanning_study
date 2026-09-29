@@ -62,12 +62,18 @@ struct MultiPlanResult {
 };
 
 // Continuous-space counterpart of MultiPlanResult: paths[k][t] is agent k's world
-// point at time step t (motion between consecutive waypoints is linear); the same
-// per-step unit-cost metric applies.
+// point at time step t (motion between consecutive waypoints is linear). Unlike
+// the discrete result, the METRICS are whatever each planner's own paper defines
+// as cost: dRRT counts steps like the discrete branch (cost = steps that move,
+// makespan = arrival step of the last agent); dRRT* reports geometric arc lengths
+// (sum and max over agents) because its own cost functions are reparameterization-
+// invariant lengths. Both fields are explicit — no caller derives a metric from
+// paths by convention.
 struct ContinuousPlanResult {
   bool success = false;
   std::vector<std::vector<Point>> paths;
   double cost = 0.0;
+  double makespan = 0.0;
   PlanStats stats;
 };
 

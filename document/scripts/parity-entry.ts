@@ -7,3 +7,4 @@ export {runCbs} from "../src/libs/algorithms/cbs";
 export {runMaRrtStar} from "../src/libs/algorithms/ma_rrt_star";
 export {runSrrt} from "../src/libs/algorithms/srrt";
 export {runDrrt} from "../src/libs/algorithms/drrt";
+export {runDrrtStar} from "../src/libs/algorithms/drrt_star";

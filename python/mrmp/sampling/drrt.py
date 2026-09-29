@@ -157,7 +157,9 @@ class Drrt(ContinuousMultiAgentPlanner):
                 recorder.planning_finished(
                     False, {"expanded_nodes": float(expanded), "makespan": 0.0, "sum_of_costs": 0.0}
                 )
-            return ContinuousPlanResult(False, [], 0.0, PlanStats(expanded_nodes=expanded))
+            return ContinuousPlanResult(
+                False, [], 0.0, makespan=0.0, stats=PlanStats(expanded_nodes=expanded)
+            )
 
         # Instance verdicts (not budget): a disc overlapping an obstacle cell at
         # its start or goal makes the instance unsolvable outright. Pairwise overlap
@@ -469,4 +471,7 @@ class Drrt(ContinuousMultiAgentPlanner):
                     "sum_of_costs": cost,
                 },
             )
-        return ContinuousPlanResult(True, trimmed, cost, PlanStats(expanded_nodes=len(states)))
+        return ContinuousPlanResult(
+            True, trimmed, cost,
+            makespan=makespan, stats=PlanStats(expanded_nodes=len(states)),
+        )

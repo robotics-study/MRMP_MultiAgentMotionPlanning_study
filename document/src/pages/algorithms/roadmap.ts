@@ -75,6 +75,18 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
                 "graph 위의 RRT이고 local connector는 prioritized planning. 확률적으로 완전하고 최적성 주장은 없다.",
         },
     },
+    {
+        slug: "drrt_star",
+        blurb: {
+            en: "The same implicit tensor roadmap, searched so it converges: k-nearest becomes the PRM* radius " +
+                "bound, the oracle becomes goal-biased argmin over precomputed shortest-path heuristics, and " +
+                "RRT*-style rewiring with branch-and-bound chases the optimum — probabilistically complete AND " +
+                "asymptotically optimal, anytime.",
+            ko: "같은 implicit tensor roadmap을 수렴하도록 탐색한다: k-nearest가 PRM* radius bound가 되고, " +
+                "oracle이 미리 계산한 최단경로 heuristic 위 goal-biased argmin이 되며, branch-and-bound를 갖춘 " +
+                "RRT*식 rewiring이 optimum을 쫓는다 — 확률적으로 완전하고 점근적으로 최적이며 anytime.",
+        },
+    },
 ];
 
 // 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 갈래는 survey(Bui 2023)가

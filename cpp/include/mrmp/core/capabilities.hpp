@@ -51,11 +51,17 @@ class DiscreteSpace {
 // identical operation order in Python and C++, so all engines decide every
 // boundary case on identical bits. extent() returns the world rectangle
 // (x_min, y_min, x_max, y_max) planners sample configurations uniformly from.
+// area() is mu(C_f), the free-space MEASURE the asymptotic-optimality radius
+// bound reads: free cell count x resolution^2 — the raster's own measure (the
+// disc-inflated region is deliberately NOT modeled; eta absorbs that slack).
 class ContinuousSpace {
  public:
   virtual ~ContinuousSpace() = default;
   // World footprint (x_min, y_min, x_max, y_max) of the map — the sampling rect.
   virtual std::array<double, 4> extent() const = 0;
+  // mu(C_f): free cell count x resolution^2, evaluated left-to-right
+  // ((count * res) * res) so every language lands on identical bits.
+  virtual double area() const = 0;
   // True iff the disc of `radius` around q overlaps no obstacle cell.
   virtual bool free_point(const Point& q, double radius) const = 0;
   // True iff every point of segment a->b is free for a disc of `radius`.

@@ -15,7 +15,7 @@ run_matrix.py), and each scenario's `map:` field names which map JSON to export.
 
 Usage:
     python tools/web_export/export_web_assets.py \
-        --algos prioritized_astar,joint_astar,cbs,ma_rrt_star,srrt,drrt
+        --algos prioritized_astar,joint_astar,cbs,ma_rrt_star,srrt,drrt,drrt_star
 """
 
 from __future__ import annotations

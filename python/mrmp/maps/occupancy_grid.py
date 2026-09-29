@@ -128,6 +128,13 @@ class OccupancyGrid2D(MapBase):
             self._origin_y + self._height * self._resolution,
         )
 
+    def area(self) -> float:
+        """mu(C_f) = free cell count x resolution^2 — the raster's own free-space
+        measure, evaluated left-to-right ((count * res) * res) so every language
+        lands on identical bits. The dRRT* radius bound reads this; the disc-
+        inflated region is NOT modeled (eta absorbs that slack)."""
+        return float(int(self._free.sum())) * self._resolution * self._resolution
+
     def _cell_rect(self, row: int, col: int) -> tuple[float, float, float, float]:
         """World rectangle of one cell (x_lo, y_lo, x_hi, y_hi)."""
         return (
