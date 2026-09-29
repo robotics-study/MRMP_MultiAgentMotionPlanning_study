@@ -12,7 +12,8 @@
 namespace mrmp::sampling {
 
 // dRRT* — Shome, Solovey, Dobson, Halperin & Bekris 2020 (Autonomous Robots
-// 44(3-4):443–467; conference version IROS 2017). The Python mirror
+// 44(3-4):443–467; conference version Dobson, Solovey, Shome, Halperin & Bekris,
+// IEEE Intl. Symposium on Multi-Robot and Multi-Agent Systems (MRS), 2017). The Python mirror
 // (python/mrmp/sampling/drrt_star.py) carries the full semantics commentary; in
 // one line: the same tensor-product roadmap as dRRT, but each G_i connects by
 // the PRM* radius r(n) = (1+eta)^2 * sqrt(mu(C_f) log n / (2 pi n)) with

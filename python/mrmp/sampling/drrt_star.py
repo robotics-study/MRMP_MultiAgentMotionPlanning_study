@@ -1,5 +1,6 @@
 """dRRT* — Shome, Solovey, Dobson, Halperin & Bekris (Autonomous Robots 44(3-4):
-443–467, 2020; conference version Dobson, Shome, Halperin & Bekris, IROS 2017).
+443–467, 2020; conference version Dobson, Solovey, Shome, Halperin & Bekris,
+IEEE Intl. Symposium on Multi-Robot and Multi-Agent Systems (MRS), 2017).
 
 The asymptotically-optimal chapter of the implicit-roadmap genealogy. The same
 tensor-product roadmap as dRRT — each robot keeps its OWN PRM over the continuous

@@ -115,8 +115,8 @@ const DrrtStar = () => {
                         heuristic. A goal-biased sample switches every robot to argmin of <InlineMath math="H_i"/> over its
                         adjacency; an unbiased sample leaves each robot on a uniformly random neighbor. And because{" "}
                         <InlineMath math="\mathrm{Adj}(v_i, G_i)"/> now includes <InlineMath math="v_i"/> itself — the
-                        paper's own footnote: “this ensures that it is possible for a robot to stay static during an edge
-                        expansion” — waiting is a graph edge. dRRT's local connector and its priority DAG are gone; the
+                        paper's own words: “this ensures that it is
+                        possible for a robot to stay static during an edge expansion” — waiting is a graph edge. dRRT's local connector and its priority DAG are gone; the
                         goal tuple is reached by tree search alone, and greedy child propagation dives at it as soon as any
                         generated node improves <InlineMath math="H"/> over its parent.
                     </p>
@@ -155,8 +155,9 @@ const DrrtStar = () => {
                         robot마다 한 번씩 Dijkstra로 미리 계산하고(논문은 all-pairs에 Johnson을 제안하지만 여기서 읽히는 건
                         goal 정점 기준 single-source 값뿐이다) oracle이 heuristic이 된다. goal-biased 표본이면 모든 robot이{" "}
                         <InlineMath math="H_i"/> argmin으로 전환되고, unbiased 표본이면 각 robot이 균일 random neighbor를 고른다.
-                        그리고 <InlineMath math="\mathrm{Adj}(v_i, G_i)"/>가 이제 자기 자신 <InlineMath math="v_i"/>를 포함하니 —
-                        논문 각주의 표현대로 “edge expansion 동안 robot이 정지해 있을 수 있다” — 대기가 graph의 edge다. dRRT의
+                        그리고 <InlineMath math="\mathrm{Adj}(v_i, G_i)"/>가 이제 자기 자신 <InlineMath math="v_i"/>를 포함하니 — 논문
+                        본문 그대로 “this ensures that it is possible for a robot to stay static during an edge expansion” —
+                        대기가 graph의 edge다. dRRT의
                         local connector와 priority DAG는 사라지고 goal tuple은 tree 탐색만으로 도달되며, 생성된 node가 parent보다{" "}
                         <InlineMath math="H"/>를 개선하는 순간 greedy child propagation이 goal로 다이브한다.
                     </p>
@@ -706,6 +707,10 @@ for iteration = 1 .. max_iterations:                                            
                         <em>Fast marching tree: a fast marching sampling-based method for optimal motion planning in many dimensions</em>
                     </a>,
                     IJRR 34(7):883–921, 2015 — the single-robot spanner result (their Theorem 4.1) quoted as Lemma 1. arXiv:1405.5904.
+                </li>
+                <li>
+                    C. M. Grinstead, J. L. Snell, <em>Introduction to Probability</em>, American Mathematical Society,
+                    Providence, RI, 2012 — the absorbing-Markov-chain theorem Theorem 2's proof leans on.
                 </li>
             </ol>
         </>
