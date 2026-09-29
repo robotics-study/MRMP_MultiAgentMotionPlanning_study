@@ -92,7 +92,7 @@ TEST(Cbs, ContractMatchesConfig) {
   EXPECT_TRUE(planner.required_capabilities().count(core::Capability::DISCRETE_SPACE) > 0);
   EXPECT_EQ(planner.required_capabilities().size(), 1u);
   // The semi-decidability budget is the one declared parameter.
-  EXPECT_EQ(config().get_int("max_ct_expansions"), 64);
+  EXPECT_EQ(config().get_int("max_ct_expansions"), 256);
 }
 
 TEST(Cbs, SingleAgentIsPlainOptimalAStar) {

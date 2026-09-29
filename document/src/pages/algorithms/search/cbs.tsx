@@ -16,9 +16,9 @@ const REPO = "https://github.com/robotics-study/mrmp_introduction"
 
 // 라이브 sandbox의 엔진 — 모듈 상수여야 identity가 안정적이라 SandboxScene이
 // map/agents 변경에만 재실행한다. 파라미터는 저장소의 configs/search/cbs.yaml과
-// 같은 값: CT 확장 예산 64 (root가 첫 번째 확장으로 계산된다).
+// 같은 값: CT 확장 예산 256 (root가 첫 번째 확장으로 계산된다).
 const runLive = (map: GridMap, tasks: Array<[Cell, Cell]>): TraceEvent[] =>
-    runCbs(map, tasks, {max_ct_expansions: 64})
+    runCbs(map, tasks, {max_ct_expansions: 256})
 
 // 시나리오 preset — cell 좌표는 데모/parity와 동일한 좌표계다. agent 상한은 4:
 // coupled 탐색처럼 |V|^k가 아니라도 라이브 실행이 실시간으로 남게 하려는 선이다.
@@ -146,7 +146,7 @@ const Cbs = () => {
                             all. But an unsolvable instance does not always produce that verdict — some
                             instances just migrate the conflict to later and later steps forever. That is
                             why this planner has one parameter where its siblings have none: a budget of{" "}
-                            <InlineMath math="64"/> constraint-tree expansions (the root counts as the
+                            <InlineMath math="256"/> constraint-tree expansions (the root counts as the
                             first). Hitting the budget honestly means “no solution found within budget”,
                             never “unsolvable”.
                         </li>
@@ -176,7 +176,7 @@ const Cbs = () => {
                             않는 것이다. 그런데 unsolvable한 instance가 항상 그 판정을 만들어 내지는 않는다.
                             어떤 instance은 conflict을 그냥 계속 더 나중 시각으로 옮기기만 한다. 그래서 이 planner만
                             파라미터를 가진다(형제들은 없다): constraint tree 확장 예산{" "}
-                            <InlineMath math="64"/>(root가 첫 번째 확장으로 계산된다). 예산 소진은 정직하게는
+                            <InlineMath math="256"/>(root가 첫 번째 확장으로 계산된다). 예산 소진은 정직하게는
                             “예산 안에서 해를 찾지 못했다”일 뿐이고, “unsolvable”의 증거가 절대 아니다.
                         </li>
                         <li>
@@ -445,7 +445,7 @@ return failure — queue empty = verdict; budget hit = budget              # 11`
                     red X marks each selected conflict (both cells for a swap), dashed rectangles mark the
                     constraints it spawns, and expansion blooms still show per agent: two single-agent searches
                     at a time, never one joint space. Drag endpoints to create your own conflicts; the budget
-                    is 64 CT expansions, and on a corridor you cannot solve by editing, watch it stop honestly.
+                    is 256 CT expansions, and on a corridor you cannot solve by editing, watch it stop honestly.
                 </p>}
                 ko={<p>
                     아래 sandbox는 이 planner를 브라우저에서 직접 실행합니다. 아래 Python/C++ 코드가 내뱉는 것과
@@ -459,7 +459,7 @@ return failure — queue empty = verdict; budget hit = budget              # 11`
                     vertex). 트리는 conflict 7개와 확장 574개로 자라고, joint-space 탐색은 92면 끝났다. 빨간 X는 선택된
                     각 conflict(swap이면 두 셀 모두), 점선 사각형이 그 conflict에서 파생된 constraint이고, 확장 bloom은 여전히
                     agent별로 피어난다. 동시에 두 개의 single-agent 탐색이지, joint 상태 공간 같은 것은 아니다. endpoint를
-                    끌어 직접 conflict을 만들어 보라. 예산은 CT 확장 64고, 편집으로도 풀 수 없는 통로를 만들면 정직하게
+                    끌어 직접 conflict을 만들어 보라. 예산은 CT 확장 256이고, 편집으로도 풀 수 없는 통로를 만들면 정직하게
                     멈추는 것을 볼 수 있다.
                 </p>}
             />
