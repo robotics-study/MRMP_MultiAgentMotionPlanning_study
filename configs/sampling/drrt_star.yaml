@@ -1,0 +1,75 @@
+# dRRT* (Shome, Solovey, Dobson, Halperin & Bekris, Autonomous Robots 2020): the same
+# implicit tensor roadmap as dRRT, searched so that it CONVERGES to the optimal path.
+# Two changes do all the work. The individual roadmaps switch from k-nearest to the
+# PRM* connection radius r(n) = (1+eta)^2 * sqrt(mu(C_f) * log n / (2*pi*n)) — the
+# paper's Theorem 1 bound with d = 2 and zeta_2 = pi, mu(C_f) computed exactly from
+# the raster's free-cell measure. And the tree search switches from direction-oracle
+# growth + decoupled connector to RRT*-style rewiring: every tensor edge now allows
+# motionless robots (Adj includes self-loops), each tree vertex carries a cost-to-come
+# (sum of per-robot arc lengths — the paper's primary cost function), candidates are
+# re-parented when cheaper, and branch-and-bound prunes any expansion whose cost
+# exceeds the best solution so far. The oracle becomes I_d: goal-biased samples switch
+# every robot to argmin-H (H = shortest path length on G_i to that robot's goal vertex,
+# precomputed by Dijkstra), unbiased samples pick a uniformly random neighbor. It is an
+# ANYTIME planner — the iteration budget is spent improving, not finding; the returned
+# plan is the best chain found. Like every sampler here the PRNG seed is part of the
+# algorithm's identity — every language replays the identical sample stream from it.
+algorithm: drrt_star
+section: sampling
+# discs 시나리오 전용 — dRRT*는 연속 free space 위의 disc robot planner이고,
+# discrete 셀 시나리오에는 radius가 없다 (spec/param_schema.json의 config별 라우팅).
+scenarios: [open01_cross_discs, open01_swap_discs]
+params:
+  - name: seed
+    type: int
+    default: 42
+    min: 1
+    max: 2147483646
+    description: >-
+      MINSTD Lehmer PRNG state (s ← 16807·s mod 2³¹−1). Fixed so every language
+      engine replays byte-identical sample streams; the seed is part of a run's
+      identity, not a tuning knob. Roadmap samples draw first (agent 0's n points,
+      then agent 1's, …), the tree phase after them: per exploration iteration one
+      goal-bias draw, then (unbiased) coordinates agent-order x-then-y, then one
+      neighbor pick per agent; guided iterations draw nothing.
+  - name: samples_per_robot
+    type: int
+    default: 40
+    min: 1
+    description: >-
+      n rejection samples per robot (the roadmap G_i has n + 2 vertices: start and
+      goal are always vertices first). Rejection sampling over the map's world
+      extent — on an obstacle-free map nothing is ever rejected. The same n feeds
+      the connection radius r(n) below; asymptotic optimality needs n → ∞ with this
+      radius law, fixed-n runs are honest approximations of it.
+  - name: eta
+    type: float
+    default: 0.5
+    min: 0.05
+    max: 4.0
+    description: >-
+      The eta of the paper's Theorem 1 radius bound, verbatim: r(n) = (1+eta)^2 *
+      sqrt(mu(C_f) * log(n) / (d * zeta_d * n)) with d = 2 and zeta_2 = pi. mu(C_f)
+      is the free-space measure taken as the raster's own free-cell area (free cell
+      count × resolution²). Any eta > 0 satisfies the theorem asymptotically; larger
+      eta densifies each G_i (more edges per vertex, richer tensor neighborhoods).
+  - name: goal_sample_rate
+    type: float
+    default: 0.1
+    min: 0.0
+    max: 1.0
+    description: >-
+      Fraction of Random Sample draws that are goal-biased — the joint sample IS the
+      goal tuple, which switches every robot's oracle branch to argmin-H (greedy
+      descent along each G_i's shortest-path structure). Unbiased draws leave I_d on
+      its exploratory branch: a uniformly random neighbor of the nearest tree node.
+  - name: max_iterations
+    type: int
+    default: 300
+    min: 1
+    max: 10000
+    description: >-
+      Expansion budget — dRRT* is anytime, so the loop never stops early on success;
+      it spends every iteration growing and rewiring T while branch-and-bound prunes
+      expansions that cannot beat the incumbent. Exhausting the budget without ever
+      reaching the goal tuple is "no solution found", never "unsolvable".
