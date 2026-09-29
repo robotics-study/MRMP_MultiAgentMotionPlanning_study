@@ -132,11 +132,24 @@ const data: IAlgoData[] = [
         ],
     },
     // 같은 implicit roadmap 위의 informed asymptotically-optimal 후속 (Shome, Solovey,
-    // Dobson, Halperin & Bekris 2020) — 계보상 dRRT의 다음 장.
+    // Dobson, Halperin & Bekris 2020) — 계보상 dRRT의 다음 장. 개별 roadmap이 k-nearest에서
+    // PRM* connection radius로 바뀌고, tree 탐색이 oracle growth + decoupled connector에서
+    // cost-to-come rewiring + branch-and-bound + heuristic guidance로 바뀐다.
     {
         slug: "drrt_star",
         title: {en: "dRRT*", ko: "dRRT*"},
         section: "sampling",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./sampling/drrt_star")),
+        sections: [
+            {en: "From Implicit Roadmaps to Asymptotic Optimality", ko: "implicit roadmap에서 점근적 최적성으로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
     },
 ];
 

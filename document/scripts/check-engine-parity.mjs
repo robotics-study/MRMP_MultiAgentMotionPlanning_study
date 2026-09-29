@@ -39,6 +39,7 @@ const RUNNERS = {
     ma_rrt_star: (map, agents, params) => engines.runMaRrtStar(map, agents, params),
     srrt: (map, agents, params) => engines.runSrrt(map, agents, params),
     drrt: (map, agents, params, ctx) => engines.runDrrt(map, agents, ctx.radius, params),
+    drrt_star: (map, agents, params, ctx) => engines.runDrrtStar(map, agents, ctx.radius, params),
 };
 
 // algo × scenario 조합. trace 파일은 시나리오 이름으로 키를 잡는다 (한 맵에 여러
@@ -85,10 +86,19 @@ const CHECKS = [
             {map: "open01", name: "open01_swap", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
         ],
     },
-    // dRRT 는 연속 planner — agents 는 시나리오 yaml 의 world 점 그대로 (데모가 변환 없이
+    // dRRT 계열은 연속 planner — agents 는 시나리오 yaml 의 world 점 그대로 (데모가 변환 없이
     // 그대로 넘긴다)이고 radius 는 planning_started 에서 온다.
     {
         algo: "drrt",
+        scenarios: [
+            {map: "open01", name: "open01_cross_discs",
+                agents: [[[0.75, 4.75], [8.75, 4.75]], [[4.75, 9.25], [4.75, 0.75]]]},
+            {map: "open01", name: "open01_swap_discs",
+                agents: [[[1.25, 4.75], [8.25, 4.75]], [[8.25, 4.75], [1.25, 4.75]]]},
+        ],
+    },
+    {
+        algo: "drrt_star",
         scenarios: [
             {map: "open01", name: "open01_cross_discs",
                 agents: [[[0.75, 4.75], [8.75, 4.75]], [[4.75, 9.25], [4.75, 0.75]]]},
