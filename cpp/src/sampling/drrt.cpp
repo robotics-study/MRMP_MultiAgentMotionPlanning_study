@@ -77,8 +77,10 @@ core::ContinuousPlanResult Drrt::plan(const core::ContinuousSpace& space,
   }
 
   // Instance verdicts (not budget): a disc overlapping an obstacle cell at its
-  // start or goal makes the instance unsolvable outright — and so do two
-  // overlapping start discs: no valid initial configuration exists at all.
+  // start or goal makes the instance unsolvable outright. Pairwise overlap is final
+  // at BOTH ends: two starts overlapping means no valid initial configuration
+  // exists; two goals overlapping means no valid FINAL one ever will. A start that
+  // overlaps another robot's goal is NOT a verdict — i can vacate before j arrives.
   auto fail = [&](int expanded, core::TraceRecorder* rec) {
     if (rec != nullptr) {
       rec->planning_finished(false, {{"expanded_nodes", static_cast<double>(expanded)},
@@ -97,6 +99,7 @@ core::ContinuousPlanResult Drrt::plan(const core::ContinuousSpace& space,
   for (size_t i = 0; i < m; ++i) {
     for (size_t j = i + 1; j < m; ++j) {
       if (dist_pt(starts[i], starts[j]) < radii[i] + radii[j]) return fail(0, recorder);
+      if (dist_pt(goals[i], goals[j]) < radii[i] + radii[j]) return fail(0, recorder);
     }
   }
 

@@ -1,10 +1,10 @@
 // dRRT: seeded determinism (the PRNG stream — roadmap samples first, joint
 // samples after — is part of the algorithm's identity), valid collision-free
 // joint paths on both disc scenarios, and the two FAILURE verdicts dRRT gives —
-// an instant instance verdict (a start/goal disc overlapping an obstacle cell,
-// or two start discs overlapping each other: no valid initial configuration
-// exists at all), and an honest budget failure that is NOT a verdict. Mirrors
-// python/tests/test_drrt.py case for case.
+// an instant instance verdict (a start/goal disc overlapping an obstacle cell, or
+// two discs overlapping at BOTH starts or BOTH goals: no valid initial/final
+// configuration exists at all), and an honest budget failure that is NOT a
+// verdict. Mirrors python/tests/test_drrt.py case for case.
 
 #include <gtest/gtest.h>
 
@@ -174,6 +174,20 @@ TEST(Drrt, OverlappingStartDiscsFailImmediately) {
   std::vector<core::ContinuousAgentTask> tasks{
       core::ContinuousAgentTask{core::Point{1.5, 0.5}, core::Point{3.5, 0.5}, 0.4},
       core::ContinuousAgentTask{core::Point{1.5, 0.5}, core::Point{1.5, 0.5}, 0.4}};
+  core::ContinuousPlanResult r = sampling::Drrt(config()).plan(grid, tasks, nullptr);
+  EXPECT_FALSE(r.success);
+  EXPECT_EQ(r.stats.expanded_nodes, 0);
+}
+
+TEST(Drrt, OverlappingGoalDiscsFailImmediately) {
+  // The mirror verdict: two GOAL discs overlapping each other. Every plan must
+  // hold both discs at their goals simultaneously, so no valid final
+  // configuration exists — an instance verdict at zero expansions. Starts sit
+  // 1.0 apart (>= r_i + r_j = 0.8), every point is free, only the GOALS overlap.
+  auto grid = unit_grid({"#.", "#.", "#."});
+  std::vector<core::ContinuousAgentTask> tasks{
+      core::ContinuousAgentTask{core::Point{1.5, 2.5}, core::Point{1.5, 0.4}, 0.4},
+      core::ContinuousAgentTask{core::Point{1.5, 1.5}, core::Point{1.5, 0.9}, 0.4}};
   core::ContinuousPlanResult r = sampling::Drrt(config()).plan(grid, tasks, nullptr);
   EXPECT_FALSE(r.success);
   EXPECT_EQ(r.stats.expanded_nodes, 0);

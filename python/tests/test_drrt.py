@@ -1,8 +1,8 @@
 """dRRT: seeded determinism (the PRNG stream — roadmap samples first, joint samples
 after — is part of the algorithm's identity), valid collision-free joint paths on
 both disc scenarios, and the two FAILURE verdicts dRRT gives — an instant instance
-verdict (a start/goal disc overlapping an obstacle cell, or two start discs
-overlapping each other: no valid initial configuration exists at all), and an
+verdict (a start/goal disc overlapping an obstacle cell, or two discs overlapping at
+BOTH starts or BOTH goals: no valid initial/final configuration exists at all), and an
 honest budget failure that is NOT a verdict (the roadmap's individual component
 never reaches the goal vertex; more samples might change that, so dRRT can only
 say "no solution found within budget").
@@ -140,6 +140,26 @@ def test_overlapping_start_discs_fail_immediately() -> None:
     tasks = [
         ContinuousTask(start=(1.5, 0.5), goal=(3.5, 0.5), radius=0.4),
         ContinuousTask(start=(1.5, 0.5), goal=(1.5, 0.5), radius=0.4),
+    ]
+    result = planner.plan(grid, tasks)
+    assert not result.success
+    assert result.stats.expanded_nodes == 0
+
+
+def test_overlapping_goal_discs_fail_immediately() -> None:
+    # The mirror verdict: two GOAL discs overlapping each other. Every plan must
+    # hold both discs at their goals simultaneously, so no valid final
+    # configuration exists — an instance verdict at zero expansions, not a budget
+    # failure that depends on the seed. (A start overlapping the OTHER robot's
+    # goal is deliberately NOT a verdict: i can vacate before j arrives.)
+    planner = Drrt(config("drrt"))
+    grid = grid_from(["#.", "#.", "#."])
+    # Starts sit 1.0 apart (>= r_i + r_j = 0.8 — no start verdict fires), every
+    # point is free (x = 1.5 keeps every disc clear of the obstacle column), and
+    # only the two GOALS overlap: |0.9 - 0.4| = 0.5 < 0.8.
+    tasks = [
+        ContinuousTask(start=(1.5, 2.5), goal=(1.5, 0.4), radius=0.4),
+        ContinuousTask(start=(1.5, 1.5), goal=(1.5, 0.9), radius=0.4),
     ]
     result = planner.plan(grid, tasks)
     assert not result.success

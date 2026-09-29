@@ -65,9 +65,12 @@ Semantics fixed here (identical in C++/TS; paper section per decision):
   every planner here: a step costs 1 unless it is a wait at one's own goal).
 * Termination. Success = the connector succeeded from some tree node. Budget
   exhausted → honest "no solution found within budget", never "unsolvable" —
-  dRRT is probabilistically complete, not complete. Two instance verdicts ARE
-  final: a start or goal disc overlapping an obstacle cell, or two start discs
-  overlapping each other (no valid initial configuration exists at all).
+  dRRT is probabilistically complete, not complete. Instance verdicts that ARE
+  final: a start or goal disc overlapping an obstacle cell; two START discs
+  overlapping (no valid initial configuration exists at all); two GOAL discs
+  overlapping (every plan must hold both discs simultaneously at its end — no
+  valid final configuration ever will). A start overlapping ANOTHER robot's goal
+  is deliberately NOT a verdict: that robot can vacate before the other arrives.
 
 Determinism: the PRNG is the same MINSTD Lehmer generator as MA-RRT*/sRRT (s ←
 16807·s mod 2³¹−1, u = s/(2³¹−1) ∈ (0,1)); roadmap construction draws first
@@ -157,8 +160,12 @@ class Drrt(ContinuousMultiAgentPlanner):
             return ContinuousPlanResult(False, [], 0.0, PlanStats(expanded_nodes=expanded))
 
         # Instance verdicts (not budget): a disc overlapping an obstacle cell at
-        # its start or goal makes the instance unsolvable outright — and so do two
-        # overlapping start discs: no valid initial configuration exists at all.
+        # its start or goal makes the instance unsolvable outright. Pairwise overlap
+        # is final at BOTH ends: two starts overlapping means no valid initial
+        # configuration exists; two goals overlapping means no valid FINAL one ever
+        # will (every plan holds both discs at their goals at once). A start that
+        # overlaps another robot's goal is NOT a verdict — i can vacate before j
+        # arrives, so such instances stay plannable.
         for i in range(m):
             start_free = space.free_point(starts[i], radii[i])
             goal_free = space.free_point(goals[i], radii[i])
@@ -167,6 +174,8 @@ class Drrt(ContinuousMultiAgentPlanner):
         for i in range(m):
             for j in range(i + 1, m):
                 if _dist(starts[i], starts[j]) < radii[i] + radii[j]:
+                    return fail(0)
+                if _dist(goals[i], goals[j]) < radii[i] + radii[j]:
                     return fail(0)
 
         rng = _Lehmer(seed)

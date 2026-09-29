@@ -189,9 +189,11 @@ const Drrt = () => {
                             sampled roadmaps connect will eventually be solved. There is no optimality claim anywhere
                             in the paper, and its own conclusion names asymptotic optimality as future work. That
                             future work has a name: dRRT* (Shome et al.), the next page of this genealogy. A budget
-                            exhausted here is honestly “no solution found within budget”, never “unsolvable”. Two
-                            verdicts <em>are</em> final though: a start or goal disc overlapping an obstacle, or two
-                            start discs overlapping each other — no valid initial configuration exists at all.
+                            exhausted here is honestly “no solution found within budget”, never “unsolvable”. Instance
+                            verdicts <em>are</em> final though: a start or goal disc overlapping an obstacle cell, and
+                            pairwise overlap at BOTH ends — two starts means no valid initial configuration exists at
+                            all, two goals means no valid final one ever will. A start overlapping another robot’s
+                            goal is deliberately not a verdict: that robot can vacate before the other arrives.
                         </li>
                         <li>
                             <strong>Coupling is total on tree edges.</strong> Every tensor edge moves every robot at
@@ -224,8 +226,11 @@ const Drrt = () => {
                             roadmap이 연결되는 feasible instance는 결국 풀린다. 최적성 주장은 어디에도 없고 논문 결론이
                             asymptotic optimality를 future work로 직접 지목한다. 그 future work엔 이름이 있다. dRRT*
                             (Shome et al.), 이 계보의 다음 페이지다. 여기서 예산 소진은 정직하게 “예산 안에서 해를 찾지
-                            못했다”이지 절대 “unsolvable”이 아니다. 단 두 판정만 최종적이다. obstacle과 겹치는 start/goal
-                            disc, 그리고 서로 겹치는 start disc — 유효한 초기 configuration 자체가 없다.
+                            못했다”이지 절대 “unsolvable”이 아니다. instance 판정만은 최종적이다. obstacle과 겹치는
+                            start/goal disc. 그리고 pairwise 겹침은 양쪽 끝에서 모두 final인데, start끼리 겹치면 유효한
+                            초기 configuration 자체가 없고, goal끼리 겹치면 두 disc을 동시에 점유하는 최종 configuration이
+                            영원히 없다. 남의 goal과 자기 start의 겹침은 일부러 판정이 아니다. i가 먼저 떠나면 j가 도착할
+                            수 있다.
                         </li>
                         <li>
                             <strong>Tree edge에서 결합은 전체적이다.</strong> 모든 tensor edge가 전 robot을 동시에

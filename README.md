@@ -21,7 +21,7 @@ lives in the sibling nav_study repo.*
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)
 ![CMake](https://img.shields.io/badge/CMake-%E2%89%A53.20-064F8C.svg)
-![Tests](https://img.shields.io/badge/tests-99%20py%20%2B%2092%20cpp-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-100%20py%20%2B%2093%20cpp-brightgreen.svg)
 
 </div>
 
@@ -72,12 +72,12 @@ lives in the sibling nav_study repo.*
 ```bash
 # Python (>= 3.10) — mrmp 패키지 + viz/dev extras
 cd python && pip install -e ".[dev,viz]" && cd ..
-PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 99 passed
+PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 100 passed
 
 # C++ (C++20, CMake >= 3.20, GoogleTest 는 FetchContent 자동)
 cmake -S cpp -B cpp/build -DCMAKE_BUILD_TYPE=Release
 cmake --build cpp/build -j
-ctest --test-dir cpp/build     # 92 tests
+ctest --test-dir cpp/build     # 93 tests
 ```
 
 ### 데모 실행 — 두 언어가 동일한 CLI 인자 (알고리즘 구현 시 활성화)

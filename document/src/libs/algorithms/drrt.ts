@@ -56,8 +56,11 @@ export function runDrrt(
         });
     };
 
-    // Instance 판정(예산 아님): disc이 obstacle과 겹치는 start/goal, 또는 겹치는
-    // start disc 쌍은 불가피 instance — 유효한 초기 configuration 자체가 없다.
+    // Instance 판정(예산 아님): disc이 obstacle과 겹치는 start/goal은 불가피 instance.
+    // pairwise 겹침은 양쪽 끝에서 모두 final — start끼리 겹치면 유효한 초기
+    // configuration 자체가 없고, goal끼리 겹치면 두 disc을 동시에 점유하는 최종
+    // configuration이 영원히 없다. 남의 goal과 자기 start가 겹치는 건 판정이 아니다 —
+    // i가 먼저 떠나면 j가 도착할 수 있다.
     for (let i = 0; i < m; i++) {
         if (!freePoint(map, starts[i], radii[i]) || !freePoint(map, goals[i], radii[i])) {
             fail(0);
@@ -66,7 +69,8 @@ export function runDrrt(
     }
     for (let i = 0; i < m; i++) {
         for (let j = i + 1; j < m; j++) {
-            if (dist(starts[i], starts[j]) < radii[i] + radii[j]) {
+            if (dist(starts[i], starts[j]) < radii[i] + radii[j] ||
+                dist(goals[i], goals[j]) < radii[i] + radii[j]) {
                 fail(0);
                 return events;
             }
