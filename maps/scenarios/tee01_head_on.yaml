@@ -1,0 +1,11 @@
+# corridor01_head_on과 같은 좌표의 정면 교환, 다만 통로 한가운데 갈림길((0,3) 셀)이 하나 더 있다.
+# 2×2 block은 어디에도 없지만 (1,3)이 degree ≥ 3 junction이므로 Push and Rotate의 exchange는
+# 작동한다: 짝이 junction까지 함께 걷고(junction 없는 폭 1 통로에서는 불가능했던 일) 그 위에서
+# 맞교환한다. 같은 좌표·같은 요청이 map 한 줄 차이로 정직한 실패와 8+8=16 해결로 갈리는 것이
+# Push and Swap의 불완전성과 Push and Rotate의 완전성(판정 절차)의 경계다.
+map: ../grid/tee01.yaml        # scenario 파일 기준 상대 경로
+agents:                        # agent 순서 = agent index (우선순위와 무관, 표시 순서)
+  - start: [0.75, 0.75]        # cell (1, 1) — 오른쪽으로
+    goal: [2.75, 0.75]         # cell (1, 5)
+  - start: [2.75, 0.75]        # cell (1, 5) — 왼쪽으로
+    goal: [0.75, 0.75]         # cell (1, 1)
