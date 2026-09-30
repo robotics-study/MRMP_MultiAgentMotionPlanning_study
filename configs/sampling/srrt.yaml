@@ -38,9 +38,12 @@ params:
       MA-RRT*'s setting.
   - name: max_iterations
     type: int
-    default: 300
+    default: 2500
     min: 1
     description: >-
       Main-loop iterations ("until the goal becomes a vertex" made finite). The
       loop stops early the moment the goal tuple joins the tree; the budget is
-      what turns an unproven guarantee into a run that ends.
+      what turns an unproven guarantee into a run that ends. Generous on purpose:
+      sparse scenarios converge in tens of expansions, and the headroom is what
+      dense sandbox play (more agents, dragged endpoints) gets to spend before
+      the honest "no solution found within budget" verdict.

@@ -69,11 +69,14 @@ params:
       its exploratory branch: a uniformly random neighbor of the nearest tree node.
   - name: max_iterations
     type: int
-    default: 300
+    default: 2500
     min: 1
     max: 10000
     description: >-
       Expansion budget — dRRT* is anytime, so the loop never stops early on success;
       it spends every iteration growing and rewiring T while branch-and-bound prunes
-      expansions that cannot beat the incumbent. Exhausting the budget without ever
-      reaching the goal tuple is "no solution found", never "unsolvable".
+      expansions that cannot beat the incumbent. Generous on purpose: more iterations
+      keep pulling the incumbent toward the optimal chain, and they are what dense
+      sandbox play (more discs) draws from before the honest stop. Exhausting the
+      budget without ever reaching the goal tuple is "no solution found", never
+      "unsolvable".

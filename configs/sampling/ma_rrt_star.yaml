@@ -44,16 +44,23 @@ params:
       instances are sparse — the paper's own setting for exactly this regime.
   - name: greedy_cost_budget
     type: int
-    default: 200
+    default: 1000
     min: 1
     description: >-
       c_max: GREEDY stops accumulating once a segment's summed primitive cost
       passes this bound, so steering into an unreachable region terminates. Unit
-      steps make it comparable to path costs directly.
+      steps make it comparable to path costs directly — and generous on purpose:
+      one joint segment can legitimately carry k agents × a whole map-crossing
+      walk (4 agents × ~50 steps already tops 200), so the cap sits far above
+      any legal segment and only ever cuts off the illegal ones.
   - name: max_iterations
     type: int
-    default: 300
+    default: 2500
     min: 1
     description: >-
       Main-loop iterations ("until interrupted" made finite). The tree only ever
       improves; the budget is what turns an asymptotic guarantee into a run.
+      Generous on purpose: goal biasing lands the goal tuple within tens of
+      expansions on sparse scenarios, so everything past that point is pure
+      anytime refinement — and headroom for dense sandbox play (more agents,
+      dragged endpoints) besides.

@@ -163,8 +163,8 @@ TEST(DrrtStar, Open01SwapDiscsSolvesWithValidJointPaths) {
 TEST(DrrtStar, LongerBudgetNeverCostsMore) {
   // The anytime contract: the loop never stops on first success — growth and
   // rewiring only ever replace the incumbent with a strictly cheaper chain. Same
-  // seed, same samples; 300 iterations must not cost more than 20 (and on these
-  // scenarios they measurably cost LESS).
+  // seed, same samples; the full budget must not cost more than 20 iterations
+  // (and on these scenarios it measurably costs LESS).
   ScenarioDiscs s = scenario_discs("open01_cross_discs");
   core::ContinuousPlanResult short_r =
       sampling::DrrtStar(override_config(120, 20)).plan(s.grid, s.tasks, nullptr);
