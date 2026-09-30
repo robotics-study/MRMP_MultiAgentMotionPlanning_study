@@ -152,6 +152,28 @@ def test_pocket_yield_makes_the_swap_executable() -> None:
     assert per_agent == [8, 6]
 
 
+def test_refilled_w2_fails_the_attempt_not_the_planner() -> None:
+    # Three agents on the pocket map: a third body makes a new case reachable —
+    # clearing w4 steps its occupant into the just-cleared w2, refilling it. That
+    # attempt now fails like any other clear failure (the old code moved into the
+    # occupied cell and tripped the move invariant). The planner keeps exploring
+    # candidates and solves: 21 + 16 + 10 = 47 moves, honestly suboptimal.
+    planner = PushAndSwap(config("push_and_swap"))
+    grid = grid_from(["###..##", "#.....#", "#######"])
+    tasks = [
+        AgentTask((1, 5), (1, 2)),
+        AgentTask((1, 3), (1, 1)),
+        AgentTask((1, 1), (1, 3)),
+    ]
+    result = planner.plan(grid, tasks)
+    assert result.success
+    starts = [t.start for t in tasks]
+    goals = [t.goal for t in tasks]
+    assert_single_moves(result.paths, starts, goals)
+    per_agent = [sum(1 for t in range(1, len(p)) if p[t] != p[t - 1]) for p in result.paths]
+    assert per_agent == [21, 16, 10]
+
+
 def test_trace_events_and_metrics() -> None:
     # No search frontier exists here: the trace carries NO node_expanded events —
     # path_found (full-horizon, one event per agent) then planning_finished only.

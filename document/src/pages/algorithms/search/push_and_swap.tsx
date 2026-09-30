@@ -255,14 +255,18 @@ const PushAndSwap = () => {
                         EXECUTE_SWAP moves join the solution directly.</li>
                     <li>Candidates are iterated in BFS-dequeue order from{" "}
                         <InlineMath math="A[r]"/> — nearest first, deterministic. A candidate fails if s sits on
-                        the path to it (the pair can never walk past its own member) or if CLEAR cannot free a block.</li>
+                        the path to it (the pair can never walk past its own member) or if CLEAR cannot free a block
+                        — including when clearing a later <InlineMath math="w_4"/> re-occupies an already-cleared{" "}
+                        <InlineMath math="w_2"/>, which three or more agents make reachable.</li>
                     <li>MULTIPUSH walks the pair: r leads along the path, s follows into each vacated cell, and
                         third-party occupants of that path are chain-pushed away — U is ignored here, because a
                         swap may disturb parked agents and the replay restores them.</li>
                     <li>CLEAR + EXECUTE_SWAP fused: with r on v and s on its neighbor w1, the exchange exists iff
                         some <InlineMath math="w_2 \in N(v) \setminus \{w_1\}"/> and{" "}
                         <InlineMath math="w_4 \in N(w_1) \setminus \{v\} \cap N(w_2)"/> are clearable (an occupant is
-                        cleared by stepping into its own first free neighbor). Then four moves round the block.</li>
+                        cleared by stepping into its own first free neighbor). Then four moves round the block. If a
+                        cleared occupant's first free neighbor is an already-cleared candidate cell — w2 refilled while
+                        clearing w4 — the attempt fails like any other clear failure instead of moving into it.</li>
                     <li>If the swapped-away agent s was already at its goal, both must be restored: push/swap r off{" "}
                         <InlineMath math="T[s]"/>, then send s home the same way. A failing swap here invalidates
                         the original swap — honest failure.</li>
@@ -286,14 +290,17 @@ const PushAndSwap = () => {
                         성공한 swap의 EXECUTE_SWAP 이동들만 solution에 직행한다.</li>
                     <li>후보는 <InlineMath math="A[r]"/>에서 BFS dequeue 순서, 즉 가까운 후보부터 결정론적으로 반복된다.
                         s가 그 후보로 가는 경로 위에 있으면(짝이 자기 구성원을 지나갈 수 없다) 후보는 실패하고,
-                        CLEAR가 block을 비우지 못해도 실패한다.</li>
+                        CLEAR가 block을 비우지 못해도 실패한다. 나중에 w4를 비우는 동작이 이미 비어 있던 w2를 다시
+                        채우는 경우(3명 이상에서 도달 가능)도 같은 실패로 다룬다.</li>
                     <li>MULTIPUSH는 짝을 함께 걷힌다: r이 경로를 따라 lead하고 s가 비워진 셀마다 follow로 들어가며,
                         그 경로 위의 제3자 점유자는 chain-push로 치운다. swap은 주차된 agent도 건드릴 수 있고 replay가
                         되돌려주므로 여기서는 U를 무시한다.</li>
                     <li>CLEAR + EXECUTE_SWAP 융합: r이 v에, s의 이웃 w1에 있을 때, 교환은 어떤{" "}
                         <InlineMath math="w_2 \in N(v) \setminus \{w_1\}"/>과{" "}
                         <InlineMath math="w_4 \in N(w_1) \setminus \{v\} \cap N(w_2)"/>이 clearable할 때만 존재한다
-                        (점유자는 자기 첫 빈 이웃으로 한 칸 물러남). 그러면 네 이동이 block을 돈다.</li>
+                        (점유자는 자기 첫 빈 이웃으로 한 칸 물러남). 그러면 네 이동이 block을 돈다. 단 비워진 점유자의
+                        첫 빈 이웃이 하필 방금 비운 w2라서 w2가 다시 채워지면, 그 시도는 다른 clear 실패와 같이
+                        실패한다 — 채워진 셀로 움직이지 않는다.</li>
                     <li>맞바꿔 쫓겨난 s가 이미 goal에 있던 agent면 둘 다 되돌려야 한다. r을 <InlineMath math="T[s]"/>에서
                         밀어내고 같은 방식으로 s를 집으로 보낸다. 여기서 swap이 실패하면 원래 swap까지 무효화된다.
                         정직한 실패.</li>

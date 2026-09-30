@@ -233,6 +233,12 @@ bool PushAndSwap::clear_and_swap(Sim& sim, std::vector<Move>* segment, int r, in
       }
       if (!w4_shares_neighbor) continue;
       if (occupant(sim, w4).has_value() && !clear_cell(sim, segment, w4)) continue;
+      // Clearing w4 can REFILL an already-cleared w2: the cleared occupant steps
+      // into its own first free neighbor, and that cell may be exactly the w2 just
+      // vacated (3+ agents make this reachable). The exchange then cannot execute —
+      // pinned behavior: this attempt fails like any other clear failure (continue;
+      // if every attempt fails the vertex candidate fails and swap() rolls back).
+      if (occupant(sim, w2).has_value()) continue;
       // EXECUTE_SWAP: r vacates v for s, then rounds the block into w1.
       apply_move(sim, nullptr, r, w2);
       apply_move(sim, nullptr, s, v);
