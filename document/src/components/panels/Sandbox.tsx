@@ -146,8 +146,10 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
                 </button>
             </div>
             <div className="text-xs text-muted text-center">
-                {t("drag cells to draw walls · drag the numbered dot and ring to move an agent's start/goal",
-                    "셀을 드래그해 벽을 그리고, 번호가 적힌 점과 링을 끌어 agent의 start/goal을 옮겨 보라")}
+                {t("drag cells to draw walls · drag the numbered dot and ring to move an agent's start/goal — " +
+                    "playback is one clock over both phases: scrub anywhere with the slider, or step one event / one move at a time",
+                    "셀을 드래그해 벽을 그리고, 번호가 적힌 점과 링을 끌어 agent의 start/goal을 옮겨 보라 — " +
+                    "재생은 탐색과 실행 두 phase를 하나의 시계로 관통합니다. 슬라이더로 어디든 스크럽하고, ⏮/⏭으로 이벤트 하나·이동 한 칸씩 직접 밟아 보세요")}
             </div>
         </div>
     )
