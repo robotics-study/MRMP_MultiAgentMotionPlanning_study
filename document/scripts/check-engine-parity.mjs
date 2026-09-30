@@ -35,6 +35,7 @@ const finalOf = (events) => events[events.length - 1];
 const RUNNERS = {
     prioritized_astar: (map, agents, params) => engines.runPrioritizedAStar(map, agents, params),
     push_and_swap: (map, agents, params) => engines.runPushAndSwap(map, agents, params),
+    push_and_rotate: (map, agents, params) => engines.runPushAndRotate(map, agents, params),
     joint_astar: (map, agents, params) => engines.runJointAStar(map, agents, params),
     cbs: (map, agents, params) => engines.runCbs(map, agents, params),
     ma_rrt_star: (map, agents, params) => engines.runMaRrtStar(map, agents, params),
@@ -65,6 +66,22 @@ const CHECKS = [
             {map: "open01", name: "open01_swap", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
             {map: "pocket01", name: "pocket01_swap", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
             {map: "corridor01", name: "corridor01_head_on", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+        ],
+    },
+    // push_and_rotate는 같은 정면 교환을 tee01에서야 해결한다(정규화 가능 판정 절차). 같은
+    // open01/pocket01/maze01 시나리오에서 P&S와 다른 비용을 내고, corridor01에서는 같이 정직하게
+    // 실패하며, pocket01_rotate은 rotate(사이클 순환)이 실제로 발동하는 쇼케이스다.
+    {
+        algo: "push_and_rotate",
+        scenarios: [
+            {map: "maze01", name: "maze01_two", agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
+            {map: "open01", name: "open01_cross", agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
+            {map: "open01", name: "open01_swap", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+            {map: "pocket01", name: "pocket01_swap", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "corridor01", name: "corridor01_head_on", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "tee01", name: "tee01_head_on", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "pocket01", name: "pocket01_rotate",
+                agents: [[[1, 5], [1, 2]], [[1, 3], [1, 1]], [[1, 1], [1, 3]]]},
         ],
     },
     {

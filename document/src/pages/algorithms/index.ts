@@ -12,7 +12,6 @@ import {IAlgoData} from "../../../types/global";
 // → implicit roadmap 순서.
 // 집필된 페이지만 멀티라인 리터럴로 올린다 (멀티라인 리터럴 규약 — prerender/sitemap이
 // contents 있는 블록만 파싱한다). 콘텐츠 모듈은 pages/algorithms/<section>/<slug>.tsx.
-// 미집필 planned 항목은 한 줄 항목으로 둔다.
 const data: IAlgoData[] = [
     {
         slug: "prioritized_astar",
@@ -49,10 +48,23 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
+    // priority 갈래가 판정 절차로 완성되는 지점 — free graph를 biconnected subgraph와
+    // plank로 분해하고, 맞교환은 degree-3 junction의 rotate로 확장된다. 폭 1 통로도 해친다.
     {
         slug: "push_and_rotate",
         title: {en: "Push and Rotate", ko: "Push and Rotate"},
         section: "search",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./search/push_and_rotate")),
+        sections: [
+            {en: "From Push and Swap to Push and Rotate", ko: "Push and Swap에서 Push and Rotate로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
     },
     {
         slug: "joint_astar",

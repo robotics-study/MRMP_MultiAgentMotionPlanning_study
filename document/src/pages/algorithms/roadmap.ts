@@ -29,6 +29,18 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
         },
     },
     {
+        slug: "push_and_rotate",
+        blurb: {
+            en: "Read the map's structure before planning: decompose the free graph into biconnected " +
+                "subgraphs joined by planks, derive a priority order between pieces, and extend the swap " +
+                "into a rotate on degree-3 junctions — a decision procedure that also settles width-1 " +
+                "corridors, reporting unsolvable when none exists.",
+            ko: "계획 전에 맵의 구조를 읽는다: 자유 그래프를 plank로 이어진 biconnected subgraph로 분해하고, " +
+                "조각들 사이에 우선순위 순서를 유도하고, swap을 degree-3 junction의 rotate로 확장한다 — " +
+                "폭 1 통로까지 해결하는 판정 절차이고, 해가 없으면 불가능하다고 보고한다.",
+        },
+    },
+    {
         slug: "joint_astar",
         blurb: {
             en: "Treat all k positions as one state and run a single A* over that product space: " +
