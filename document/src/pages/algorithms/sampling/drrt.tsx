@@ -16,7 +16,7 @@ const REPO = "https://github.com/robotics-study/mrmp_introduction"
 
 // 라이브 sandbox의 엔진 — 모듈 상수여야 identity가 안정적이라 SandboxScene이
 // map/agents 변경에만 재실행한다. 파라미터는 저장소의 configs/sampling/drrt.yaml
-// 기본값과 동일: seed 42, robot당 40 rejection sample, fanout k = 6, round 예산 6.
+// 기본값과 동일: seed 42, robot당 40 rejection sample, fanout k = 6, round 예산 9.
 // disc 반지름도 시나리오와 같은 0.2 (핸들 드래그의 셀 스냅은 그대로고, runLive가
 // cellToWorld로 세계 좌표로 바꾼다 — 데모/parity와 동일한 좌표계).
 const RADIUS = 0.2
@@ -26,7 +26,7 @@ const runLive = (map: GridMap, tasks: Array<[Cell, Cell]>): TraceEvent[] =>
         map,
         tasks.map(([s, g]) => [cellToWorld(map, s), cellToWorld(map, g)] as [Point, Point]),
         tasks.map(() => RADIUS),
-        {seed: 42, samples_per_robot: 40, roadmap_k: 6, max_rounds: 6},
+        {seed: 42, samples_per_robot: 40, roadmap_k: 6, max_rounds: 9},
     )
 
 // 시나리오 preset — 셀 좌표는 데모/parity의 world 좌표와 같은 지점의 셀 중심이다

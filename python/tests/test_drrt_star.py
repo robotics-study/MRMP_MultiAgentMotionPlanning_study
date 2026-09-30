@@ -111,8 +111,8 @@ def test_open01_swap_discs_solves_with_valid_joint_paths() -> None:
 def test_longer_budget_never_costs_more(tmp_path: Path) -> None:
     # The anytime contract: the loop never stops on first success — growth and
     # rewiring only ever replace the incumbent with a strictly cheaper chain. Same
-    # seed, same samples; 300 iterations must not cost more than 20 (and on these
-    # scenarios they measurably cost LESS).
+    # seed, same samples; the full budget must not cost more than 20 iterations
+    # (and on these scenarios it measurably costs LESS).
     grid, tasks = _scenario("open01_cross_discs")
     short = DrrtStar(_with_params(tmp_path, max_iterations=20)).plan(grid, tasks)
     long_ = DrrtStar(config("drrt_star")).plan(grid, tasks)

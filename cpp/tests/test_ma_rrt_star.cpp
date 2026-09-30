@@ -62,9 +62,9 @@ core::ParamSet seed_config(int seed) {
       "    description: test gamma\n"
       "  - name: goal_sampling_probability\n    type: float\n    default: 0.5\n    min: 0.0\n"
       "    max: 1.0\n    description: test bias\n"
-      "  - name: greedy_cost_budget\n    type: int\n    default: 200\n    min: 1\n"
+      "  - name: greedy_cost_budget\n    type: int\n    default: 1000\n    min: 1\n"
       "    description: test budget\n"
-      "  - name: max_iterations\n    type: int\n    default: 300\n    min: 1\n"
+      "  - name: max_iterations\n    type: int\n    default: 2500\n    min: 1\n"
       "    description: test iterations\n"));
 }
 

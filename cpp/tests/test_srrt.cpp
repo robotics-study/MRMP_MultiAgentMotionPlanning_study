@@ -116,7 +116,7 @@ TEST(Srrt, SingleAgentFollowsItsBfsPolicyOnEverySeed) {
   auto grid = test::make_grid({".....", ".....", ".....", ".....", "....."});
   std::vector<core::AgentTask> tasks{{core::Cell{4, 0}, core::Cell{0, 4}}};
   for (int seed : {42, 7, 123}) {
-    sampling::Srrt planner(override_config(seed, 300));
+    sampling::Srrt planner(override_config(seed, 2500));
     core::MultiPlanResult r = planner.plan(grid, tasks, nullptr);
     ASSERT_TRUE(r.success) << "seed " << seed;
     EXPECT_DOUBLE_EQ(r.cost, 8.0);

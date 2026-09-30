@@ -16,10 +16,10 @@ const REPO = "https://github.com/robotics-study/mrmp_introduction"
 
 // 라이브 sandbox의 엔진 — 모듈 상수여야 identity가 안정적이라 SandboxScene이
 // map/agents 변경에만 재실행한다. 파라미터는 저장소의 configs/sampling/srrt.yaml
-// 기본값과 동일: seed 42, goal biasing 0.5, 반복 예산 300. gamma와 c_max는 없다 —
+// 기본값과 동일: seed 42, goal biasing 0.5, 반복 예산 2500. gamma와 c_max는 없다 —
 // sRRT에는 수축 반지름도 greedy 예산도 없다.
 const runLive = (map: GridMap, tasks: Array<[Cell, Cell]>): TraceEvent[] =>
-    runSrrt(map, tasks, {seed: 42, goal_sampling_probability: 0.5, max_iterations: 300})
+    runSrrt(map, tasks, {seed: 42, goal_sampling_probability: 0.5, max_iterations: 2500})
 
 // 시나리오 preset — cell 좌표는 데모/parity와 동일한 좌표계다. agent 상한은 4.
 // cross와 maze는 policy 경로가 시간차로 어긋나 결합이 일어나지 않는 경우, swap은

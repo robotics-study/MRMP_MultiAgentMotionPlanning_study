@@ -17,7 +17,7 @@ const REPO = "https://github.com/robotics-study/mrmp_introduction"
 // 라이브 sandbox의 엔진 — 모듈 상수여야 identity가 안정적이라 SandboxScene이
 // map/agents 변경에만 재실행한다. 파라미터는 저장소의 configs/sampling/drrt_star.yaml
 // 기본값과 동일: seed 42, robot당 120 rejection sample, radius bound의 eta 2.0,
-// goal bias 0.1, expansion 예산 300. disc 반지름도 시나리오와 같은 0.2 (핸들 드래그의
+// goal bias 0.1, expansion 예산 2500. disc 반지름도 시나리오와 같은 0.2 (핸들 드래그의
 // 셀 스냅은 그대로고, runLive가 cellToWorld로 세계 좌표로 바꾼다 — 데모/parity와 동일한 좌표계).
 const RADIUS = 0.2
 
@@ -26,7 +26,7 @@ const runLive = (map: GridMap, tasks: Array<[Cell, Cell]>): TraceEvent[] =>
         map,
         tasks.map(([s, g]) => [cellToWorld(map, s), cellToWorld(map, g)] as [Point, Point]),
         tasks.map(() => RADIUS),
-        {seed: 42, samples_per_robot: 120, eta: 2.0, goal_sample_rate: 0.1, max_iterations: 300},
+        {seed: 42, samples_per_robot: 120, eta: 2.0, goal_sample_rate: 0.1, max_iterations: 2500},
     )
 
 // 시나리오 preset — 셀 좌표는 데모/parity의 world 좌표와 같은 지점의 셀 중심이다
@@ -557,7 +557,7 @@ for iteration = 1 .. max_iterations:                                            
                     The sandbox below runs this planner live in your browser — the same engine, byte-for-byte what the Python/C++
                     code below emits. Both scenarios are open rooms with two disc robots of radius 0.2: <code>open01_cross_discs</code>{" "}
                     crosses perpendicular corridors and <code>open01_swap_discs</code> swaps head-on along one corridor; at the default
-                    budget both solve near-optimally where dRRT's fixed fanout left slack (sum of arc lengths 16.55 and 14.53 against
+                    budget both solve near-optimally where dRRT's fixed fanout left slack (sum of arc lengths 16.51 and 14.27 against
                     dRRT's 19.0 and 20.0 on the same scenarios). Faint lines are the individual roadmaps — every sampled vertex and every
                     pair strictly inside <InlineMath math="r(n)"/> whose swept disc stayed clear, the implicit graph's visible half — bright
                     dots are the tree's revealed joint vertices, and execution replays at true disc radius with linear interpolation between
@@ -573,7 +573,7 @@ for iteration = 1 .. max_iterations:                                            
                     아래 sandbox는 이 planner를 브라우저에서 직접 실행합니다. 아래 Python/C++ 코드가 내뱉는 것과 바이트 단위로 같은 엔진입니다.
                     두 시나리오 모두 반지름 0.2 disc robot 둘이 열린 방을 지나는 경우고 — <code>open01_cross_discs</code>는 수직 통로 교차,{" "}
                     <code>open01_swap_discs</code>는 한 통로를 따라 정면 swap이고 — 기본 예산에서 둘 다 dRRT의 고정 fanout이 여유를 남긴 자리에
-                    최적 근처로 풀립니다(같은 시나리오에서 arc length 합 16.55와 14.53 대 dRRT의 19.0과 20.0). 옅은 선은 개별 roadmap입니다 —
+                    최적 근처로 풀립니다(같은 시나리오에서 arc length 합 16.51과 14.27 대 dRRT의 19.0과 20.0). 옅은 선은 개별 roadmap입니다 —
                     샘플링된 모든 vertex와 <InlineMath math="r(n)"/> 안에 strict하게 있고 swept disc이 clear했던 모든 pair, implicit graph의 보이는
                     절반이고, 밝은 점은 트리가 드러낸 joint vertex이며, 실행 재생은 진짜 disc 반지름과 웨이포인트 사이 선형 보간으로 굴러갑니다.
                     여기서 대기가 어떻게 생겼는지 보세요: tensor edge가 robot 하나만 움직이고 나머지는 앉아 있을 수 있고(self-loop이 이제 평범한

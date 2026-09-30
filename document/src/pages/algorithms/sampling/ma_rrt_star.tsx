@@ -16,11 +16,11 @@ const REPO = "https://github.com/robotics-study/mrmp_introduction"
 
 // 라이브 sandbox의 엔진 — 모듈 상수여야 identity가 안정적이라 SandboxScene이
 // map/agents 변경에만 재실행한다. 파라미터는 저장소의 configs/sampling/ma_rrt_star.yaml
-// 기본값과 동일: seed 42, γ=5, goal biasing 0.5, greedy 예산 200, 반복 예산 300.
+// 기본값과 동일: seed 42, γ=5, goal biasing 0.5, greedy 예산 1000, 반복 예산 2500.
 const runLive = (map: GridMap, tasks: Array<[Cell, Cell]>): TraceEvent[] =>
     runMaRrtStar(map, tasks, {
         seed: 42, gamma: 5, goal_sampling_probability: 0.5,
-        greedy_cost_budget: 200, max_iterations: 300,
+        greedy_cost_budget: 1000, max_iterations: 2500,
     })
 
 // 시나리오 preset — cell 좌표는 데모/parity와 동일한 좌표계다. agent 상한은 4:
@@ -189,8 +189,9 @@ const MaRrtStar = () => {
                         <li>
                             <strong>Paid in dimension, not in enumeration.</strong> Per iteration this planner
                             touches the tree it has grown, never{" "}
-                            <InlineMath math="|V|^k"/>: on <code>maze01_two</code> it expanded 102 joint states
-                            where joint-space A* needed 10,344. But dimension is not free either — every agent
+                            <InlineMath math="|V|^k"/>: on <code>maze01_two</code> it touched 700 joint states
+                            across its whole budget where joint-space A* enumerated 10,344 at once. But dimension
+                            is not free either — every agent
                             added doubles down on the exponent in{" "}
                             <InlineMath math="(\log n/n)^{1/2k}"/>, and a sample must land near a whole joint
                             state that can still reach the goal. The paper's own experiments show exactly this
@@ -219,7 +220,7 @@ const MaRrtStar = () => {
                         <li>
                             <strong>대가의 통화는 열거가 아니라 차원이다.</strong> 반복마다 이 planner가 건드리는 것은
                             자라난 트리뿐이고 <InlineMath math="|V|^k"/>를 건드리지 않는다. <code>maze01_two</code>에서
-                            joint 상태 102개 확장으로 끝났고 joint-space A*는 10,344개가 필요했다. 그러나 차원도 공짜가
+                            예산 전체에 걸쳐 joint 상태 700개를 건드렸고 joint-space A*는 한 번에 10,344개를 열거했다. 그러나 차원도 공짜가
                             아니다. agent가 한 대 늘 때마다 <InlineMath math="(\log n/n)^{1/2k}"/>의 지수가 두 배로
                             걸리고, 표본은 goal에 도달 가능한 joint 상태 근처 전체에 떨어져야 한다. 논문의 실험이 정확히
                             이 교환을 보여 준다. 샘플링은 맵이 크고 sparse한 곳에서 forward search보다 잘 확장되고,
@@ -454,10 +455,10 @@ repeat max_iterations times:                                                    
                     identical sample streams from it, and the presets below are exactly the scenarios the search
                     branch solved optimally, so you can watch what sampling costs. On <code>open01_cross</code>{" "}
                     the goal tuple itself gets sampled on the very first iteration and GREEDY's simultaneous descent
-                    is conflict-free: two expanded nodes, cost 33 — exactly joint-space A*’s optimum for one
-                    hundredth of its expansions. On <code>maze01_two</code> the tree needs 102 nodes to find a plan
-                    at all (joint-space A* enumerated 10,344 states) and its cost, 118 against the exact 66, is what
-                    asymptotic means before the limit. Drag endpoints and add agents: watch expansions bloom at both
+                    is conflict-free: two expanded nodes, cost 33 — exactly joint-space A*’s optimum. On
+                    <code>maze01_two</code> the tree grows through 700 joint states across its whole budget
+                    (joint-space A* enumerated 10,344 in one pass) and its cost stays at 118 against the exact 66 —
+                    that is what asymptotic means before the limit. Drag endpoints and add agents: watch expansions bloom at both
                     agents' cells at once (a joint state is being expanded, not an individual path), watch the
                     incumbent improve after the first solution — rewiring keeps working until the budget ends.
                 </p>}
@@ -466,9 +467,9 @@ repeat max_iterations times:                                                    
                     바이트 단위로 같은 엔진입니다. seed는 실행 정체성의 일부입니다. 세 엔진 모두에서 동일한 표본 열이
                     재생되고 아래 preset은 search 갈래가 최적적으로 푼 바로 그 시나리오들이니 sampling의 대가를 직접
                     비교할 수 있습니다. <code>open01_cross</code>에서는 첫 반복에서 goal tuple 자체가 샘플되고 GREEDY의
-                    동시 하강이 conflict-free합니다. 확장 2개, 비용 33 — joint-space A* 최적값과 정확히 같고 확장은
-                    1/50입니다. <code>maze01_two</code>에서는 트리가 계획을 찾기 위해만 102개가 필요하고(joint-space A*는
-                    상태를 10,344개 열거했습니다) 비용 118은 정확한 답 66 앞에서 극한 이전의 점근이 무엇인지 보여 줍니다.
+                    동시 하강이 conflict-free합니다. 확장 2개, 비용 33 — joint-space A* 최적값과 정확히 같습니다.
+                    <code>maze01_two</code>에서는 트리가 예산 전체에 걸쳐 joint 상태 700개로 자라고(joint-space A*는
+                    상태를 한 번에 10,344개 열거했습니다) 비용은 여전히 118로 정확한 답 66 앞에서 극한 이전의 점근이 무엇인지 보여 줍니다.
                     endpoint를 끌어 agent를 추가해 보라. 확장이 두 agent의 셀에 동시에 피어나는 것(개별 경로가 joint
                     상태가 확장되는 것이다)과 첫 해 이후에도 incumbent가 계속 개선되는 것을 보라. rewiring은 예산이 끝날
                     때까지 일한다.
