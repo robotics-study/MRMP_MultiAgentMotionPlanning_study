@@ -57,7 +57,7 @@ lives in the sibling nav_study repo.*
 |---|---|:---:|:---:|---|
 | search | Prioritized A* | ✅ | ✅ | Erdmann & Lozano-Pérez (1987) |
 | search | Push and Swap | ✅ | ✅ | Luna & Bekris (IJCAI 2011) |
-| search | Push and Rotate | ⏳ | ⏳ | de Wilde, ter Mors & Witteveen (JAIR 2014) |
+| search | Push and Rotate | ✅ | ✅ | de Wilde, ter Mors & Witteveen (JAIR 2014) |
 | search | Joint-space A* | ✅ | ✅ | joint-state search (관행적 baseline) |
 | search | CBS | ✅ | ✅ | Sharon, Stern, Felner & Sturtevant (2015) |
 | sampling | MA-RRT* | ✅ | ✅ | Čáp, Novák, Vokřínek & Pěchouček (2013) |
@@ -65,19 +65,19 @@ lives in the sibling nav_study repo.*
 | sampling | dRRT | ✅ | ✅ | Solovey, Salzman & Halperin (2016) |
 | sampling | dRRT* | ✅ | ✅ | Shome, Solovey, Dobson, Halperin & Bekris (Autonomous Robots 2020) |
 
-각 갈래 안에서 계보순(decoupled/priority → coupled → hybrid; priority 갈래의 decentralized 계열은 Push and Swap 구현 완료, Push and Rotate 예정)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. Push and Swap 은 예약을 동결하지 않고 push/swap primitive 로 끝난 agent 를 치운다 — 파라미터 무의존이고, swap 자리는 격자에서 빈 2×2 block 뿐이라 폭 1 통로는 정직하게 실패한다. sampling 갈래의 첫 회원 MA-RRT* 는 논문 자체의 이산화(G-RRT*)로 DiscreteSpace 위에서 구현됐으므로 새 맵 타입 없이 들어왔고, sRRT 도 개별 policy 가 격자에서 BFS tree 로 정확히 구성되므로 같은 DiscreteSpace 위에 들어왔다. dRRT 는 연속 configuration space 용 새 capability ContinuousSpace 위에서 구현됐다. 같은 raster 를 그대로 쓰되 robot 을 반지름 있는 disc 로 다루고, 부풀려진 obstacle 은 쓰지 않는다. dRRT* 는 같은 ContinuousSpace 위의 informed asymptotically-optimal 후속 — 개별 roadmap 이 k-nearest 에서 PRM* connection radius 로, tree 탐색이 oracle growth + decoupled connector 에서 cost-to-come rewiring + branch-and-bound 로 바뀐다. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
+각 갈래 안에서 계보순(decoupled/priority → coupled → hybrid; priority 갈래의 decentralized 계열은 Push and Swap과 Push and Rotate로 완성)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. Push and Swap 은 예약을 동결하지 않고 push/swap primitive 로 끝난 agent 를 치운다 — 파라미터 무의존이고, swap 자리는 격자에서 빈 2×2 block 뿐이라 폭 1 통로는 정직하게 실패한다. Push and Rotate 는 그 자유 그래프를 biconnected subgraph 와 plank 으로 분해하고 맞교환을 degree-3 junction 의 rotate 로 확장해, 해가 있을 때 항상 찾고 없으면 불가능하다고 보고하는 판정 절차가 된다. sampling 갈래의 첫 회원 MA-RRT* 는 논문 자체의 이산화(G-RRT*)로 DiscreteSpace 위에서 구현됐으므로 새 맵 타입 없이 들어왔고, sRRT 도 개별 policy 가 격자에서 BFS tree 로 정확히 구성되므로 같은 DiscreteSpace 위에 들어왔다. dRRT 는 연속 configuration space 용 새 capability ContinuousSpace 위에서 구현됐다. 같은 raster 를 그대로 쓰되 robot 을 반지름 있는 disc 로 다루고, 부풀려진 obstacle 은 쓰지 않는다. dRRT* 는 같은 ContinuousSpace 위의 informed asymptotically-optimal 후속 — 개별 roadmap 이 k-nearest 에서 PRM* connection radius 로, tree 탐색이 oracle growth + decoupled connector 에서 cost-to-come rewiring + branch-and-bound 로 바뀐다. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
 
 ## 🚀 빠른 시작
 
 ```bash
 # Python (>= 3.10) — mrmp 패키지 + viz/dev extras
 cd python && pip install -e ".[dev,viz]" && cd ..
-PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 120 passed
+PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 133 passed
 
 # C++ (C++20, CMake >= 3.20, GoogleTest 는 FetchContent 자동)
 cmake -S cpp -B cpp/build -DCMAKE_BUILD_TYPE=Release
 cmake --build cpp/build -j
-ctest --test-dir cpp/build     # 113 tests
+ctest --test-dir cpp/build     # 126 tests
 ```
 
 ### 데모 실행 — 두 언어가 동일한 CLI 인자 (알고리즘 구현 시 활성화)
