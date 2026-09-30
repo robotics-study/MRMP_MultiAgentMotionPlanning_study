@@ -8,10 +8,10 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 두 갈�
 
 | 섹션 (= 코드 디렉토리) | 알고리즘 (⏳ = planned) | 베이스 클래스 |
 |---|---|---|
-| `search` | Prioritized A*, Push and Swap, Push and Rotate ⏳, Joint-space A*, CBS | `MultiAgentPlanner` |
+| `search` | Prioritized A*, Push and Swap, Push and Rotate, Joint-space A*, CBS | `MultiAgentPlanner` |
 | `sampling` | MA-RRT*, sRRT, dRRT, dRRT* | `MultiAgentPlanner` — MA-RRT*는 논문의 자체 이산화(G-RRT*)로, sRRT는 individual policy(BFS tree)가 격자에서 정확히 구성되므로 `DiscreteSpace` 위에서 구현. dRRT는 연속 configuration space용 새 capability `ContinuousSpace`(같은 raster + disc robot) 위에서 구현 |
 
-계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. priority 갈래의 완성인 decentralized 계열 — Push and Swap(Luna & Bekris, IJCAI 2011)은 구현 완료(예약 동결 대신 push/swap primitive로 끝난 agent를 치우고, swap 자리는 격자에서 빈 2×2 block뿐이라 폭 1 통로는 정직하게 실패한다) → 후속 Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014)는 planned(component당 빈 셀 ≥2이면 완전하다는 주장이 트리에서 무너지는 것을 시연한 것이 전작이고, 그 주장을 검증·보완하는 것이 Push and Rotate). sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled — 논문 자체의 이산화 G-RRT*로 DiscreteSpace 위에서 구현 완료) → sRRT(Wagner, Kang & Choset 2012, subdimensional — individual policy + collision set, 같은 DiscreteSpace 위에서 구현 완료) → dRRT(Solovey, Salzman & Halperin 2016, 구현 완료. 같은 raster를 그대로 쓰되 robot을 disc로 다루는 새 capability ContinuousSpace 위에서 연속 free space를 표본 채취) → dRRT*(Shome, Solovey, Dobson, Halperin & Bekris, Autonomous Robots 2020, 구현 완료 — 같은 ContinuousSpace 위에서 개별 roadmap을 k-nearest에서 PRM* connection radius로, tree 탐색을 oracle growth + decoupled connector에서 cost-to-come rewiring + branch-and-bound로 바꾼다) 순서. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
+계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Push and Swap → Push and Rotate(priority 갈래의 완성인 decentralized 계열) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. Push and Swap(Luna & Bekris, IJCAI 2011)은 예약 동결 대신 push/swap primitive로 끝난 agent를 치우고, swap 자리는 격자에서 빈 2×2 block뿐이라 폭 1 통로는 정직하게 실패한다 — 전작이 그 트리에서의 실패를 시연했고, 후속 Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014)는 자유 그래프를 biconnected subgraph+plank로 분해하고 swap을 degree-3 junction의 rotate로 확장해 판정 절차(해가 있으면 항상 찾고 없으면 불가능하다고 보고)로 완성한다. sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled — 논문 자체의 이산화 G-RRT*로 DiscreteSpace 위에서 구현 완료) → sRRT(Wagner, Kang & Choset 2012, subdimensional — individual policy + collision set, 같은 DiscreteSpace 위에서 구현 완료) → dRRT(Solovey, Salzman & Halperin 2016, 구현 완료. 같은 raster를 그대로 쓰되 robot을 disc로 다루는 새 capability ContinuousSpace 위에서 연속 free space를 표본 채취) → dRRT*(Shome, Solovey, Dobson, Halperin & Bekris, Autonomous Robots 2020, 구현 완료 — 같은 ContinuousSpace 위에서 개별 roadmap을 k-nearest에서 PRM* connection radius로, tree 탐색을 oracle growth + decoupled connector에서 cost-to-come rewiring + branch-and-bound로 바꾼다) 순서. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
 
 모든 알고리즘은 추상 클래스 기반으로 다음 세 가지가 자동으로 성립해야 한다:
 1. **Performance estimate** — 공통 metric(sum_of_costs, makespan, expanded nodes, success)을 benchmark runner가 수집.
@@ -150,7 +150,7 @@ PYTHONPATH=$PWD/python python tools/web_export/export_web_assets.py \
 
 ## 문서 사이트 (document/)
 
-React 18 + Vite + TS + Tailwind SPA. 2D 는 Konva, 수식은 KaTeX, 이중언어는 `<T en ko>`. 사이트 섹션(`search` / `sampling`)은 저장소 코드 디렉토리와 1:1 미러 — 알고리즘 페이지는 `pages/algorithms/<section>/<slug>.tsx`, 카드·사이드바 그룹핑도 같은 섹션 키를 쓴다. 빌드/검증: `cd document && yarn build`, dev 서버 `yarn dev`.
+React 18 + Vite + TS + Tailwind SPA. 2D 는 Konva, 수식은 KaTeX, 이중언어는 `<T en ko>`. 사이트 섹션(`search` / `sampling`)은 저장소 코드 디렉토리와 1:1 미러 — 알고리즘 페이지는 `pages/algorithms/<section>/<slug>.tsx`, 카드·사이드바 그룹핑도 같은 섹션 키를 쓴다. 빌드/검증: `cd document && ./node_modules/.bin/tsc --noEmit && node scripts/check-engine-parity.mjs && node scripts/check-tex.mjs && yarn build`, dev 서버 `yarn dev`. check-tex 는 모든 math 문자열을 KaTeX에 실제 렌더해 파싱 에러와 strict warn을 잡는다. JSX attribute 문자열은 JS 이스케이프를 처리하지 않으니 math="..."에는 역슬래시를 단일로 적는다 — 이중으로 적으면 개시 매크로 + 리터럴 텍스트가 렌더되고, checker는 그 클래스를 warn으로 잡아낸다.
 
 ### 알고리즘 페이지 규칙 (순서 고정)
 

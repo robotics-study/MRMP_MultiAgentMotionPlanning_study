@@ -1,0 +1,20 @@
+# Push and Rotate (de Wilde, ter Mors & Witteveen 2014): the completion of the priority branch — a
+# decision procedure. The graph is decomposed into biconnected subgraphs (singletons merged when join
+# vertices sit within distance m−2), agents are assigned to subgraphs by start AND goal (a mismatch is
+# an infeasible instance, honestly reported), priority relations come from the subgraph tree, and solve
+# walks each agent along a static BFS path with generalized push/swap primitives — rotating (cycling
+# every rider on a trail cycle one step forward) when the walker's next step lands on a resolving
+# agent's still-open trail. No tunable parameters by design: parameter-free IS the algorithm, and every
+# choice it must still make (neighbor order, row-major vertex scans, BFS enqueue-order tie-breaks,
+# first-clearable-vertex selection) is pinned deterministically in code for cross-language parity.
+algorithm: push_and_rotate
+section: search
+# 매트릭스 러너/웹 수출기가 이 알고리즘을 돌리는 시나리오 목록 (spec/param_schema.json).
+# discrete 알고리즘이므로 셀 시나리오만 — discs 시나리오는 dRRT 영역이다.
+# 앞의 다섯은 push_and_swap과 동일한 시나리오 세트 — 같은 입력에서의 비용 비교(12 vs 14, 36 vs 38,
+# 72 vs 74)와 동일하게 정직한 실패(corridor01_head_on)를 나란히 보여준다. tee01_head_on은 그 경계의
+# 반대편이다: 폭 1 통로에 갈림길 하나가 붙었을 뿐인데 Push and Swap은 2×2 block이 없어 정직한 실패이고
+# Push and Rotate는 exchange로 맞교환해 8+8=16으로 푼다 — 불완전성의 목격. pocket01_rotate는 같은
+# pocket 맵의 3-agent 시나리오로, rotate(사이클 순환)이 실제로 발동하는 쇼케이스이고 47 → 35를 보여준다.
+scenarios: [maze01_two, open01_cross, open01_swap, pocket01_swap, corridor01_head_on, tee01_head_on, pocket01_rotate]
+params: []

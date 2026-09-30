@@ -99,7 +99,7 @@ const Drrt = () => {
                     <Terms items={[
                         ["G_i = (V_i, E_i)", <>robot <InlineMath math="i"/>의 개별 PRM. vertex는 disc가 obstacle 셀과 strict overlap하지 않는 placement이고 start/goal이 항상 처음 두 vertex다</>],
                         ["k", <>개별 roadmap의 fanout. 각 vertex는 거리상 가장 가까운 이웃 최대 k개를 가진다(동률은 낮은 삽입 index)</>],
-                        ["C = (v_1, \\dots, v_m)", <>composite roadmap의 vertex — pairwise collision-free placement tuple. root <InlineMath math="S=(s_1,\\dots,s_m)"/>과 goal <InlineMath math="T=(t_1,\\dots,t_m)"/>도 구성상 vertex다</>],
+                        ["C = (v_1, \\dots, v_m)", <>composite roadmap의 vertex — pairwise collision-free placement tuple. root <InlineMath math="S=(s_1,\dots,s_m)"/>과 goal <InlineMath math="T=(t_1,\dots,t_m)"/>도 구성상 vertex다</>],
                         ["\\mathrm{dist}((v_i \\to v'_i), (v_j \\to v'_j))", <>robot <InlineMath math="i"/>가 <InlineMath math="v_i"/>에서 <InlineMath math="v'_i"/>로, 동시에 <InlineMath math="j"/>가 <InlineMath math="v_j"/>에서 <InlineMath math="v'_j"/>로 미끄러질 때 중심 간 최소 거리. 상대 운동이 또 다른 세그먼트라 시간 이산화 없이 정확하다</>],
                     ]}/>
                     <p>
@@ -148,7 +148,7 @@ const Drrt = () => {
                     <Terms items={[
                         ["G_i = (V_i, E_i)", <>robot <InlineMath math="i"/>의 개별 PRM. vertex는 disc가 obstacle 셀과 strict overlap하지 않는 placement이고 start/goal이 항상 처음 두 vertex다</>],
                         ["k", <>개별 roadmap의 fanout. 각 vertex는 거리상 가장 가까운 이웃 최대 k개를 가진다(동률은 낮은 삽입 index)</>],
-                        ["C = (v_1, \\dots, v_m)", <>composite roadmap의 vertex — pairwise collision-free placement tuple. root <InlineMath math="S=(s_1,\\dots,s_m)"/>과 goal <InlineMath math="T=(t_1,\\dots,t_m)"/>도 구성상 vertex다</>],
+                        ["C = (v_1, \\dots, v_m)", <>composite roadmap의 vertex — pairwise collision-free placement tuple. root <InlineMath math="S=(s_1,\dots,s_m)"/>과 goal <InlineMath math="T=(t_1,\dots,t_m)"/>도 구성상 vertex다</>],
                         ["\\mathrm{dist}((v_i \\to v'_i), (v_j \\to v'_j))", <>robot <InlineMath math="i"/>가 <InlineMath math="v_i"/>에서 <InlineMath math="v'_i"/>로, 동시에 <InlineMath math="j"/>가 <InlineMath math="v_j"/>에서 <InlineMath math="v'_j"/>로 미끄러질 때 중심 간 최소 거리. 상대 운동이 또 다른 세그먼트라 시간 이산화 없이 정확하다</>],
                     ]}/>
                     <p>
