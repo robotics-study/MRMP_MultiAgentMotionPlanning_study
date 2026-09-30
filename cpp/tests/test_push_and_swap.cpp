@@ -196,6 +196,24 @@ TEST(PushAndSwap, PocketYieldMakesTheSwapExecutable) {
   EXPECT_EQ(per_agent_costs(r.paths), std::vector<int>({8, 6}));
 }
 
+TEST(PushAndSwap, RefilledW2FailsTheAttemptNotThePlanner) {
+  // Three agents on the pocket map: a third body makes a new case reachable —
+  // clearing w4 steps its occupant into the just-cleared w2, refilling it. That
+  // attempt now fails like any other clear failure (the old code moved into the
+  // occupied cell and tripped the move invariant). The planner keeps exploring
+  // candidates and solves: 21 + 16 + 10 = 47 moves, honestly suboptimal.
+  search::PushAndSwap planner(config());
+  auto grid = test::make_grid({"###..##", "#.....#", "#######"});
+  std::vector<core::AgentTask> tasks{{core::Cell{1, 5}, core::Cell{1, 2}},
+                                     {core::Cell{1, 3}, core::Cell{1, 1}},
+                                     {core::Cell{1, 1}, core::Cell{1, 3}}};
+  core::MultiPlanResult r = planner.plan(grid, tasks, nullptr);
+  ASSERT_TRUE(r.success);
+  assert_single_moves(r.paths, tasks);
+  EXPECT_EQ(per_agent_costs(r.paths), std::vector<int>({21, 16, 10}));
+  EXPECT_DOUBLE_EQ(r.cost, 47.0);
+}
+
 TEST(PushAndSwap, TraceEventsAndMetrics) {
   // No search frontier exists here: the trace carries NO node_expanded events —
   // path_found (full-horizon, one event per agent) then planning_finished only.

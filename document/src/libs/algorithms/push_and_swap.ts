@@ -247,6 +247,10 @@ const clearAndSwap = (sim: Sim, segment: Move[], r: number, s: number): boolean 
         const nbrsW1 = nbrs(sim, w1);
         for (const w4 of nbrsW1.filter((w) => !cellEq(w, v) && nbrs(sim, w2).some((x) => cellEq(x, w)))) {
             if (occupant(sim, w4) !== null && !clearCell(sim, segment, w4)) continue;
+            // w4를 비우는 동작이 이미 비워 둔 w2를 다시 채울 수 있다 — 밀려난 점유자의 첫 빈
+            // 이웃이 하필 방금 비운 그 w2인 경우(3명 이상에서 도달 가능). 이 시도는 다른 clear
+            // 실패와 동일하게 실패한다(continue; 모든 시도가 실패하면 후보 전체가 실패하고 rollback).
+            if (occupant(sim, w2) !== null) continue;
             // EXECUTE_SWAP: r이 v를 비워 s에게 내주고 block을 돌아 w1으로 들어간다.
             move(sim, null, r, w2);
             move(sim, null, s, v);

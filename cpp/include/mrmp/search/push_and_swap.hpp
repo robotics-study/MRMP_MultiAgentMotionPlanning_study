@@ -128,6 +128,8 @@ class PushAndSwap final : public core::MultiAgentPlanner {
   // CLEAR + EXECUTE_SWAP fused: r@v and s@w1 exchange iff some w2 in N(v)\{w1} and
   // w4 in N(w1)\{v} ∩ N(w2) are clearable (an occupant is cleared by stepping it
   // into its own first free neighbor); the four exchange moves go straight onto pi.
+  // Clearing a later w4 can refill an already-cleared w2 — that attempt fails like
+  // any other clear failure (pinned; reachable from three or more agents).
   bool clear_and_swap(Sim& sim, std::vector<Move>* segment, int r, int s) const;
 
   // CLEAR one vertex: its occupant steps into its own first free neighbor (fixed

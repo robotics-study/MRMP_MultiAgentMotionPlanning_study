@@ -24,7 +24,11 @@ repository only ever hands it a 4-connected grid):
 - The paper leaves POP() order over swap vertices unspecified; pinned here to BFS
   dequeue order from A[r] (nearest candidate first, deterministic across
   languages). A candidate fails iff s sits on path(A[r], v) — the composite pair
-  can never walk past its own member — or if CLEAR cannot free the block.
+  can never walk past its own member — or if CLEAR cannot free the block. Freeing
+  a later w4 can REFILL an already-cleared w2 (the cleared occupant steps into
+  its first free neighbor, which may be exactly that w2 — reachable from three or
+  more agents); that attempt fails like any other clear failure instead of moving
+  into the refilled cell.
 - Failed candidates are speculative: their moves land on a local segment and are
   rolled back (assignment AND trace history restored); only a successful swap's
   EXECUTE_SWAP moves join the solution directly, followed by the forward segment
@@ -356,7 +360,14 @@ class PushAndSwap(MultiAgentPlanner):
         stepping it into its own first free neighbor (fixed order; no free neighbor
         means this candidate fails). Then the four moves r:v→w2, s:w1→v, r:w2→w4,
         r:w4→w1 exchange the pair. They go straight onto Pi — only the segment
-        before them is reversible."""
+        before them is reversible.
+
+        Clearing w4 can REFILL an already-cleared w2: the cleared occupant steps
+        into its own first free neighbor, and that cell may be exactly the w2 that
+        was just vacated (3+ agents make this reachable). The exchange then cannot
+        execute — pinned behavior: this attempt fails like any other clear failure
+        (continue to the next candidate; if every attempt fails the whole vertex
+        candidate fails and _swap rolls the segment back), never an assert."""
         v = sim.A[r]
         w1 = sim.A[s]
         nbrs_v = _nbrs(sim.free, v)
@@ -368,6 +379,9 @@ class PushAndSwap(MultiAgentPlanner):
             nbrs_w1 = _nbrs(sim.free, w1)
             for w4 in [w for w in nbrs_w1 if w != v and w in _nbrs(sim.free, w2)]:
                 if _occupant(sim, w4) is not None and not self._clear_cell(sim, segment, w4):
+                    continue
+                if _occupant(sim, w2) is not None:
+                    # clearing w4 just re-occupied w2 — this attempt cannot execute.
                     continue
                 # EXECUTE_SWAP: r vacates v for s, then rounds the block into w1.
                 _move(sim, None, r, w2)
