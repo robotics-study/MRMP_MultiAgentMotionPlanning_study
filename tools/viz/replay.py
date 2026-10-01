@@ -104,14 +104,18 @@ class Schedule:
 def timed_position(sch: Schedule, vmax: float, tau: float) -> Point:
     """Position (row, col in cell units) at time tau under the uniform velocity
     model: dwell on c_i until D_i = T_{i+1} − 1/vmax, then linear at exactly
-    vmax so arrival lands exactly on the scheduled time."""
+    vmax so arrival lands exactly on the scheduled time. Before the departure the
+    position IS the cell — inside a dwell there is no traversal to extrapolate."""
     times = sch.times
     if tau <= times[0]:
         return sch.cells[0]
     for i in range(len(times) - 1):
-        if tau < times[i + 1]:
-            departure = times[i + 1] - 1.0 / vmax
-            fraction = (tau - departure) * vmax
+        arrive = times[i + 1]
+        depart = arrive - 1.0 / vmax
+        if tau < depart:
+            return sch.cells[i]  # dwell — still on the cell, never extrapolated past it
+        if tau < arrive:
+            fraction = (tau - depart) * vmax
             a, b = sch.cells[i], sch.cells[i + 1]
             return (a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction)
     return sch.cells[-1]
