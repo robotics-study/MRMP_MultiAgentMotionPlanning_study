@@ -7,9 +7,9 @@ import {IAlgoData} from "../../../types/global";
 // 사이드바/TOC/검색 앵커(slug)가 맞는다.
 // 배열 순서가 사이드바·pager의 진행 순서다 — 섹션별로 계보순: search 갈래는
 // decoupled/priority 갈래(Prioritized A* → Push and Swap → Push and Rotate — 우선순위
-// 계획을 local primitive로 완성하는 decentralized 계열) → coupled(Joint-space A*, 모든 것의
-// baseline) → hybrid(CBS), sampling 갈래는 coupled(joint 상태 motion tree) → subdimensional
-// → implicit roadmap 순서.
+// 계획을 local primitive로 완성) → coupled(Joint-space A*, 모든 것의 baseline) → hybrid(CBS),
+// sampling 갈래는 coupled(joint 상태 motion tree) → subdimensional → implicit roadmap 순서,
+// 그리고 세 번째 갈래 decentralized는 계획이라는 매개체를 버린 자리에서 시작한다.
 // 집필된 페이지만 멀티라인 리터럴로 올린다 (멀티라인 리터럴 규약 — prerender/sitemap이
 // contents 있는 블록만 파싱한다). 콘텐츠 모듈은 pages/algorithms/<section>/<slug>.tsx.
 const data: IAlgoData[] = [
@@ -166,6 +166,25 @@ const data: IAlgoData[] = [
         contents: lazy(() => import("./sampling/drrt_star")),
         sections: [
             {en: "From Implicit Roadmaps to Asymptotic Optimality", ko: "implicit roadmap에서 점근적 최적성으로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
+    },
+    // --- decentralized 갈래의 첫 회원 — 계획이라는 매개체 자체를 버린다. search 갈래가
+    // 완성한 우선순위 규율을 실행 시간으로만 다시 세운다: 경로가 아니라 칸을 협상하고,
+    // 막힌 점유자가 claim을 상속받는다 (Okumura, Machida, Défago & Tamura).
+    {
+        slug: "pibt",
+        title: {en: "PIBT", ko: "PIBT"},
+        section: "decentralized",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./decentralized/pibt")),
+        sections: [
+            {en: "From Planned Paths to Per-Step Negotiation", ko: "계획된 경로에서 스텝별 협상으로"},
             {en: "Properties and Complexity", ko: "성질과 복잡도"},
             {en: "The Algorithm", ko: "알고리즘"},
             {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},

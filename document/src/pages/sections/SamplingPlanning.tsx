@@ -148,34 +148,39 @@ const SamplingPlanning = () => {
                 </>}
             />
 
-            <h2>{t("What Is Coming", "구현 예정")}</h2>
+            <h2>{t("All Four, in Reading Order", "네 회원 전부, 읽는 순서")}</h2>
             <T
                 en={<p>
-                    Two members of this branch have landed. <strong>MA-RRT*</strong> (Čáp et al.,
-                    2013) — one RRT* on the joint state space, coupled from the start — arrived
-                    through its own paper's discretization, waypoints on a grid, so this branch began
-                    on the very same maps and cost metric as its sibling; sRRT (Wagner, Kang &
-                    Choset, 2012) — subdimensional expansion over motion trees — landed on the same
-                    grid: the paper prefers optimal individual policies anyway, and a BFS tree from
-                    the goal is exactly that. Continuous configuration space arrives with what
-                    follows. Reading order keeps following the coupling axis:{" "}
-                    <strong>dRRT → dRRT*</strong> (Solovey, Salzman & Halperin 2016; Dobson et al.
-                    2017) — per-robot roadmaps, an implicit tensor-product roadmap searched by
-                    bootstrap sampling, and asymptotic optimality on top. Each lands as its own page
-                    with derivation, proof, and live sandbox when it is implemented.
+                    All four members have landed, and the reading order kept following the coupling
+                    axis from one end to the other. <strong>MA-RRT*</strong> (Čáp et al., 2013) — one
+                    RRT* on the joint state space, coupled from the start — arrived through its own
+                    paper's discretization, waypoints on a grid, so this branch began on the very same
+                    maps and cost metric as its search sibling; sRRT (Wagner, Kang & Choset, 2012) —
+                    subdimensional expansion over motion trees — landed on the same grid: the paper
+                    prefers optimal individual policies anyway, and a BFS tree from the goal is exactly
+                    that. Then came the real geometry: <strong>dRRT</strong> (Solovey, Salzman &
+                    Halperin 2016) — per-robot roadmaps over continuous free space, their tensor
+                    product searched <em>implicitly</em> by steering bootstrap samples through it — and{" "}
+                    <strong>dRRT*</strong> (Shome et al. 2020), asymptotic optimality on top. Each
+                    landed as its own page with derivation, proof, and live sandbox. The coupling axis
+                    has now run its full course: from one joint tree, through per-robot trees coupled
+                    only while paths conflict, to roadmaps never built at all — and the genealogy's
+                    last stop is the sibling section where the plan itself disappears.
                 </p>}
                 ko={<p>
-                    이 갈래의 두 회원이 이미 도착했다. <strong>MA-RRT*</strong>(Čáp 외, 2013) —
-                    joint 상태 공간 위의 RRT* 하나, 처음부터 coupled — 는 논문 자체의 이산화(격자 위
-                    waypoint)를 통해 도착했고 그래서 이 갈래는 자매 섹션과 정확히 같은 맵과 같은 비용
-                    척도에서 시작했다. sRRT(Wagner, Kang & Choset, 2012) — motion tree 위의
-                    subdimensional expansion — 도 같은 격자 위에 도착했다. 논문 어차피 optimal individual
-                    policies를 선호하고 goal에서 BFS 트리가 정확히 그거다. 연속 configuration space는
-                    뒤따르는 것들과 함께 온다. 읽는 순서는 계속 결합 축을 따른다: 다음으로{" "}
-                    <strong>dRRT → dRRT*</strong>(Solovey, Salzman & Halperin 2016; Dobson 외 2017) —
-                    로봇마다 roadmap, bootstrap sampling으로 훑는 암묵적 tensor-product roadmap, 그리고
-                    그 위 점근 최적성. 각각 구현되는 순간 유도·증명·라이브 sandbox와 함께 각자의
-                    페이지로 들어온다.
+                    네 회원이 모두 도착했고, 읽는 순서는 계속 결합 축을 끝까지 따라갔다.
+                    <strong>MA-RRT*</strong>(Čáp 외, 2013) — joint 상태 공간 위의 RRT* 하나, 처음부터
+                    coupled — 는 논문 자체의 이산화(격자 위 waypoint)를 통해 도착했고, 그래서 이 갈래는
+                    자매 섹션과 정확히 같은 맵과 같은 비용 척도에서 시작했다. sRRT(Wagner, Kang &
+                    Choset, 2012) — motion tree 위의 subdimensional expansion — 도 같은 격자 위에
+                    도착했다. 논문 어차피 optimal individual policies를 선호하고 goal에서 BFS 트리가
+                    정확히 그거다. 그리고 진짜 기하가 왔다: <strong>dRRT</strong>(Solovey, Salzman &
+                    Halperin 2016) — 연속 자유 공간 위의 로봇별 roadmap, 그 tensor product를 bootstrap
+                    표본을 조향해 <em>암묵적으로</em> 탐색하고 — 그리고 그 위 점근 최적성을 얹은{" "}
+                    <strong>dRRT*</strong>(Shome 외 2020). 각각 유도·증명·라이브 sandbox와 함께 각자의
+                    페이지로 도착했다. 결합 축은 이제 그 전 과정을 달렸다: joint 트리 하나에서, 경로가
+                    충돌하는 동안에만 결합되는 로봇별 트리를 지나, 아예 구성조차 되지 않는 roadmap까지 —
+                    그리고 계보의 마지막 정류장은 계획 자체 사라지는 자매 섹션이다.
                 </p>}
             />
         </>

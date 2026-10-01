@@ -6,10 +6,12 @@ export interface Localized<T = string> {
     ko: T,
 }
 
-// 대분류(section) — planner 타입이라는 계보의 갈래 그 자체 (survey 의 분류 축).
-// 알고리즘 레지스트리·사이드바·홈이 공유하고, 소스 코드 디렉토리(python/mrmp/<section>)와
-// 1:1 로 대응한다. 단일 로봇 내비게이션은 자매 저장소(navigation study)가 다룬다.
-export type AlgoSection = "search" | "sampling";
+// 대분류(section) — 계보의 갈래 그 자체. search/sampling 은 survey 의 planner 타입 분류
+// 축이고, decentralized 는 그 위에 선 세 번째 갈래 — 오프라인 계획이라는 매개체 자체를
+// 버리고 실행 시간의 스텝별 협상만 남긴다. 알고리즘 레지스트리·사이드바·홈이 공유하고,
+// 소스 코드 디렉토리(python/mrmp/<section>)와 1:1 로 대응한다. 단일 로봇 내비게이션은
+// 자매 저장소(navigation study)가 다룬다.
+export type AlgoSection = "search" | "sampling" | "decentralized";
 
 export interface ISupportedExample {
     python?: boolean,

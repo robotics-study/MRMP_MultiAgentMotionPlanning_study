@@ -125,8 +125,8 @@ const SearchPlanning = () => {
                             <strong>Decoupled — Prioritized A*.</strong> Order the agents; each plans
                             with single-agent A* in space-time, treating earlier agents' paths as
                             moving obstacles. Fast and scalable, but incomplete: a bad priority order
-                            can paint later agents into corners. The planned <strong>Push and Swap</strong>
-                            keeps per-agent planning yet drops the frozen reservations: push clears a
+                            can paint later agents into corners. Its completion, <strong>Push and
+                            Swap</strong>, keeps per-agent planning yet drops the frozen reservations: push clears a
                             blocker off the high-priority agent's shortest path, swap exchanges two
                             agents outright — complete, it claims, once at least two cells per component
                             stay free. Whether that claim holds is exactly what its successor audits.
@@ -153,8 +153,9 @@ const SearchPlanning = () => {
                             <strong>Decoupled (Prioritized A*).</strong> agent에 순서를 매기고, 각자
                             앞선 agent들의 경로를 움직이는 장애물로 취급하며 시공간 A*로
                             계획한다. 빠르고 확장성 있지만 불완전하다: 우선순위를 잘못 매기면 뒤의
-                            agent를 구석에 가둘 수 있다. 이 극단의 다음 장은 planned인 Push and Swap이다.
-                            예약 동결을 포기하지 않으면서 lower-priority agent를 push로 밀어내고 swap으로
+                            agent를 구석에 가둘 수 있다. 이 극단의 완성 <strong>Push and Swap</strong>은
+                            agent별 계획은 두고 얼린 예약은 버린다: push는 우선순위 높은 agent의 최단경로를
+                            막는 점유자를 밀어내고 swap으로
                             자리를 맞바꾼다. component당 빈 셀이 2개 이상이면 항상 성공한다고 주장하고,
                             그 주장이 참인지 검증하는 것이 후속 Push and Rotate다.
                         </li>
@@ -197,26 +198,28 @@ const SearchPlanning = () => {
             <h2>{t("All Three Poles, in Reading Order", "세 극단, 읽는 순서")}</h2>
             <T
                 en={<p>
-                    All three poles have a written representative now. Read{" "}
-                    <strong>Prioritized A*</strong> first (the decoupled pole), then{" "}
-                    <strong>Joint-Space A*</strong> — the coupled baseline that everything else is
-                    measured against — and finally <strong>CBS</strong>, the hybrid in between. The
-                    priority pole's completion, <strong>Push and Swap</strong> and its fix{" "}
-                    <strong>Push and Rotate</strong>, sits on the roadmap. Each gets the same
-                    derivation, proof, and live interactive sandbox treatment as the single-robot
-                    pages. When this branch is read through, the genealogy continues in the sibling
-                    section: the same coupling axis, re-fought with motion trees over continuous
-                    configuration space.
+                    All three poles have a written representative now, and the priority pole has its
+                    full arc. Read <strong>Prioritized A*</strong> first (the decoupled pole), then its
+                    completion — <strong>Push and Swap</strong> dropping the frozen reservations and{" "}
+                    <strong>Push and Rotate</strong> auditing that claim into a true decision procedure.
+                    Then <strong>Joint-Space A*</strong> — the coupled baseline everything else is
+                    measured against — and finally <strong>CBS</strong>, the hybrid in between. Each
+                    gets the same derivation, proof, and live interactive sandbox treatment as the
+                    single-robot pages. When this branch is read through, the genealogy continues in
+                    its sibling sections: the same coupling axis re-fought with motion trees over
+                    continuous configuration space (sampling), and the axis's final destination — no
+                    plan at all, only negotiation at the time step itself (decentralized).
                 </p>}
                 ko={<p>
-                    세 극단이 모두 대표 알고리즘을 갖췄다. 먼저 <strong>Prioritized A*</strong>
-                    (decoupled 극단)를 읽고, 이어서 모든 것이 여기에 대해 저울질되는 coupled baseline{" "}
-                    <strong>Joint-Space A*</strong>를 읽고, 마지막으로 그 사이 어딘가의 hybrid{" "}
-                    <strong>CBS</strong>를 읽어라. priority 극단의 완성인 <strong>Push and Swap</strong>와
-                    그 보완 <strong>Push and Rotate</strong>는 로드맵에 있다. 각각 단일 로봇 페이지와 같은
-                    유도·증명과 라이브 interactive sandbox로 다룬다. 이 갈래를 다 읽으면 계보는 자매
-                    섹션으로 이어진다.
-                    같은 결합 축을 연속적인 configuration space 위의 motion tree로 다시 싸우는 갈래.
+                    세 극단이 모두 대표 알고리즘을 갖췄고, priority 극단은 이제 그 호 전체를 갖췄다.
+                    먼저 <strong>Prioritized A*</strong>(decoupled 극단)를 읽고, 그 완성인{" "}
+                    <strong>Push and Swap</strong>(얼린 예약을 버린 장)과 <strong>Push and Rotate</strong>(그
+                    주장을 진짜 판정 절차로 검증한 장)를 읽고, 이어서 모든 것이 여기에 대해 저울질되는
+                    coupled baseline <strong>Joint-Space A*</strong>를 읽고, 마지막으로 그 사이 어딘가의
+                    hybrid <strong>CBS</strong>를 읽어라. 각각 단일 로봇 페이지와 같은 유도·증명과 라이브
+                    interactive sandbox로 다룬다. 이 갈래를 다 읽으면 계보는 자매 섹션으로 이어진다 —
+                    같은 결합 축을 연속적인 configuration space 위의 motion tree로 다시 싸우는 갈래(sampling),
+                    그리고 그 축의 종착점 — 계획이라는 매개체 자체를 버리고 스텝 그 자체의 협상만 남긴 갈래(decentralized).
                 </p>}
             />
         </>

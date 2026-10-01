@@ -110,13 +110,27 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
                 "RRT*식 rewiring이 optimum을 쫓는다 — 확률적으로 완전하고 점근적으로 최적이며 anytime.",
         },
     },
+    {
+        slug: "pibt",
+        blurb: {
+            en: "The priority discipline without any plan: every timestep each agent picks its next cell by " +
+                "priority, a blocked occupant inherits the claim and must vacate or the claim backtracks — no " +
+                "offline path exists anywhere, and completeness is exactly the cycle condition the search " +
+                "branch's primitives had to repair around.",
+            ko: "계획 없는 우선순위 규율: 매 스텝 각 agent가 우선순위로 다음 칸을 고르고, 막힌 점유자는 " +
+                "claim을 상속받아 비켜야 하고 실패하면 claim이 backtrack된다 — 오프라인 경로는 어디에도 없고, " +
+                "완전성은 정확히 search 갈래의 primitive들이 돌아서 수리해야 했던 그 cycle 조건이다.",
+        },
+    },
 ];
 
-// 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 갈래는 survey(Bui 2023)가
+// 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 첫 둘은 survey(Bui 2023)가
 // planner 타입으로 나누는 그대로다: search-based(그래프 위 열거 탐색)와
-// sampling-based(연속 configuration space의 표본 채취). 각 섹션 안의 알고리즘 배치는
-// 항상 계보순 — 결합 축을 따라 decoupled → coupled → hybrid 순서로 읽는다. 소스 코드
-// 트리(python/mrmp/<section>/)와 configs(<section>/<slug>.yaml)도 이 구분을 따른다.
+// sampling-based(연속 configuration space의 표본 채취). 세 번째 갈래 decentralized는
+// 분류 축이 한 칸 더 내려간다 — 오프라인 계획이라는 매개체 자체를 버리고 실행 시간의
+// 스텝별 협상만 남긴다. 각 섹션 안의 알고리즘 배치는 항상 계보순 — search는 결합 축을
+// 따라 decoupled → coupled → hybrid 순서로 읽는다. 소스 코드 트리(python/mrmp/<section>/)
+// 와 configs(<section>/<slug>.yaml)도 이 구분을 따른다.
 export const SECTIONS: Array<{
     key: AlgoSection;
     title: Localized<string>;
@@ -148,6 +162,19 @@ export const SECTIONS: Array<{
                 "샘플링. joint 상태의 motion tree, subdimensional expansion, implicit roadmap. 같은 " +
                 "결합 축이 다시 나타난다: MA-RRT*(논문 자체의 격자 이산화로)가 집필·구현됐고, " +
                 "sRRT와 dRRT 계열이 뒤를 잇는다.",
+        },
+    },
+    {
+        key: "decentralized",
+        title: {en: "Decentralized Planning", ko: "Decentralized Planning"},
+        desc: {
+            en: "The branch that drops the plan itself: no path exists before it is walked. Every " +
+                "timestep each agent negotiates its next cell by priority, and a blocked occupant " +
+                "inherits the claim — PIBT is the priority discipline of the search branch rebuilt " +
+                "at the time step, with no offline plan anywhere.",
+            ko: "계획이라는 매개체 자체를 버리는 갈래: 경로는 걷기 전에는 존재하지 않는다. 매 " +
+                "스텝 각 agent가 우선순위로 다음 칸을 협상하고, 막힌 점유자는 claim을 상속받는다 — " +
+                "PIBT는 search 갈래의 우선순위 규율을 스텝에서 다시 세운 것으로, 오프라인 계획은 어디에도 없다.",
         },
     },
 ];
