@@ -73,9 +73,13 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
             .map((r) => ({color: AGENT_COLORS[r.agent % AGENT_COLORS.length], ...r}))
     }, [timeline, step, world])
 
-    // 발표된 space-time 경로 (start/goal 마커는 agents가 그리므로 여기서는 선만).
+    // 발표된 space-time 경로와 timed route (start/goal 마커는 agents가 그리므로 여기서는 선만).
     const visiblePaths = useMemo(
         () => (timeline ? timeline.paths.filter((p) => p.step <= step) : []),
+        [timeline, step],
+    )
+    const visibleSchedules = useMemo(
+        () => (timeline ? timeline.schedules.filter((s) => s.step <= step) : []),
         [timeline, step],
     )
     const visibleConflicts = useMemo(
@@ -165,6 +169,25 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
         return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]
     }
 
+    // timed 실행 재생 — uniform velocity model(replay.py의 timed_position 미러): departure
+    // (D_i = times[i+1] − 1/vmax)까지 cells[i]에 체류하고 그 다음에만 정확히 vmax로 이동.
+    // departure 이전에는 외삽 없이 셀 그대로다.
+    const scheduleAt = (cells: Cell[], times: number[], v: number, tau: number): Point => {
+        if (tau <= times[0]) return [cells[0][0], cells[0][1]]
+        for (let i = 0; i < times.length - 1; i++) {
+            const arrive = times[i + 1]
+            const depart = arrive - 1 / v
+            if (tau < depart) return [cells[i][0], cells[i][1]]
+            if (tau < arrive) {
+                const f = (tau - depart) * v
+                const a = cells[i], b = cells[i + 1]
+                return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]
+            }
+        }
+        const last = cells[cells.length - 1]
+        return [last[0], last[1]]
+    }
+
     return (
         <Stage width={stageW} height={stageH}
                className="bg-surface border border-border rounded-lg overflow-hidden w-fit"
@@ -245,12 +268,21 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
                            }}
                            fill={color} opacity={world ? 0.95 : 0.28}/>
                 ))}
-                {/* 발표된 space-time 경로 (start/goal 마커는 agents가 그린다) */}
+                {/* 발표된 space-time 경로와 timed route (start/goal 마커는 agents가 그린다) */}
                 {visiblePaths.map((p) => {
                     const color = AGENT_COLORS[p.agent % AGENT_COLORS.length]
                     const pts = p.path.flatMap((pt) => toXY(pt))
                     return (
                         <Line key={`p${p.agent}`} points={pts} stroke={color} listening={false}
+                              strokeWidth={Math.max(1.6, cell * 0.18)} opacity={0.9}
+                              lineCap="round" lineJoin="round"/>
+                    )
+                })}
+                {visibleSchedules.map((s) => {
+                    const color = AGENT_COLORS[s.agent % AGENT_COLORS.length]
+                    const pts = s.cells.flatMap((c) => toXY([c[0], c[1]]))
+                    return (
+                        <Line key={`s${s.agent}`} points={pts} stroke={color} listening={false}
                               strokeWidth={Math.max(1.6, cell * 0.18)} opacity={0.9}
                               lineCap="round" lineJoin="round"/>
                     )
@@ -276,8 +308,9 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
                 }))}
                 {/* agent endpoint 핸들: 번호가 적힌 start 점 + goal 링 (sandbox) */}
                 {agents?.map((a, i) => marker(a, i))}
-                {/* 실행 재생: agent 디스크 — world는 진짜 반지름(미터), discrete는 셀 크기.
-                    경로 끝에 도착하면 거기 고정이고 world의 소수 τ는 웨이포인트 선형 보간. */}
+                {/* 실행 재생: agent 디스크 — world는 진짜 반지름(미터), discrete/timed는 셀 크기.
+                    경로 끝에 도착하면 거기 고정이고, world의 소수 τ는 웨이포인트 선형 보간,
+                    timed는 scheduleAt의 dwell→traverse (속도는 timeline.vmax). */}
                 {execStep !== null && visiblePaths.map((p) => {
                     const color = AGENT_COLORS[p.agent % AGENT_COLORS.length]
                     const rPx = world && timeline?.radius
@@ -289,6 +322,22 @@ const GridCanvas = ({map, panel, timeline, step = Infinity, execStep = null,
                             <Circle x={x} y={y} radius={rPx} fill={color} listening={false}
                                     stroke={colors.bg} strokeWidth={Math.max(1, rPx * 0.25)}/>
                             <Text text={String(p.agent)} width={rPx * 2} height={rPx * 2}
+                                  x={x - rPx} y={y - rPx} align="center" verticalAlign="middle"
+                                  fontSize={Math.max(8, rPx * 1.05)} fill="#ffffff" fontStyle="bold" listening={false}/>
+                        </Fragment>
+                    )
+                })}
+                {execStep !== null && timeline?.timed && visibleSchedules.map((s) => {
+                    const color = AGENT_COLORS[s.agent % AGENT_COLORS.length]
+                    const vmax = timeline.vmax ?? [1]
+                    const rPx = cell * 0.38
+                    const [x, y] = toXY(scheduleAt(s.cells, s.times,
+                        vmax[s.agent % vmax.length], execStep))
+                    return (
+                        <Fragment key={`sd${s.agent}`}>
+                            <Circle x={x} y={y} radius={rPx} fill={color} listening={false}
+                                    stroke={colors.bg} strokeWidth={Math.max(1, rPx * 0.25)}/>
+                            <Text text={String(s.agent)} width={rPx * 2} height={rPx * 2}
                                   x={x - rPx} y={y - rPx} align="center" verticalAlign="middle"
                                   fontSize={Math.max(8, rPx * 1.05)} fill="#ffffff" fontStyle="bold" listening={false}/>
                         </Fragment>

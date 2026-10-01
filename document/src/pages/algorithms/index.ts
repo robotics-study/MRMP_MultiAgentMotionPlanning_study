@@ -9,7 +9,8 @@ import {IAlgoData} from "../../../types/global";
 // decoupled/priority 갈래(Prioritized A* → Push and Swap → Push and Rotate — 우선순위
 // 계획을 local primitive로 완성) → coupled(Joint-space A*, 모든 것의 baseline) → hybrid(CBS),
 // sampling 갈래는 coupled(joint 상태 motion tree) → subdimensional → implicit roadmap 순서,
-// 그리고 세 번째 갈래 decentralized는 계획이라는 매개체를 버린 자리에서 시작한다.
+// 세 번째 갈래 decentralized는 계획이라는 매개체를 버린 자리에서 시작하고,
+// 네 번째 갈래 kinodynamic은 계획에 시간을 실어 되돌린다(MAPF-POST).
 // 집필된 페이지만 멀티라인 리터럴로 올린다 (멀티라인 리터럴 규약 — prerender/sitemap이
 // contents 있는 블록만 파싱한다). 콘텐츠 모듈은 pages/algorithms/<section>/<slug>.tsx.
 const data: IAlgoData[] = [
@@ -185,6 +186,24 @@ const data: IAlgoData[] = [
         contents: lazy(() => import("./decentralized/pibt")),
         sections: [
             {en: "From Planned Paths to Per-Step Negotiation", ko: "계획된 경로에서 스텝별 협상으로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
+    },
+    // --- kinodynamic 갈래의 유일한 회원 — 계보의 종착점. 계획을 되돌려 받고(아래에선 CBS가
+    // 조용히 계속 돈다) 시간 실린 스케줄로 변환한다: TPG → STN, 대기 → dwell, 스텝 → 시각.
+    {
+        slug: "mapf_post",
+        title: {en: "MAPF-POST", ko: "MAPF-POST"},
+        section: "kinodynamic",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./kinodynamic/mapf_post")),
+        sections: [
+            {en: "From Plans to Schedules", ko: "계획에서 스케줄로"},
             {en: "Properties and Complexity", ko: "성질과 복잡도"},
             {en: "The Algorithm", ko: "알고리즘"},
             {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},

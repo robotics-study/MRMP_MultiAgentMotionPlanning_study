@@ -45,6 +45,19 @@ def test_load_scenario_radius(tmp_path: Path) -> None:
     assert scenario.agents[0].radius == 0.2
 
 
+def test_load_scenario_vmax(tmp_path: Path) -> None:
+    # Timed (kinodynamic) scenarios carry a per-agent velocity limit in cells per
+    # time unit; scenarios without one default to 1.0 (one cell per time unit).
+    p = tmp_path / "s.yaml"
+    p.write_text(
+        f"map: {_MAZE}\nagents:\n  - start: [1.5, 1.5]\n    goal: [7.5, 7.5]\n    vmax: 0.25\n",
+        encoding="utf-8",
+    )
+    scenario = load_scenario(p)
+    assert scenario.agents[0].vmax == 0.25
+    assert scenario.agents[0].radius == 0.0
+
+
 def test_unsupported_map_type_raises(tmp_path: Path) -> None:
     p = tmp_path / "g.yaml"
     p.write_text("type: graph\nnodes: []\nedges: []\n", encoding="utf-8")

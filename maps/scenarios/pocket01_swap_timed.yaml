@@ -1,0 +1,11 @@
+# pocket01_swap의 timed판: 같은 pocket 스왑을 둘 다 v = 1칸/시간으로 지난다. 이산
+# 계획의 대기(같은 셀 연속 스텝)는 그대로 대기(dwell)가 되고 도착 시각은 이산 스텝과
+# 정확히 같다 — makespan 6, 합 10, CBS와 같은 숫자가 나온다.
+map: ../grid/pocket01.yaml     # scenario 파일 기준 상대 경로
+agents:                        # agent 순서 = agent index (우선순위와 무관, 표시 순서)
+  - start: [0.75, 0.75]        # cell (1, 1) — 오른쪽으로
+    goal: [2.75, 0.75]         # cell (1, 5)
+    vmax: 1
+  - start: [2.75, 0.75]        # cell (1, 5) — 왼쪽으로
+    goal: [0.75, 0.75]         # cell (1, 1)
+    vmax: 1

@@ -6,6 +6,9 @@ import {Cell, TraceEvent} from "../trace/types";
 // (cost, seq)(constraint tree queue), earliest-conflict tie-break(cell row/col
 // 그다음 pair i<j), canonical edge constraint까지 trace가 필드 단위로 일치한다.
 // 시각화용이 아니라 parity 검증의 한 축이다 (scripts/check-engine-parity.mjs).
+// 코어(cbsPlan)는 이벤트 방출과 분리돼 있다 — kinodynamic 갈래의 mapf_post가 emit
+// 없이 조용히 호출해 paths만 읽는다. Python 쪽 MapfPost가 CBS를 recorder 없이
+// 부르는 것과 같은 구조다.
 
 type ConflictKind = "vertex" | "edge";
 
@@ -133,17 +136,15 @@ const cellLt = (a: Cell, b: Cell): boolean => a[0] !== b[0] ? a[0] < b[0] : a[1]
 const occupiedAt = (path: Cell[], t: number): Cell =>
     t < path.length ? path[t] : path[path.length - 1];
 
-export function runCbs(
+// 코어 — emit이 없으면 조용히 돈다 (mapf_post가 그대로 호출한다). 성공 시 paths,
+// 실패 시 빈 paths. expanded는 어느 쪽이나 누적 확장 수(성공 시 planning_finished의
+// metric과 같은 값)다.
+export function cbsPlan(
     map: GridMap,
     tasks: Array<[Cell, Cell]>,
-    params: Record<string, unknown>,
-): TraceEvent[] {
-    const events: TraceEvent[] = [];
-    let seq = 0;
-    const emit = (ev: Omit<TraceEvent, "seq">) => events.push({seq: seq++, ...ev});
-    const maxCt = params.max_ct_expansions as number;
-    emit({event: "planning_started", algorithm: "cbs", params});
-
+    maxCt: number,
+    emit?: (ev: Omit<TraceEvent, "seq">) => void,
+): {success: boolean; paths: Cell[][]; expanded: number} {
     const W = map.width, H = map.height;
     const free = (c: Cell): boolean =>
         c[0] >= 0 && c[0] < H && c[1] >= 0 && c[1] < W && !map.occupied[c[0] * W + c[1]];
@@ -207,7 +208,7 @@ export function runCbs(
             const cur = frontier.pop();
             // 상태는 정확히 한 번 push되므로 pop이 곧 확장이다 (lazy deletion 불필요).
             expanded += 1;
-            emit({event: "node_expanded", state: [cur.cell[0], cur.cell[1]], cost: cur.t, agent, t: cur.t});
+            emit?.({event: "node_expanded", state: [cur.cell[0], cur.cell[1]], cost: cur.t, agent, t: cur.t});
 
             // goal guard: 도착 후에도 goal을 계속 점유하므로, goal cell에 대한 vertex
             // 제약이 시각 >= t 어디에서도 유효하지 않을 때에만 이 pop을 받아들인다.
@@ -309,11 +310,11 @@ export function runCbs(
         if (r.path === null) {
             // 제약 없는 서브 탐색이 실패하면 goal은 정적으로 도달 불가 — 어떤 제약
             // 집합도 도움이 될 수 없으므로 전체 instance가 여기서 실패한다.
-            emit({
+            emit?.({
                 event: "planning_finished", success: false,
                 metrics: {expanded_nodes: expanded, makespan: 0, sum_of_costs: 0},
             });
-            return events;
+            return {success: false, paths: [], expanded};
         }
         rootPaths.push(r.path);
     }
@@ -337,15 +338,15 @@ export function runCbs(
             // best-first가 최적을 pop했다: 개별 최적 경로들이 충돌까지 없으면 jointly 최적.
             let makespan = 0;
             for (const p of node.paths) makespan = Math.max(makespan, p.length - 1);
-            node.paths.forEach((p, k) => emit({event: "path_found", path: p, agent: k}));
-            emit({
+            node.paths.forEach((p, k) => emit?.({event: "path_found", path: p, agent: k}));
+            emit?.({
                 event: "planning_finished", success: true,
                 metrics: {expanded_nodes: expanded, makespan, sum_of_costs: cost},
             });
-            return events;
+            return {success: true, paths: node.paths, expanded};
         }
 
-        emit({
+        emit?.({
             event: "conflict_found", kind: conflict.kind, cell: [conflict.cell[0], conflict.cell[1]],
             t: conflict.t, agents: conflict.agents, to: conflict.to,
         });
@@ -357,7 +358,7 @@ export function runCbs(
             childConstraints[agent].push({
                 kind: conflict.kind, cell: conflict.cell, t: conflict.t, to: conflict.to,
             });
-            emit({
+            emit?.({
                 event: "constraint_added", agent, kind: conflict.kind,
                 cell: [conflict.cell[0], conflict.cell[1]], t: conflict.t, to: conflict.to,
             });
@@ -376,10 +377,25 @@ export function runCbs(
 
     // 예산 소진 전 큐가 비면: 모든 가지가 자기 제약으로 죽었다 — 진짜 unsolvability
     // 판정이다. (예산 소진은 "예산 내 해 없음"일 뿐 — 모듈 문서 참조.)
-    emit({
+    emit?.({
         event: "planning_finished", success: false,
         metrics: {expanded_nodes: expanded, makespan: 0, sum_of_costs: 0},
     });
+    return {success: false, paths: [], expanded};
+}
+
+// 페이지/parity 래퍼 — planning_started를 먼저 싣고 코어의 모든 이벤트를 같은 이벤트
+// 스트림으로 흘린다 (runCbs의 trace는 리팩터링 전과 필드 단위로 동일하다).
+export function runCbs(
+    map: GridMap,
+    tasks: Array<[Cell, Cell]>,
+    params: Record<string, unknown>,
+): TraceEvent[] {
+    const events: TraceEvent[] = [];
+    let seq = 0;
+    const emit = (ev: Omit<TraceEvent, "seq">) => events.push({seq: seq++, ...ev});
+    emit({event: "planning_started", algorithm: "cbs", params});
+    cbsPlan(map, tasks, params.max_ct_expansions as number, emit);
     return events;
 }
 

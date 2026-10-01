@@ -249,6 +249,30 @@ TEST(Trace, PlanningStartedDeclaresWorldCoordsAndRadius) {
             "\n");
 }
 
+// Timed (kinodynamic) traces keep cell pairs and add each agent's velocity limit
+// (cells per time unit); vmax comes last, after radius would have been. Field
+// order is part of the wire contract (byte-identical to Python).
+TEST(Trace, PlanningStartedCarriesVmaxForTimedTraces) {
+  std::ostringstream os;
+  core::TraceRecorder rec(os);
+  rec.planning_started("mapf_post", "maps/grid/open01.yaml", {}, {}, {},
+                       std::vector<double>{1.0, 0.25});
+  EXPECT_EQ(os.str(),
+            R"({"seq":0,"event":"planning_started","algorithm":"mapf_post","map":"maps/grid/open01.yaml","params":{},"vmax":[1,0.25]})"
+            "\n");
+}
+
+// One timed route per agent: cells = the wait-free route (ints stay int bytes),
+// times[i] the earliest arrival at cells[i] (shortest round-trip floats).
+TEST(Trace, ScheduleFoundCarriesRouteAndTimes) {
+  std::ostringstream os;
+  core::TraceRecorder rec(os);
+  rec.schedule_found(1, {core::Cell{3, 4}, core::Cell{3, 5}}, {0.0, 2.25});
+  EXPECT_EQ(os.str(),
+            R"({"seq":0,"event":"schedule_found","agent":1,"cells":[[3,4],[3,5]],"times":[0,2.25]})"
+            "\n");
+}
+
 TEST(Trace, RoadmapBuiltCarriesVerticesAndEdges) {
   std::ostringstream os;
   core::TraceRecorder rec(os);
@@ -330,6 +354,19 @@ TEST(Loader, ScenarioResolvesMapPathAndAgents) {
   // World coords arrive untouched — the demo driver converts to cells.
   EXPECT_DOUBLE_EQ(sc.agents[0].start.x, 0.75);
   EXPECT_DOUBLE_EQ(sc.agents[0].goal.y, 7.25);
+}
+
+// Timed (kinodynamic) scenarios carry a per-agent velocity limit in cells per
+// time unit; the field is optional (the scenario above keeps its agents at the
+// default vmax = 1.0).
+TEST(Loader, ScenarioParsesVmax) {
+  std::string p = test::write_temp(
+      "s.yaml",
+      "map: ../grid/maze01.yaml\nagents:\n  - start: [1.5, 1.5]\n    goal: [7.5, 7.5]\n    vmax: 0.25\n");
+  maps::Scenario sc = maps::load_scenario(p);
+  ASSERT_EQ(sc.agents.size(), 1u);
+  EXPECT_DOUBLE_EQ(sc.agents[0].vmax, 0.25);
+  EXPECT_DOUBLE_EQ(sc.agents[0].radius, 0.0);
 }
 
 TEST(Loader, SingleRobotScenarioRejected) {

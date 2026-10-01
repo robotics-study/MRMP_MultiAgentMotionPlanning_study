@@ -4,14 +4,15 @@ Mirrors the C++ `core/trace.hpp`. Emits JSON Lines per `spec/trace_schema.json`.
 `seq` starts at 0 and increments per event; both languages serialize each event's
 fields in exactly the order documented here, so parsed traces match across
 languages field-for-field. Unlike single-robot nav traces, an MRMP trace carries
-NO wall-clock time: replay is driven purely by `seq` order, and the only time a
-space-time event ever carries is the discrete timestep (`t`) of space-time events.
-
-A state on the wire is always a numeric pair: [row, col] ints for grid-cell
-algorithms (the default, `coords` omitted) or world-point floats for continuous
-planners (`planning_started` then carries `coords: "world"` plus each agent's disc
-`radius`). Floats are compared parsed, not byte-wise (Python 5.0 vs C++ 5 is the
-same value); ints stay ints on both sides.
+NO wall-clock time: replay is driven purely by `seq` order, and the only times an
+event ever carries are the discrete timestep (`t`) of space-time events and, on
+timed (kinodynamic) traces, the earliest arrival times a `schedule_found` event
+carries. A state on the wire is always a numeric pair: [row, col] ints for
+grid-cell algorithms (the default, `coords` omitted) or world-point floats for
+continuous planners (`planning_started` then carries `coords: "world"` plus each
+agent's disc `radius`). Timed traces keep cell pairs and add the per-agent
+velocity limits (`vmax`, cells per time unit). Floats are compared parsed, not
+byte-wise (Python 5.0 vs C++ 5 is the same value); ints stay ints on both sides.
 
 A null recorder must cost nothing on the hot path: callers guard every emit with
 ``if recorder is not None`` so a None recorder never runs any of this code.
@@ -30,7 +31,7 @@ from .types import Cell
 # A serialized state is a numeric pair -> JSON array of two numbers: an integer
 # cell pair for grid algorithms, a float world-point pair for continuous ones
 # (which joint state means is declared by planning_started's `coords` field). A
-# joint state is the per-agent pairs flattened to [x0, y0, x1, y1, ...].
+# joint state is the flattened [x0, y0, x1, y1, ...].
 State = Sequence[float]
 # Conflict / constraint kind: "vertex" = two agents on one cell at one step,
 # "edge" = two agents swapping the ends of one edge (a swap is its own event —
@@ -80,12 +81,15 @@ class TraceRecorder:
         params: dict[str, ParamValue],
         coords: Coords | None = None,
         radius: Sequence[float] | None = None,
+        vmax: Sequence[float] | None = None,
     ) -> None:
         # params is serialized with keys sorted so the Python and C++ recorders
         # (std::map iterates sorted) emit identical field order.
         # `coords` declares how readers must read the numeric state pairs ("cell"
         # when omitted); `radius` carries each agent's disc radius in meters —
         # continuous traces only, so discrete traces keep their exact old bytes.
+        # `vmax` carries each agent's velocity limit in cells per time unit — timed
+        # (kinodynamic) traces only; replay interpolates with the matching duration.
         fields: dict[str, object] = {
             "algorithm": algorithm,
             "map": map_path,
@@ -95,6 +99,8 @@ class TraceRecorder:
             fields["coords"] = coords
         if radius is not None:
             fields["radius"] = list(radius)
+        if vmax is not None:
+            fields["vmax"] = list(vmax)
         self._emit("planning_started", fields)
 
     def roadmap_built(
@@ -138,6 +144,19 @@ class TraceRecorder:
         # One space-time path per agent: path[t] is the state occupied at step t.
         # `agent` is required — every MRMP result belongs to a named agent.
         self._emit("path_found", {"path": [list(s) for s in path], "agent": agent})
+
+    def schedule_found(
+        self, agent: int, cells: Sequence[Sequence[int]], times: Sequence[float]
+    ) -> None:
+        # One timed route per agent (kinodynamic branch only): `cells` is the route
+        # with wait actions removed (consecutive cells are adjacent), `times` the
+        # earliest arrival time at each retained location — times[0] is 0 for every
+        # agent. Execution replays the uniform velocity model: dwell on a cell until
+        # departure (next arrival minus l(e)/vmax), traverse at exactly vmax.
+        self._emit(
+            "schedule_found",
+            {"agent": agent, "cells": [list(c) for c in cells], "times": list(times)},
+        )
 
     def conflict_found(
         self, kind: ConflictKind, cell: Cell, t: int, agents: tuple[int, int],

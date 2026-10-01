@@ -38,11 +38,14 @@ class AgentSpec:
     """One agent's scenario spec in world coords. Discrete planners get Cells via
     the demo driver's grid.world_to_cell conversion (coordinate frames stay owned
     by the map layer, per the repo rule); continuous planners use the raw Points
-    and the disc `radius` (0.0 = point robot when the scenario omits it)."""
+    and the disc `radius` (0.0 = point robot when the scenario omits it). The
+    kinodynamic branch reads `vmax` — the per-agent velocity limit in CELLS per
+    time unit (default 1.0; only timed scenarios carry a different value)."""
 
     start: Point
     goal: Point
     radius: float = 0.0
+    vmax: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -65,6 +68,7 @@ def load_scenario(path: str | Path) -> Scenario:
             start=(float(a["start"][0]), float(a["start"][1])),
             goal=(float(a["goal"][0]), float(a["goal"][1])),
             radius=float(a.get("radius", 0.0)),
+            vmax=float(a.get("vmax", 1.0)),
         )
         for a in raw["agents"]
     )

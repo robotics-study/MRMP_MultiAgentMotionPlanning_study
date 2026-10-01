@@ -74,7 +74,8 @@ void TraceRecorder::end_event() { os_ << "}\n"; }
 void TraceRecorder::planning_started(const std::string& algorithm, const std::string& map_path,
                                     const std::map<std::string, ParamValue>& params,
                                     const std::optional<Coords>& coords,
-                                    const std::optional<std::vector<double>>& radius) {
+                                    const std::optional<std::vector<double>>& radius,
+                                    const std::optional<std::vector<double>>& vmax) {
   begin_event("planning_started");
   os_ << ",\"algorithm\":";
   write_str(os_, algorithm);
@@ -92,7 +93,8 @@ void TraceRecorder::planning_started(const std::string& algorithm, const std::st
   }
   os_ << '}';
   // Omitted for discrete traces (the default reading); continuous traces declare
-  // their state pairs are world points and carry each agent's disc radius.
+  // their state pairs are world points and carry each agent's disc radius; timed
+  // traces add the per-agent velocity limits (cells per time unit).
   if (coords) {
     os_ << ",\"coords\":";
     write_str(os_, to_string(*coords));
@@ -100,6 +102,10 @@ void TraceRecorder::planning_started(const std::string& algorithm, const std::st
   if (radius) {
     os_ << ",\"radius\":";
     write_array(os_, *radius);
+  }
+  if (vmax) {
+    os_ << ",\"vmax\":";
+    write_array(os_, *vmax);
   }
   end_event();
 }
@@ -157,6 +163,24 @@ void TraceRecorder::path_found(const std::vector<Point>& path, int agent) {
     write_array(os_, to_trace(path[i]));
   }
   os_ << "],\"agent\":" << agent;
+  end_event();
+}
+
+// One timed route per agent (kinodynamic branch only): `cells` is the route with
+// wait actions removed (consecutive cells are adjacent), times[i] the earliest
+// arrival time at cells[i] — times[0] is 0 for every agent. Field order matches
+// the Python recorder: agent, then cells, then times.
+void TraceRecorder::schedule_found(int agent, const std::vector<Cell>& cells,
+                                  const std::vector<double>& times) {
+  begin_event("schedule_found");
+  os_ << ",\"agent\":" << agent;
+  os_ << ",\"cells\":[";
+  for (size_t i = 0; i < cells.size(); ++i) {
+    if (i) os_ << ',';
+    write_array(os_, to_trace(cells[i]));
+  }
+  os_ << "],\"times\":";
+  write_array(os_, times);
   end_event();
 }
 

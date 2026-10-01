@@ -59,10 +59,12 @@ Scenario load_scenario(const std::string& path) {
     const YamlNode& start = a.at("start");
     const YamlNode& goal = a.at("goal");
     // Optional per-agent disc radius (continuous planners); 0.0 = point robot.
+    // vmax is the kinodynamic branch's velocity limit (cells per time unit).
     double radius = a.has("radius") ? a.at("radius").as_double() : 0.0;
+    double vmax = a.has("vmax") ? a.at("vmax").as_double() : 1.0;
     sc.agents.push_back(AgentSpec{
         core::Point{start.seq.at(0).as_double(), start.seq.at(1).as_double()},
-        core::Point{goal.seq.at(0).as_double(), goal.seq.at(1).as_double()}, radius});
+        core::Point{goal.seq.at(0).as_double(), goal.seq.at(1).as_double()}, radius, vmax});
   }
   return sc;
 }

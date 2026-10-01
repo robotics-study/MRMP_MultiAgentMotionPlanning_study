@@ -164,8 +164,10 @@ const SamplingPlanning = () => {
                     <strong>dRRT*</strong> (Shome et al. 2020), asymptotic optimality on top. Each
                     landed as its own page with derivation, proof, and live sandbox. The coupling axis
                     has now run its full course: from one joint tree, through per-robot trees coupled
-                    only while paths conflict, to roadmaps never built at all — and the genealogy's
-                    last stop is the sibling section where the plan itself disappears.
+                    only while paths conflict, to roadmaps never built at all. What comes after this
+                    axis ran its course is written too: the sibling branch where the plan itself
+                    disappears (PIBT), and behind it the terminus where plans return carrying time
+                    (MAPF-POST).
                 </p>}
                 ko={<p>
                     네 회원이 모두 도착했고, 읽는 순서는 계속 결합 축을 끝까지 따라갔다.
@@ -180,7 +182,8 @@ const SamplingPlanning = () => {
                     <strong>dRRT*</strong>(Shome 외 2020). 각각 유도·증명·라이브 sandbox와 함께 각자의
                     페이지로 도착했다. 결합 축은 이제 그 전 과정을 달렸다: joint 트리 하나에서, 경로가
                     충돌하는 동안에만 결합되는 로봇별 트리를 지나, 아예 구성조차 되지 않는 roadmap까지 —
-                    그리고 계보의 마지막 정류장은 계획 자체 사라지는 자매 섹션이다.
+                    그리고 이 축을 다 달린 뒤에 온 것도 집필됐다: 계획 자체가 사라지는 자매 갈래(PIBT)와,
+                    그 뒤에 계획을 시간에 실어 되돌려 주는 종착점(MAPF-POST)이.
                 </p>}
             />
         </>

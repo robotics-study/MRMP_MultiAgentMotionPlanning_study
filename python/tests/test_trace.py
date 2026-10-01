@@ -72,6 +72,33 @@ def test_planning_started_declares_world_coords_and_radius() -> None:
     assert list(event) == ["seq", "event", "algorithm", "map", "params", "coords", "radius"]
 
 
+def test_planning_started_declares_vmax_for_timed_traces() -> None:
+    # Timed (kinodynamic) traces keep cell pairs and add each agent's velocity
+    # limit (cells per time unit). Field order is part of the wire contract: vmax
+    # comes last, after radius would have been (C++ emits in the same order).
+    buf = io.StringIO()
+    rec = TraceRecorder(buf)
+    rec.planning_started("mapf_post", "maps/grid/open01.yaml", {}, vmax=[1.0, 0.25])
+    event = json.loads(buf.getvalue())
+    assert event["vmax"] == [1.0, 0.25]
+    assert list(event) == ["seq", "event", "algorithm", "map", "params", "vmax"]
+
+
+def test_schedule_found_carries_route_and_times() -> None:
+    # One timed route per agent: cells = the wait-free route, times[i] = earliest
+    # arrival at cells[i]; times[0] is 0 (every start event is pinned to t = 0).
+    buf = io.StringIO()
+    rec = TraceRecorder(buf)
+    rec.schedule_found(1, [[3, 4], [3, 5]], [0.0, 2.25])
+    event = json.loads(buf.getvalue())
+    assert set(event) == {"seq", "event", "agent", "cells", "times"}
+    assert event["agent"] == 1
+    assert event["cells"] == [[3, 4], [3, 5]]
+    assert event["times"] == [0.0, 2.25]
+    # Ints stay int bytes; floats take the shortest round-trip form.
+    assert '"cells":[[3,4],[3,5]]' in buf.getvalue()
+
+
 def test_roadmap_built_carries_vertices_and_edges() -> None:
     # Continuous planners prebuild one individual roadmap per agent: vertices in
     # insertion order, edges as index pairs [i, j], i < j.

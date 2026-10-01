@@ -13,7 +13,10 @@ A trace declares its state interpretation via planning_started's `coords` field:
 polylines; "world" (continuous planners, dRRT family) draws expanded joint states
 as dots at their world points, each agent's individual roadmap (roadmap_built
 events) as faint edges + vertex dots, and execution discs at the TRUE radius from
-the trace's `radius` field.
+the trace's `radius` field. A timed (kinodynamic) trace keeps cell pairs but adds
+per-agent velocity limits (`vmax`) and schedule_found events instead of path_found:
+execution replays the uniform velocity model — dwell on a cell until departure
+(next arrival minus 1/vmax), traverse at exactly vmax — over fractional time.
 
 Output modes (combinable; all but interactive are headless via the Agg backend):
   (default)          interactive window with the full accumulated frame + final
@@ -86,6 +89,39 @@ class Roadmap:
 
 
 @dataclass
+class Schedule:
+    """One schedule_found event (timed/kinodynamic traces): the wait-free route and
+    each retained location's earliest arrival time. Execution replays the uniform
+    velocity model: dwell on cells[i] until departure D_i = times[i+1] − 1/vmax,
+    traverse at exactly vmax, arrive exactly at times[i+1]."""
+
+    agent: int
+    order: float
+    cells: list[Point]
+    times: list[float]
+
+
+def timed_position(sch: Schedule, vmax: float, tau: float) -> Point:
+    """Position (row, col in cell units) at time tau under the uniform velocity
+    model: dwell on c_i until D_i = T_{i+1} − 1/vmax, then linear at exactly
+    vmax so arrival lands exactly on the scheduled time. Before the departure the
+    position IS the cell — inside a dwell there is no traversal to extrapolate."""
+    times = sch.times
+    if tau <= times[0]:
+        return sch.cells[0]
+    for i in range(len(times) - 1):
+        arrive = times[i + 1]
+        depart = arrive - 1.0 / vmax
+        if tau < depart:
+            return sch.cells[i]  # dwell — still on the cell, never extrapolated past it
+        if tau < arrive:
+            fraction = (tau - depart) * vmax
+            a, b = sch.cells[i], sch.cells[i + 1]
+            return (a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction)
+    return sch.cells[-1]
+
+
+@dataclass
 class Scene:
     """Draw-ready geometry extracted from a trace, ordered by event sequence.
 
@@ -97,21 +133,28 @@ class Scene:
     grid: OccupancyGrid2D
     # State interpretation declared by planning_started ("cell" default).
     coords: str = "cell"
+    # Timed (kinodynamic) trace: schedule_found events replace path_found and the
+    # execution phase replays the uniform velocity model over fractional time.
+    timed: bool = False
     # Per-agent disc radius in meters (continuous traces only) — the execution
     # discs draw at this TRUE radius, not one cell.
     radius: list[float] = field(default_factory=list)
+    # Per-agent velocity limit in cells per time unit (timed traces only).
+    vmax: list[float] = field(default_factory=list)
     # expanded states per agent: (point, agent index, normalized order in [0, 1]).
     # In "cell" mode a point is still a (row, col) pair — the renderer knows which.
     expanded: list[tuple[Point, int, float]] = field(default_factory=list)
     # per-agent space-time paths, in reveal order.
     paths: list[AgentPath] = field(default_factory=list)
+    # per-agent timed routes (timed traces), in reveal order.
+    schedules: list[Schedule] = field(default_factory=list)
     # individual roadmaps (continuous traces): vertices + edges per agent.
     roadmaps: list[Roadmap] = field(default_factory=list)
     # conflicts/constraints: cells to mark + normalized reveal order.
     conflicts: list[tuple[list[Point], float]] = field(default_factory=list)
     constraints: list[tuple[Point, int, float]] = field(default_factory=list)
     total_events: int = 0
-    makespan: int = 0
+    makespan: float = 0.0
     algorithm: str = ""
 
 
@@ -157,6 +200,16 @@ def build_scene(trace_path: str, map_override: str | None = None) -> Scene:
             scene.coords = str(ev.get("coords", "cell"))
             if ev.get("radius") is not None:
                 scene.radius = [float(r) for r in ev["radius"]]
+            if ev.get("vmax") is not None:
+                # A vmax field IS the timed declaration: routes arrive via
+                # schedule_found, execution replays the uniform velocity model.
+                scene.timed = True
+                scene.vmax = [float(v) for v in ev["vmax"]]
+        elif kind == "schedule_found":
+            route = [(float(c[0]), float(c[1])) for c in ev["cells"]]
+            times = [float(t) for t in ev["times"]]
+            scene.schedules.append(Schedule(int(ev["agent"]), order, route, times))
+            scene.makespan = max(scene.makespan, max(times))
         elif kind == "roadmap_built":
             vertices = [(float(v[0]), float(v[1])) for v in ev.get("vertices", [])]
             edges = [(int(e[0]), int(e[1])) for e in ev.get("edges", [])]
@@ -199,7 +252,9 @@ def draw(ax: Axes, scene: Scene, cutoff: float, exec_step: float | None) -> None
     u = (x - origin_x)/res, v = h - (y - origin_y)/res — so both modes land on
     identical pixels for a cell center. When exec_step is not None, each agent's
     disc also sits at step exec_step of its space-time path (linear interpolation
-    between waypoints in world mode; frozen at the path end after arrival).
+    between waypoints in world mode; frozen at the path end after arrival). Timed
+    traces instead replay every schedule under the uniform velocity model at time
+    τ = exec_step (dwell, then traverse at exactly vmax — timed_position).
     """
     import matplotlib.pyplot as plt
     import numpy as np
@@ -274,7 +329,8 @@ def draw(ax: Axes, scene: Scene, cutoff: float, exec_step: float | None) -> None
                            alpha=0.95, edgecolors="white", linewidths=0.4, zorder=5)
 
     # Per-agent space-time paths: the whole polyline appears at its path_found seq;
-    # start = filled dot, goal = hollow ring (both revealed with the path).
+    # start = filled dot, goal = hollow ring (both revealed with the path). Timed
+    # traces draw the same geometry from each schedule's wait-free route instead.
     for ap in scene.paths:
         if ap.order > cutoff:
             continue
@@ -286,11 +342,34 @@ def draw(ax: Axes, scene: Scene, cutoff: float, exec_step: float | None) -> None
         gx, gy = pts[-1]
         ax.scatter([sx], [sy], s=28, color=base, edgecolors="white", linewidths=1.0, zorder=7)
         ax.scatter([gx], [gy], s=55, facecolors="none", edgecolors=base, linewidths=1.6, zorder=7)
+    for sch in scene.schedules:
+        if sch.order > cutoff:
+            continue
+        base = _AGENT_PALETTE[sch.agent % len(_AGENT_PALETTE)]
+        pts = [disp(p) for p in sch.cells]
+        ax.plot([p[0] for p in pts], [p[1] for p in pts], color=base, lw=1.6, alpha=0.9,
+                solid_capstyle="round", zorder=5)
+        sx, sy = pts[0]
+        gx, gy = pts[-1]
+        ax.scatter([sx], [sy], s=28, color=base, edgecolors="white", linewidths=1.0, zorder=7)
+        ax.scatter([gx], [gy], s=55, facecolors="none", edgecolors=base, linewidths=1.6, zorder=7)
 
     # Execution phase: each agent's disc at step exec_step of its path. World mode
     # interpolates linearly between waypoints (motion between waypoints IS linear)
     # and draws the disc at its true radius (meters → cell units via resolution).
-    if exec_step is not None:
+    # Timed traces replay every schedule at τ = exec_step under the uniform
+    # velocity model instead (point robots — no radius field on timed traces).
+    if exec_step is not None and scene.timed:
+        for sch in scene.schedules:
+            base = _AGENT_PALETTE[sch.agent % len(_AGENT_PALETTE)]
+            v = scene.vmax[sch.agent % len(scene.vmax)]
+            pos = timed_position(sch, v, exec_step)
+            u, vxy = disp(pos)
+            ax.scatter([u], [vxy], s=90, color=base, edgecolors="white",
+                       linewidths=1.2, zorder=8)
+            ax.text(u, vxy, str(sch.agent), color="white", fontsize=7,
+                    ha="center", va="center", zorder=9)
+    elif exec_step is not None:
         for ap in scene.paths:
             base = _AGENT_PALETTE[ap.agent % len(_AGENT_PALETTE)]
             n = len(ap.points)
@@ -368,9 +447,11 @@ def main() -> None:
             if i < search_frames:
                 draw(ax, scene, (i + 1) / search_frames, None)
             else:
-                # Cell mode steps whole cells; world mode glides fractionally.
+                # Cell mode steps whole cells; world mode glides fractionally; a
+                # timed trace replays its schedule at the raw fractional time τ.
                 raw = (i - search_frames + 1) / max(1, exec_frames - 1) * scene.makespan
-                draw(ax, scene, 1.0, round(raw) if scene.coords != "world" else raw)
+                discrete_step = scene.coords != "world" and not scene.timed
+                draw(ax, scene, 1.0, round(raw) if discrete_step else raw)
             return [ax]
 
         anim = FuncAnimation(fig, update, frames=search_frames + exec_frames, blit=False)
