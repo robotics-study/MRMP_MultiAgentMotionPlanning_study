@@ -1,18 +1,19 @@
 # mrmp
 
-Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 세 갈래(search-based MAPF, sampling-based MRMP, 계획을 버린 decentralized)를 C++ / Python 독립 이중 구현으로.
+Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 네 갈래(search-based MAPF, sampling-based MRMP, 계획을 버린 decentralized, 계획에 시간을 실어 되돌리는 kinodynamic)를 C++ / Python 독립 이중 구현으로.
 
 ## 프로젝트 개요
 
-**여러 로봇의 조율(multi-agent motion planning)** 알고리즘만 다룬다. 1차 분류 축은 planner 타입(survey: Bui et al. 2023): search 기반은 모든 agent가 하나의 shared grid 위에서 이산 상태를 열거해 시공간(space-time) 경로를 찾고, sampling 기반은 연속 configuration space에서 표본 채취로 계획한다. 세 번째 갈래는 분류 축이 한 칸 더 내려간 곳이다 — decentralized는 계획이라는 매개체 자체를 버리고 실행 시간의 스텝별 협상만 남긴다(PIBT). 단일 로봇 navigation 알고리즘은 이 저장소의 범위가 아니다 — 자매 저장소 [nav_study](https://github.com/robotics-study/navigation_basic) 에서 다룬다.
+**여러 로봇의 조율(multi-agent motion planning)** 알고리즘만 다룬다. 1차 분류 축은 planner 타입(survey: Bui et al. 2023): search 기반은 모든 agent가 하나의 shared grid 위에서 이산 상태를 열거해 시공간(space-time) 경로를 찾고, sampling 기반은 연속 configuration space에서 표본 채취로 계획한다. 세 번째 갈래는 분류 축이 한 칸 더 내려간 곳이다 — decentralized는 계획이라는 매개체 자체를 버리고 실행 시간의 스텝별 협상만 남긴다(PIBT). 네 번째 갈래 kinodynamic은 반대로 닫는다 — 계획을 되돌려 받아 그 위에 속도 한계와 dwell semantics을 실는다(MAPF-POST). 단일 로봇 navigation 알고리즘은 이 저장소의 범위가 아니다 — 자매 저장소 [nav_study](https://github.com/robotics-study/navigation_basic) 에서 다룬다.
 
 | 섹션 (= 코드 디렉토리) | 알고리즘 (⏳ = planned) | 베이스 클래스 |
 |---|---|---|
 | `search` | Prioritized A*, Push and Swap, Push and Rotate, Joint-space A*, CBS | `MultiAgentPlanner` |
 | `sampling` | MA-RRT*, sRRT, dRRT, dRRT* | `MultiAgentPlanner` — MA-RRT*는 논문의 자체 이산화(G-RRT*)로, sRRT는 individual policy(BFS tree)가 격자에서 정확히 구성되므로 `DiscreteSpace` 위에서 구현. dRRT는 연속 configuration space용 새 capability `ContinuousSpace`(같은 raster + disc robot) 위에서 구현 |
 | `decentralized` | PIBT | `MultiAgentPlanner` — 계획 없음, `DiscreteSpace` 위에서 스텝별 우선순위 상속 협상만. trace는 planning_started + agent별 path_found(full-horizon) + planning_finished |
+| `kinodynamic` | MAPF-POST | `MultiAgentPlanner` — 탐색 없음(후처리기), CBS가 조용히 푼 이산 계획을 TPG→STN으로 바꿔 가장 빠른 실행 스케줄로. trace는 planning_started(vmax) + agent별 schedule_found(cells/times — 시각이 스텝을 대신한다) + planning_finished |
 
-계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Push and Swap → Push and Rotate(priority 갈래의 완성인 decentralized 계열) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. Push and Swap(Luna & Bekris, IJCAI 2011)은 예약 동결 대신 push/swap primitive로 끝난 agent를 치우고, swap 자리는 격자에서 빈 2×2 block뿐이라 폭 1 통로는 정직하게 실패한다 — 전작이 그 트리에서의 실패를 시연했고, 후속 Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014)는 자유 그래프를 biconnected subgraph+plank로 분해하고 swap을 degree-3 junction의 rotate로 확장해 판정 절차(해가 있으면 항상 찾고 없으면 불가능하다고 보고)로 완성한다. sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled — 논문 자체의 이산화 G-RRT*로 DiscreteSpace 위에서 구현 완료) → sRRT(Wagner, Kang & Choset 2012, subdimensional — individual policy + collision set, 같은 DiscreteSpace 위에서 구현 완료) → dRRT(Solovey, Salzman & Halperin 2016, 구현 완료. 같은 raster를 그대로 쓰되 robot을 disc로 다루는 새 capability ContinuousSpace 위에서 연속 free space를 표본 채취) → dRRT*(Shome, Solovey, Dobson, Halperin & Bekris, Autonomous Robots 2020, 구현 완료 — 같은 ContinuousSpace 위에서 개별 roadmap을 k-nearest에서 PRM* connection radius로, tree 탐색을 oracle growth + decoupled connector에서 cost-to-come rewiring + branch-and-bound로 바꾼다) 순서. 세 번째 갈래 decentralized는 계획이라는 매개체를 버린 자리 — PIBT(Okumura, Machida, Défago & Tamura, Artificial Intelligence 310 2022 / IJCAI 2019, 구현 완료): 오프라인 경로 없이 매 스텝 우선순위 상속으로 다음 칸을 협상하고, search 갈래가 primitive로 수리했던 폭 1 통로를 정직한 교착으로 남긴다. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
+계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Push and Swap → Push and Rotate(priority 갈래의 완성인 decentralized 계열) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. Push and Swap(Luna & Bekris, IJCAI 2011)은 예약 동결 대신 push/swap primitive로 끝난 agent를 치우고, swap 자리는 격자에서 빈 2×2 block뿐이라 폭 1 통로는 정직하게 실패한다 — 전작이 그 트리에서의 실패를 시연했고, 후속 Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014)는 자유 그래프를 biconnected subgraph+plank로 분해하고 swap을 degree-3 junction의 rotate로 확장해 판정 절차(해가 있으면 항상 찾고 없으면 불가능하다고 보고)로 완성한다. sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled — 논문 자체의 이산화 G-RRT*로 DiscreteSpace 위에서 구현 완료) → sRRT(Wagner, Kang & Choset 2012, subdimensional — individual policy + collision set, 같은 DiscreteSpace 위에서 구현 완료) → dRRT(Solovey, Salzman & Halperin 2016, 구현 완료. 같은 raster를 그대로 쓰되 robot을 disc로 다루는 새 capability ContinuousSpace 위에서 연속 free space를 표본 채취) → dRRT*(Shome, Solovey, Dobson, Halperin & Bekris, Autonomous Robots 2020, 구현 완료 — 같은 ContinuousSpace 위에서 개별 roadmap을 k-nearest에서 PRM* connection radius로, tree 탐색을 oracle growth + decoupled connector에서 cost-to-come rewiring + branch-and-bound로 바꾼다) 순서. 세 번째 갈래 decentralized는 계획이라는 매개체를 버린 자리 — PIBT(Okumura, Machida, Défago & Tamura, Artificial Intelligence 310 2022 / IJCAI 2019, 구현 완료): 오프라인 경로 없이 매 스텝 우선순위 상속으로 다음 칸을 협상하고, search 갈래가 primitive로 수리했던 폭 1 통로를 정직한 교착으로 남긴다. 네 번째 갈래 kinodynamic은 계획을 되돌려 받는 자리 — MAPF-POST(Hönig, Kumar, Cohen, Ma, Xu, Ayanian & Koenig, ICAPS 2016, 구현 완료): CBS가 조용히 푼 이산 계획을 Temporal Plan Graph로 바꾸고 모든 공유 셀을 안전 마커 사이의 precedence로 바꿔, 구성상 acyclic한 STN의 최대 완화 고정점에서 가장 빠른 실행 스케줄을 낸다. agent는 출발 시각까지 머물고 자기 속도 한계로 이동한다. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
 
 모든 알고리즘은 추상 클래스 기반으로 다음 세 가지가 자동으로 성립해야 한다:
 1. **Performance estimate** — 공통 metric(sum_of_costs, makespan, expanded nodes, success)을 benchmark runner가 수집.
@@ -31,7 +32,7 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 세 갈�
 ├── maps/                        # 공용 벤치마크 맵 데이터
 │   ├── grid/                    #   occupancy grid (ROS 스타일 yaml + pgm)
 │   └── scenarios/               #   agents(start/goal world 좌표) 시나리오 (yaml, 맵 참조)
-├── configs/<section>/           # 알고리즘별 파라미터 yaml (언어 공용) — section ∈ {search, sampling, decentralized}
+├── configs/<section>/           # 알고리즘별 파라미터 yaml (언어 공용) — section ∈ {search, sampling, decentralized, kinodynamic}
 ├── cpp/
 │   ├── CMakeLists.txt
 │   ├── include/mrmp/
@@ -39,7 +40,8 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 세 갈�
 │   │   ├── maps/                # occupancy_grid.hpp, pgm.hpp, loader.hpp
 │   │   ├── search/              #   알고리즘 헤더 (사이트 섹션과 1:1)
 │   │   ├── sampling/            #   MA-RRT* 등 — 사이트 섹션과 1:1
-│   │   └── decentralized/       #   PIBT — 사이트 섹션과 1:1
+│   │   ├── decentralized/       #   PIBT — 사이트 섹션과 1:1
+│   │   └── kinodynamic/         #   MAPF-POST — 사이트 섹션과 1:1
 │   ├── src/                     # include/와 동일 구조의 구현
 │   ├── demos/                   # demo_<algo>.cpp — 실행 시 trace 파일 출력
 │   └── tests/                   # GoogleTest
@@ -50,7 +52,8 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 세 갈�
 │   │   ├── maps/                # cpp include/mrmp/maps/ 와 1:1 미러
 │   │   ├── search/              #   알고리즘 모듈 (사이트 섹션과 1:1)
 │   │   ├── sampling/            #   MA-RRT* 등 — 사이트 섹션과 1:1
-│   │   └── decentralized/       #   PIBT — 사이트 섹션과 1:1
+│   │   ├── decentralized/       #   PIBT — 사이트 섹션과 1:1
+│   │   └── kinodynamic/         #   MAPF-POST — 사이트 섹션과 1:1
 │   ├── demos/                   # demo_<algo>.py — demo_common.run(name, factory) 조립만
 │   └── tests/                   # pytest
 └── tools/                       # Python. mrmp 패키지에 의존 (설치 후 사용)
@@ -64,7 +67,7 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 세 갈�
 ### 의존 방향 (위반은 리뷰 Critical)
 - `core` 는 stdlib(+ Eigen / numpy)만 의존한다. 알고리즘·맵 모듈을 알지 못한다.
 - `maps` 는 `core` 만 의존한다.
-- 알고리즘 모듈(세 갈래 `search`, `sampling`, `decentralized`)은 `core` 의 추상 인터페이스에만 의존한다. **구체 맵 클래스 직접 참조 금지.**
+- 알고리즘 모듈(네 갈래 `search`, `sampling`, `decentralized`, `kinodynamic`)은 `core` 의 추상 인터페이스에만 의존한다. **구체 맵 클래스 직접 참조 금지.**
 - `tools/viz`, `tools/bench`, `tools/web_export` 는 trace/param/map 포맷(spec)과 `core`/`maps` 로더에만 의존한다. 알고리즘 내부 상태 접근 금지 — 시각화에 필요한 모든 정보는 trace 이벤트로 방출되어야 한다.
 - `demos` 는 최상위 조립 계층: 알고리즘 + maps + configs 를 묶기만 한다. 로직 금지.
 
@@ -92,8 +95,8 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 세 갈�
 - 같은 yaml 을 C++/Python 양쪽이 그대로 읽는다.
 
 ### Trace (step-by-step 시각화의 계약)
-- trace 는 JSON Lines 파일. 한 줄이 이벤트 하나이고 `seq` 순서가 내러티브다 — wall-clock 시간은 담지 않는다. 유일한 시간 필드는 space-time 이벤트의 이산 시각 `t`.
-- 이벤트: `planning_started`(algorithm/map/params 스냅샷 + 좌표계 선언 `coords`(`cell` 이산 / `world` 연속 float)와 disc radius, demo가 방출), `node_expanded`(state = 셀 또는 평면화 joint state `[r0,c0,r1,c1,...]`, agent 필드가 있으면 개별 탐색 노드. world 모드에서는 point가 float 쌍), `roadmap_built`(dRRT만 — agent별 roadmap vertices/edges), `path_found`(agent 필수), `conflict_found`(vertex/edge), `constraint_added`, `planning_finished`(success/metrics).
+- trace 는 JSON Lines 파일. 한 줄이 이벤트 하나이고 `seq` 순서가 내러티브다 — wall-clock 시간은 담지 않는다. 유일한 시간 필드는 space-time 이벤트의 이산 시각 `t`와, timed(kinodynamic) trace가 실어 나르는 `schedule_found`의 도착 시각뿐이다(vmax의 존재 자체가 timed 선언).
+- 이벤트: `planning_started`(algorithm/map/params 스냅샷 + 좌표계 선언 `coords`(`cell` 이산 / `world` 연속 float)와 disc radius, timed trace의 경우 agent별 속도 한계 `vmax`, demo가 방출), `node_expanded`(state = 셀 또는 평면화 joint state `[r0,c0,r1,c1,...]`, agent 필드가 있으면 개별 탐색 노드. world 모드에서는 point가 float 쌍), `roadmap_built`(dRRT만 — agent별 roadmap vertices/edges), `path_found`(agent 필수), `schedule_found`(timed trace만 — wait이 제거된 route `cells`와 retained 위치의 도착 시각 `times`), `conflict_found`(vertex/edge), `constraint_added`, `planning_finished`(success/metrics).
 - float 직렬화는 byte-equality가 아니라 **parse 후 수치 equality** 계약 (Python `5.0` vs C++ `5` 는 같은 값).
 - trace 방출은 demo·viz 시 on. hot loop 에서 recorder 가 null 이면 zero-cost 여야 한다.
 - **데모 산출물 형식 (룰)**: 모든 알고리즘의 demo trace 는 `replay.py` 로 (1) 애니메이션 **GIF** (`--gif`, 탐색 진행 + 실행 재생) 와 (2) 탐색 중간 과정 **PNG 스냅샷** 세트 (`--snapshots`, 진행률 균등 분할) 로 렌더링 가능해야 한다. 산출물은 두 언어 데모 각각에 대해 `out/viz/<algo>/py/`, `out/viz/<algo>/cpp/` 아래에 둔다 (`out/` 은 gitignore — 커밋하지 않는다).
@@ -128,7 +131,7 @@ python tools/viz/replay.py out/trace.jsonl                                      
 python tools/viz/replay.py out/trace.jsonl --gif out/viz/x.gif --snapshots out/snaps/
 python tools/bench/run_matrix.py --out out/report.md
 PYTHONPATH=$PWD/python python tools/web_export/export_web_assets.py \
-    --algos prioritized_astar,push_and_swap,push_and_rotate,joint_astar,cbs,ma_rrt_star,srrt,drrt,drrt_star,pibt   # 사이트용 자산 (시나리오는 각 config의 scenarios: 가 라우팅)
+    --algos prioritized_astar,push_and_swap,push_and_rotate,joint_astar,cbs,ma_rrt_star,srrt,drrt,drrt_star,pibt,mapf_post   # 사이트용 자산 (시나리오는 각 config의 scenarios: 가 라우팅)
 ```
 
 ## 새 알고리즘 추가 체크리스트
@@ -153,18 +156,18 @@ PYTHONPATH=$PWD/python python tools/web_export/export_web_assets.py \
 
 ## 문서 사이트 (document/)
 
-React 18 + Vite + TS + Tailwind SPA. 2D 는 Konva, 수식은 KaTeX, 이중언어는 `<T en ko>`. 사이트 섹션(`search` / `sampling` / `decentralized`)은 저장소 코드 디렉토리와 1:1 미러 — 알고리즘 페이지는 `pages/algorithms/<section>/<slug>.tsx`, 카드·사이드바 그룹핑도 같은 섹션 키를 쓴다. 빌드/검증: `cd document && ./node_modules/.bin/tsc --noEmit && node scripts/check-engine-parity.mjs && node scripts/check-tex.mjs && yarn build`, dev 서버 `yarn dev`. check-tex 는 모든 math 문자열을 KaTeX에 실제 렌더해 파싱 에러와 strict warn을 잡는다. JSX attribute 문자열은 JS 이스케이프를 처리하지 않으니 math="..."에는 역슬래시를 단일로 적는다 — 이중으로 적으면 개시 매크로 + 리터럴 텍스트가 렌더되고, checker는 그 클래스를 warn으로 잡아낸다.
+React 18 + Vite + TS + Tailwind SPA. 2D 는 Konva, 수식은 KaTeX, 이중언어는 `<T en ko>`. 사이트 섹션(`search` / `sampling` / `decentralized` / `kinodynamic`)은 저장소 코드 디렉토리와 1:1 미러 — 알고리즘 페이지는 `pages/algorithms/<section>/<slug>.tsx`, 카드·사이드바 그룹핑도 같은 섹션 키를 쓴다. 빌드/검증: `cd document && ./node_modules/.bin/tsc --noEmit && node scripts/check-engine-parity.mjs && node scripts/check-tex.mjs && yarn build`, dev 서버 `yarn dev`. check-tex 는 모든 math 문자열을 KaTeX에 실제 렌더해 파싱 에러와 strict warn을 잡는다. JSX attribute 문자열은 JS 이스케이프를 처리하지 않으니 math="..."에는 역슬래시를 단일로 적는다 — 이중으로 적으면 개시 매크로 + 리터럴 텍스트가 렌더되고, checker는 그 클래스를 warn으로 잡아낸다.
 
 ### 알고리즘 페이지 규칙 (순서 고정)
 
 인트로 → 개념/유도 → **Properties and Complexity** → **The Algorithm** → 증명(collapsible) → (반례 등 이론 보조) → **Demo** → **Implementation** → **References**. registry `sections[]` 도 같은 순서로.
 
-- **알고리즘 배치는 항상 계보순**: registry 배열(= 사이드바·pager·홈 카드 순서)은 섹션 순서 search → sampling → decentralized, 섹션 안에서는 decoupled(Prioritized A*) → coupled(Joint-space A*) → hybrid(CBS). 새 알고리즘도 자기 계보 위치에 끼워 넣는다 (끝에 append 금지).
+- **알고리즘 배치는 항상 계보순**: registry 배열(= 사이드바·pager·홈 카드 순서)은 섹션 순서 search → sampling → decentralized → kinodynamic, 섹션 안에서는 decoupled(Prioritized A*) → coupled(Joint-space A*) → hybrid(CBS). 새 알고리즘도 자기 계보 위치에 끼워 넣는다 (끝에 append 금지).
 - **The Algorithm**: 자료구조·루프 요약 문단 → `Pseudocode` 블록(`# 1~n` 스텝 마커) → 바로 아래 "1. ~한다" 번호 목록으로 각 스텝의 무엇/왜 해설 (vertex/edge conflict 판정 시점 같은 함정 포함).
 - **증명**: 산문 서술 금지. 가정 → BlockMath 부등식 체인 → 모순/결론의 단계형.
 - **수식 항 설명 필수 (`Terms` 컴포넌트)**: 모든 display 수식(BlockMath) 바로 아래에 `components/math/Terms`로 기호별 설명을 붙인다. **모든 기호를 그 자리에서 정의한다** — 이전 페이지에서 정의한 기호도 다시 적어, 독자가 페이지를 왔다 갔다 하지 않게 한다.
 - **Parameters 섹션 금지** — 웹은 알고리즘 설명이지 코드 문서가 아니다. parameter 개념은 이론 산문에서 다룬다.
-- **Demo**: 라이브 sandbox(`components/panels/Sandbox.tsx`) — 페이지가 모듈 상수 `runLive`(libs/algorithms 의 TS 엔진 = Python 구현의 정확한 미러)와 preset 시나리오를 넘기면, 브라우저에서 직접 실행하고 벽 페인팅·endpoint 드래그·agent 추가마다 재계획한다. 재생은 TracePlayer — 탐색과 실행 두 phase를 하나의 시계(tick)가 관통한다. 탐색 이벤트는 고정 배속으로 압축해 3초에 담고, 이어서 실행 τ가 스텝마다 굴러간다. 슬라이더 하나가 타임라인 전체를 스크럽하고, ⏮/⏭이 정지 상태에서 한 tick(이벤트 하나·이동 한 칸)씩 직접 밟는다. 배속 버튼 없이 고정. TS 엔진은 `scripts/check-engine-parity.mjs` 에 등록해 python trace 와 필드 단위 parity 를 매 빌드 검증하고, 수출 trace(`<algo>/<scenario>.jsonl.gz`)는 parity 의 기준 자료로만 쓰인다 (페이지는 더 이상 trace 를 읽지 않는다).
+- **Demo**: 라이브 sandbox(`components/panels/Sandbox.tsx`) — 페이지가 모듈 상수 `runLive`(libs/algorithms 의 TS 엔진 = Python 구현의 정확한 미러)와 preset 시나리오를 넘기면, 브라우저에서 직접 실행하고 벽 페인팅·endpoint 드래그·agent 추가마다 재계획한다. 재생은 TracePlayer — 탐색과 실행 두 phase를 하나의 시계(tick)가 관통한다. 탐색 이벤트는 고정 배속으로 압축해 3초에 담고, 이어서 실행 τ가 스텝마다 굴러간다(fractional 모드 world/timed는 시간 단위당 마이크로 스텝이 기본 단위이고, timed만 실행 phase 전체를 고정 창에 압축). 슬라이더 하나가 타임라인 전체를 스크럽하고, ⏮/⏭이 정지 상태에서 한 tick(이벤트 하나·이동 한 칸)씩 직접 밟는다. 배속 버튼 없이 고정. TS 엔진은 `scripts/check-engine-parity.mjs` 에 등록해 python trace 와 필드 단위 parity 를 매 빌드 검증하고, 수출 trace(`<algo>/<scenario>.jsonl.gz`)는 parity 의 기준 자료로만 쓰인다 (페이지는 더 이상 trace 를 읽지 않는다).
 - **Implementation**: 실제 저장소 소스를 vite `?raw` 로 embed (사본 금지), python/c++ 탭 토글 + 파일별 GitHub 링크.
 - **References**: 실제 논문 링크(DOI) 필수.
 - **시각 자료 적극 배치**: 페이지·소개마다 Konva figure (CanvasFigure 래핑, 테마 색은 useCanvasColors). agent 색상은 `AGENT_COLORS`, 충돌 색은 `CONFLICT_COLOR` (모두 `libs/trace/timeline.ts` 정의 — replay.py 와 공유). 데이터 표는 가운데 정렬(전역 CSS 처리됨).
