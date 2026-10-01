@@ -1,0 +1,38 @@
+# winPIBT (Okumura, Tamura & Défago 2019): PIBT의 시간 창 일반화 — 매 스텝 칸 하나를 협상하는 대신
+# 각 agent가 창 크기 w만큼 시간-칸 예약 경로를 확보하고, 그 경로는 다른 agent들의 예약과 disentangled
+# 조건을 유지한다. w=1은 PIBT와 같은 칸 협상으로 되돌아간다. 창 파라미터 하나가 이 갈래의 핵심 축이다:
+# 작으면 PIBT(창 1)로 돌아가고, 크면 prioritized planning(전체 경로 사전 예약)으로 가까워진다.
+# 정직한 budget 하나는 PIBT와 같은 관례 — dodgeable 조건을 위반한 맵에서는 영원히 교착한다.
+algorithm: winpibt
+section: decentralized
+# 매트릭스 러너/웹 수출기가 이 알고리즘을 돌리는 시나리오 목록 (spec/param_schema.json).
+# discrete 알고리즘이므로 셀 시나리오만 — discs 시나리오는 dRRT 영역이다.
+# PIBT와 같은 여섯 시나리오, 그러나 창이 축이라서 결과가 창에 따라 달라진다 (기본값 w=2):
+# open01_cross/maze01_two 는 모든 창에서 성공(PIBT와 같은 비용), open01_swap 은 창 1에서는 PIBT와
+# 같은 makespan 17이지만 창 2 이상에서는 미리 보는 양보가 makespan 16을 만든다. pocket01_swap 이
+# 칼날이다: w≤2에서는 agent 1이 주머니 입구에 먼저 도달해 [4,6]으로 교환 성공, w≥3에서는 우선순위가
+# 높은 agent가 통로 전체를 미리 예약해 주머니 입구를 봉쇄하므로 정직한 실패로 빠진다 — 창이 커지면
+# prioritized planning의 탐욕이 그대로 승자가 되는 순간. tee01_head_on과 corridor01_head_on 은
+# 어떤 창에서도 정직한 실패: 폭 1 통로의 간선은 어떤 cycle에도 속하지 않으므로 막힌 agent가 피할 칸이 없다.
+scenarios: [maze01_two, open01_cross, open01_swap, pocket01_swap, tee01_head_on, corridor01_head_on]
+params:
+  - name: window
+    type: int
+    default: 2
+    min: 1
+    description: >-
+      Fixed planning window w ≥ 1 (the paper fixes w_i(t) to a constant). Each decision extends the
+      agent's provisional path to t + w; w = 1 collapses to PIBT-style per-cell negotiation, large w
+      approaches prioritized planning — the whole branch's coupling axis becomes one parameter. The
+      pocket scenario is the knife-edge: at w ≤ 2 the low-priority agent reaches the pocket entrance
+      before it gets reserved and the swap succeeds; at w ≥ 3 the high-priority agent's greedy window
+      reserves the corridor through the pocket entrance up front and the swap deadlocks honestly.
+  - name: max_steps
+    type: int
+    default: 500
+    min: 1
+    description: >-
+      Budget on decision timesteps. The completeness bound is finite when the graph is dodgeable
+      (every adjacent pair of free cells on a simple cycle) and w stays finite — the paper's
+      Theorem 4.3; hitting the budget instead is honestly "no solution found within budget",
+      never a proof of unsolvability (same convention as PIBT's budget).
