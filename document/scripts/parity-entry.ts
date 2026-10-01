@@ -7,6 +7,7 @@ export {runPushAndRotate} from "../src/libs/algorithms/push_and_rotate";
 export {runPibt} from "../src/libs/algorithms/pibt";
 export {runJointAStar} from "../src/libs/algorithms/joint_astar";
 export {runCbs} from "../src/libs/algorithms/cbs";
+export {runMapfPost} from "../src/libs/algorithms/mapf_post";
 export {runMaRrtStar} from "../src/libs/algorithms/ma_rrt_star";
 export {runSrrt} from "../src/libs/algorithms/srrt";
 export {runDrrt} from "../src/libs/algorithms/drrt";

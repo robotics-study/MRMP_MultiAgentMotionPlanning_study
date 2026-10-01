@@ -7,16 +7,21 @@ import {useTr} from "../../libs/i18n";
 
 // 재생은 하나의 시계다. tick이 steps보다 작은 동안은 탐색 phase(이벤트 prefix를
 // 고정 배속으로 압축 — 이벤트 수와 무관하게 체감 속도 동일)이고, 그 뒤는 실행
-// phase: 각 agent가 자기 space-time 경로를 스텝마다 걸어간다. continuous trace
-// (coords=world)는 같은 속도로 1/5 마이크로 스텝씩 — 웨이포인트 사이를 디스크가
-// 선형 보간으로 미끄러지므로 소수 τ가 재생의 기본 단위다. 슬라이더 하나가 두
-// phase 전체를 스크럽하고, ⏮/⏭은 정지 상태에서 한 tick(discrete는 이동 한 칸,
-// world는 보간 마이크로 스텝)씩 옮긴다 — 알고리즘의 동작은 실행 phase에서 보이므로
-// 그 구간을 되감아 볼 수 있어야 한다.
+// phase: 각 agent가 자기 space-time 경로를 스텝마다 걸어간다. fractional 모드
+// (coords=world와 timed)는 tick이 시간 단위당 SUBSTEPS개라 소수 τ가 재생의 기본
+// 단위다 — 웨이포인트 사이를 디스크가 선형 보간으로 미끄러지고, timed 스케줄은
+// dwell→traverse 자체가 소수 시각이다. timed만 예외로 실행 phase 전체를 고정 창
+// (EXEC_WINDOW_MS)에 압축한다 — 스케줄의 makespan은 100 시간 단위를 넘을 수 있어
+// 고정 속도로는 끝이 안 보인다. 슬라이더 하나가 두 phase 전체를 스크럽하고,
+// ⏮/⏭은 정지 상태에서 한 tick(discrete는 이동 한 칸, fractional은 마이크로 스텝)씩
+// 옮긴다 — 알고리즘의 동작은 실행 phase에서 보이므로 그 구간을 되감아 볼 수 있다.
 const SEARCH_MS = 3000;
 const TICK_MS = 30;
 const EXEC_STEP_MS = 250;
-const WORLD_SUBSTEPS = 5;
+// fractional 모드(world/timed)의 시간 단위당 tick 수 — 마이크로 스텝은 스텝의 1/SUBSTEPS.
+const SUBSTEPS = 5;
+// timed 실행 phase 압축 창 — makespan과 무관하게 실행 재생은 약 이만큼에 끝난다.
+const EXEC_WINDOW_MS = 6000;
 
 interface TracePlayerProps {
     map: GridMap;
@@ -46,7 +51,7 @@ const TracePlayer = ({map, timeline, autoPlay = true, agents, onPaintCell, onMov
                      onReset, panel = 340, footer}: TracePlayerProps) => {
     const t = useTr()
     // 단일 시계 — step과 execStep은 tick에서 유도된다 (위 주석 참조).
-    const sub = timeline.coords === "world" ? WORLD_SUBSTEPS : 1
+    const sub = timeline.coords === "world" || timeline.timed ? SUBSTEPS : 1
     const total = timeline.steps + Math.ceil(timeline.makespan * sub)
     const [tick, setTick] = useState(autoPlay ? 0 : total)
     const [playing, setPlaying] = useState(autoPlay)
@@ -74,12 +79,18 @@ const TracePlayer = ({map, timeline, autoPlay = true, agents, onPaintCell, onMov
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [playing, searching, timeline])
 
-    // 실행 phase: τ를 고정 스텝 속도로 굴린다 (makespan 1 스텝당 EXEC_STEP_MS).
+    // 실행 phase: discrete는 tick당 스텝 하나(EXEC_STEP_MS), fractional 모드는 같은
+    // 속도로 마이크로 스텝마다(tick 1 = 스텝의 1/SUBSTEPS). timed만 전체 실행을 고정
+    // 창에 압축한다 — ceil(makespan·sub)개의 tick이 EXEC_WINDOW_MS에 지나간다.
     useEffect(() => {
         if (!playing || searching) return
+        const execTicks = Math.ceil(timeline.makespan * sub)
+        const period = timeline.timed
+            ? EXEC_WINDOW_MS / Math.max(1, execTicks)
+            : EXEC_STEP_MS / sub
         const timer = window.setInterval(() => {
-            setTick((v) => Math.min(total, v + sub))
-        }, EXEC_STEP_MS / sub)
+            setTick((v) => Math.min(total, v + 1))
+        }, period)
         return () => window.clearInterval(timer)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [playing, searching, timeline, sub, total])
@@ -93,7 +104,8 @@ const TracePlayer = ({map, timeline, autoPlay = true, agents, onPaintCell, onMov
         setTick(0)
         setPlaying(true)
     }
-    // 정지 상태에서 한 tick씩 — 탐색 중엔 이벤트 하나, 실행 중엔 스텝 하나.
+    // 정지 상태에서 한 tick씩 — 탐색 중엔 이벤트 하나, discrete 실행은 이동 한 칸,
+    // fractional(world/timed)은 스텝의 1/SUBSTEPS.
     const stepBy = (d: number) => {
         setPlaying(false)
         setTick((v) => Math.max(0, Math.min(total, v + d)))

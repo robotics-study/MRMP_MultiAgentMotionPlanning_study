@@ -149,11 +149,11 @@ const DecentralizedPlanning = () => {
                     Rotate: the same maps (<InlineMath math="open01"/>, <InlineMath math="pocket01"/>,{" "}
                     <InlineMath math="corridor01"/>), the same head-on swap at their centers, and now the comparison
                     is direct — machinery that repairs around geometry versus negotiation that lets geometry win.
-                    The genealogy's next stop after this branch is where both halves meet: plans again, but plans
-                    that carry kinematic constraints — trajectories a real differential-drive robot can track, not
-                    cell sequences. That is the kinodynamic branch, and it inherits from here exactly what this
-                    branch inherited from prioritized planning: the per-step view of a problem everyone else solved
-                    offline.
+                    The genealogy's terminus this branch foreshadowed is written too: <strong>MAPF-POST</strong> —
+                    plans again, but plans carrying time: routes with the waits deleted and one earliest arrival
+                    time per retained location, executed at each agent's own velocity limit. What it inherits from
+                    here is exactly what this branch inherited from prioritized planning: the view that time belongs
+                    to the problem itself, not merely to its execution.
                 </p>}
                 ko={<p>
                     <strong>PIBT</strong>(Priority Inheritance with Backtracking, Okumura·Machida·Défago &
@@ -161,10 +161,10 @@ const DecentralizedPlanning = () => {
                     자리에 상속을 놓은 것. Push and Rotate 뒤에 이것을 읽어라: 같은 맵(<InlineMath math="open01"/>,{" "}
                     <InlineMath math="pocket01"/> 그리고 <InlineMath math="corridor01"/>), 그 한가운데 같은 정면 교환,
                     그리고 이제 비교가 직접 가능해진다 — 기하를 기계장치로 돌아 수리하는 쪽과, 기하가 이기게 두는 협상.
-                    이 갈래 다음 계보의 종착점은 두 절반이 만나는 자리다: 계획이 다시 등장하지만 이번엔 운동학 제약을
-                    실은 계획 — 셀 수열이 아니라 실제 differential-drive 로봇이 추적할 수 있는 trajectory. kinodynamic
-                    갈래이고, 거기서 이 갈래가 상속하는 것은 정확히 이 갈래가 우선순위 계획에서 상속한 것이다: 모두가
-                    오프라인으로 푼 문제의 스텝별 관점.
+                    이 갈래가 예고한 계보의 종착점도 집필됐다: <strong>MAPF-POST</strong> — 계획이 다시 등장하지만
+                    이번엔 시간을 실은 계획이다. 대기를 지운 route와 유지된 위치마다 가장 빠른 도착 시각 하나씩, 각 agent의
+                    자기 속도 한계로 실행된다. 여기서 상속받는 것은 정확히 이 갈래가 우선순위 계획에서 상속한 것이다: 시간은
+                    실행만의 것이 아니라 문제 자체의 것이라는 관점.
                 </p>}
             />
         </>

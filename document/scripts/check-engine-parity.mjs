@@ -32,6 +32,7 @@ const finalOf = (events) => events[events.length - 1];
 // (map, agents, params, ctx) → TS 엔진 실행 (events 반환). 알고리즘이 추가되면 여기에 러너를
 // 등록한다 — discrete 는 agents 가 시나리오 yaml 의 cell 좌표값(데모가 world→cell 변환한
 // 결과)이고, continuous(drrt)는 world 점 페어에 planning_started 의 radius 를 함께 넘긴다.
+// kinodynamic(mapf_post)은 cell 좌표에 planning_started 의 vmax 벡터를 함께 넘긴다.
 const RUNNERS = {
     prioritized_astar: (map, agents, params) => engines.runPrioritizedAStar(map, agents, params),
     push_and_swap: (map, agents, params) => engines.runPushAndSwap(map, agents, params),
@@ -39,6 +40,7 @@ const RUNNERS = {
     pibt: (map, agents, params) => engines.runPibt(map, agents, params),
     joint_astar: (map, agents, params) => engines.runJointAStar(map, agents, params),
     cbs: (map, agents, params) => engines.runCbs(map, agents, params),
+    mapf_post: (map, agents, params, ctx) => engines.runMapfPost(map, agents, ctx.vmax, params),
     ma_rrt_star: (map, agents, params) => engines.runMaRrtStar(map, agents, params),
     srrt: (map, agents, params) => engines.runSrrt(map, agents, params),
     drrt: (map, agents, params, ctx) => engines.runDrrt(map, agents, ctx.radius, params),
@@ -49,6 +51,28 @@ const RUNNERS = {
 // 시나리오가 살 수 있어서). agents: [[start, goal], ...] (cell [row, col]).
 // metricKeys 가 없으면 sum_of_costs(expand 시 exact)와 expanded_nodes 를 비교한다.
 const CHECKS = [
+    // mapf_post 는 search 갈래의 CBS 가 조용히 푼 이산 계획을 TPG→STN 으로 바꿔 가장 빠른
+    // 실행 스케줄로 바꾼다 — timed 시나리오 여섯 개 전부(정직한 실패인 corridor 포함)를
+    // 필드 단위로 대조한다. 지표는 시간 단위이므로 makespan 도 exact 로 비교한다.
+    {
+        algo: "mapf_post",
+        metricKeys: [{key: "sum_of_costs", tol: 0}, {key: "expanded_nodes", tol: 0},
+            {key: "makespan", tol: 0}],
+        scenarios: [
+            {map: "open01", name: "open01_cross_timed",
+                agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
+            {map: "open01", name: "open01_swap_timed",
+                agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+            {map: "pocket01", name: "pocket01_swap_timed",
+                agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "tee01", name: "tee01_head_on_timed",
+                agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "corridor01", name: "corridor01_head_on_timed",
+                agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "maze01", name: "maze01_two_timed",
+                agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
+        ],
+    },
     {
         algo: "prioritized_astar",
         scenarios: [
@@ -167,7 +191,7 @@ for (const check of CHECKS) {
         }
         const expected = finalOf(events);
         const started = events[0];
-        const ctx = {coords: started.coords ?? "cell", radius: started.radius};
+        const ctx = {coords: started.coords ?? "cell", radius: started.radius, vmax: started.vmax};
         const got = finalOf(RUNNERS[check.algo](loadMap(scenario.map), scenario.agents,
             started.params ?? {}, ctx));
 

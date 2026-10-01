@@ -207,8 +207,9 @@ const SearchPlanning = () => {
                     gets the same derivation, proof, and live interactive sandbox treatment as the
                     single-robot pages. When this branch is read through, the genealogy continues in
                     its sibling sections: the same coupling axis re-fought with motion trees over
-                    continuous configuration space (sampling), and the axis's final destination — no
-                    plan at all, only negotiation at the time step itself (decentralized).
+                    continuous configuration space (sampling), then no plan at all but negotiation at
+                    the time step itself (decentralized), and finally the plan returning with a clock
+                    attached — schedules executed at velocity limits (kinodynamic).
                 </p>}
                 ko={<p>
                     세 극단이 모두 대표 알고리즘을 갖췄고, priority 극단은 이제 그 호 전체를 갖췄다.
@@ -219,7 +220,8 @@ const SearchPlanning = () => {
                     hybrid <strong>CBS</strong>를 읽어라. 각각 단일 로봇 페이지와 같은 유도·증명과 라이브
                     interactive sandbox로 다룬다. 이 갈래를 다 읽으면 계보는 자매 섹션으로 이어진다 —
                     같은 결합 축을 연속적인 configuration space 위의 motion tree로 다시 싸우는 갈래(sampling),
-                    그리고 그 축의 종착점 — 계획이라는 매개체 자체를 버리고 스텝 그 자체의 협상만 남긴 갈래(decentralized).
+                    그러고 계획이라는 매개체 자체를 버리고 스텝 그 자체의 협상만 남긴 갈래(decentralized), 그리고
+                    마지막으로 계획을 시계와 함께 되돌려 주는 종착점(kinodynamic).
                 </p>}
             />
         </>

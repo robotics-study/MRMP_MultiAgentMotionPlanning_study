@@ -23,12 +23,22 @@ export interface ScenarioPreset {
     // 연속 preset(dRRT 계열): 모든 agent disc의 반지름(미터). 있으면 핸들 드래그와
     // agent 추가가 디스크가 장애물과 겹치는 셀을 거부한다 (planner의 instance 판정 규칙).
     radius?: number;
+    // timed preset(kinodynamic): agent index 순서별 속도 한계(칸/시간) — run에 그대로
+    // 전달되고 agent 추가 시 1이 늘어난다. 칩 클릭으로 순환 변경하고, discrete 알고리즘은
+    // run이 vmax를 무시한다.
+    vmax?: number[];
 }
+
+// timed preset의 속도 한계 사다리 — 칩 클릭마다 ×2로 순환(4를 넘으면 0.25로 돌아간다).
+// 전부 이진 유리수라 모든 시간이 정확히 표현 가능한 double에 착지한다는 관례와 같다.
+const VMAX_LADDER = [0.25, 0.5, 1, 2, 4]
+const SUBSCRIPT = ["₀", "₁", "₂", "₃", "₄", "₅"]
 
 export interface SandboxProps {
     presets: ScenarioPreset[];
-    // 라이브 엔진 — Python/C++ planner의 정확한 미러 (libs/algorithms).
-    run: (map: GridMap, tasks: Array<[Cell, Cell]>) => TraceEvent[];
+    // 라이브 엔진 — Python/C++ planner의 정확한 미러 (libs/algorithms). timed 알고리즘은
+    // 세 번째 인자(agent별 속도 한계)를 쓰고 discrete 알고리즘은 무시한다.
+    run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[]) => TraceEvent[];
     // agent 수 상한. 라이브 실행은 동기 호출이라 coupled(joint-space) 탐색은
     // agent가 늘면 |V|^k로 폭발한다 — 그 페이지는 2로 막는다 (그 자체가 교훈).
     maxAgents?: number;
@@ -37,7 +47,7 @@ export interface SandboxProps {
 
 export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
     presets: ScenarioPreset[];
-    run: (map: GridMap, tasks: Array<[Cell, Cell]>) => TraceEvent[];
+    run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[]) => TraceEvent[];
     maxAgents?: number;
     panel?: number;
 }) => {
@@ -52,12 +62,16 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
     const copy = (a: Array<[Cell, Cell]>): Array<[Cell, Cell]> =>
         a.map(([s, g]) => [[s[0], s[1]], [g[0], g[1]]])
     const [agents, setAgents] = useState<Array<[Cell, Cell]>>(() => copy(preset.agents))
+    // agent별 속도 한계 — agents와 같은 길이로 유지된다 (추가 시 1, 제거 시 함께 감소).
+    // discrete 알고리즘은 run이 vmax를 읽지 않으므로 값은 무관하다.
+    const [vmax, setVmax] = useState<number[]>(() => preset.vmax ?? preset.agents.map(() => 1))
 
-    // preset 전환: 그 맵 JSON을 다시 읽고 endpoint를 preset 기본값으로 되돌린다.
+    // preset 전환: 그 맵 JSON을 다시 읽고 endpoint와 속도 한계를 preset 기본값으로 되돌린다.
     useEffect(() => {
         let cancelled = false
         const p = presets.find((q) => q.name === presetName) ?? presets[0]
         setAgents(copy(p.agents))
+        setVmax(p.vmax ?? p.agents.map(() => 1))
         loadGridMap(`data/maps/${p.map}.json`).then((m) => {
             if (!cancelled) setMap(m)
         }).catch((e: unknown) => {
@@ -71,9 +85,9 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
 
     // 라이브: map/agents가 바뀔 때마다 엔진을 다시 돌리고 재생이 0부터 돈다.
     const timeline = useMemo(
-        () => (map ? buildTimeline(run(map, agents)) : null),
+        () => (map ? buildTimeline(run(map, agents, vmax)) : null),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [map, run, agents],
+        [map, run, agents, vmax],
     )
 
     const paintCell = (row: number, col: number, occupied: boolean) => {
@@ -117,9 +131,21 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
         if (agents.length >= maxAgents) return
         const start = freeUnused(false)
         const goal = freeUnused(true)
-        if (start && goal) setAgents((prev) => [...prev, [start, goal]])
+        if (!start || !goal) return
+        setAgents((prev) => [...prev, [start, goal]])
+        setVmax((prev) => [...prev, 1])
     }
-    const removeAgent = () => setAgents((prev) => prev.length > 1 ? prev.slice(0, -1) : prev)
+    const removeAgent = () => {
+        setAgents((prev) => prev.length > 1 ? prev.slice(0, -1) : prev)
+        setVmax((prev) => prev.length > 1 ? prev.slice(0, -1) : prev)
+    }
+
+    // 속도 칩 클릭 — 사다리를 한 칸 순환 (×2, 4 → 0.25로 wrap). 사다리 밖의 값은 1로 스냅.
+    const cycleVmax = (agent: number) => setVmax((prev) => prev.map((v, k) => {
+        if (k !== agent) return v
+        const i = VMAX_LADDER.indexOf(v)
+        return i < 0 ? 1 : VMAX_LADDER[(i + 1) % VMAX_LADDER.length]
+    }))
 
     const controls: ReactNode = (
         <div className="flex flex-col items-center gap-1.5 text-xs text-muted">
@@ -145,12 +171,32 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
                     +
                 </button>
             </div>
+            {preset.vmax !== undefined && (
+                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                    {vmax.map((v, i) => (
+                        <button key={i} type="button" onClick={() => cycleVmax(i)}
+                                aria-label={t(`cycle agent ${i}'s velocity limit (×2 per click)`,
+                                              `agent ${i}의 속도 한계를 순환 변경 (클릭마다 ×2)`)}
+                                className="px-1.5 py-0.5 rounded border border-border font-mono tabular-nums hover:bg-surface">
+                            {`v${SUBSCRIPT[i]}=${v}`}
+                        </button>
+                    ))}
+                </div>
+            )}
             <div className="text-xs text-muted text-center">
                 {t("drag cells to draw walls · drag the numbered dot and ring to move an agent's start/goal — " +
                     "playback is one clock over both phases: scrub anywhere with the slider, or step one event / one move at a time",
                     "셀을 드래그해 벽을 그리고, 번호가 적힌 점과 링을 끌어 agent의 start/goal을 옮겨 보라 — " +
                     "재생은 탐색과 실행 두 phase를 하나의 시계로 관통합니다. 슬라이더로 어디든 스크럽하고, ⏮/⏭으로 이벤트 하나·이동 한 칸씩 직접 밟아 보세요")}
             </div>
+            {preset.vmax !== undefined && (
+                <div className="text-xs text-muted text-center">
+                    {t("velocity chips: every click doubles that agent's limit (4 wraps back to 0.25) — " +
+                        "scale every vmax by the same factor and every time scales by its inverse; there is no absolute clock",
+                        "속도 칩: 클릭할 때마다 그 agent의 한계가 두 배가 됩니다 (4를 넘으면 0.25로 돌아간다) — " +
+                        "모든 vmax에 같은 인자를 걸면 모든 시간이 그 역수로만 스케일됩니다. 절대 시계는 없습니다")}
+                </div>
+            )}
         </div>
     )
 
