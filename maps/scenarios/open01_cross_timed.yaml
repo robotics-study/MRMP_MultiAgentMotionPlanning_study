@@ -1,0 +1,13 @@
+# open01_cross의 timed판: 같은 정석 크로스(교차 셀 (10,9))를 agent 1이 두 배 빠른
+# 속도(vmax 2)로 지난다. 이산 계획은 여전히 직선 둘뿐이지만 스케줄은 다르다 — 교차
+# 셀을 먼저 지나는 agent 0의 안전 마커를 agent 1이 지나려면 늦으므로, type-2 제약이
+# binding이 되어 빠른 agent가 교차 앞에서 늦게 도착한다(도착 4.5 → 8.375). 이산
+# makespan 17 대신 스케줄 makespan은 느린 쪽의 16, 합도 33 → 28.375로 준다.
+map: ../grid/open01.yaml   # scenario 파일 기준 상대 경로
+agents:                    # agent 순서 = agent index (우선순위와 무관, 표시 순서)
+  - start: [0.75, 4.75]    # cell (10, 1) — 오른쪽으로, v = 1칸/시간
+    goal: [8.75, 4.75]     # cell (10, 17)
+    vmax: 1
+  - start: [4.75, 9.25]    # cell (1, 9) — 아래로, v = 2칸/시간
+    goal: [4.75, 0.75]     # cell (18, 9)
+    vmax: 2

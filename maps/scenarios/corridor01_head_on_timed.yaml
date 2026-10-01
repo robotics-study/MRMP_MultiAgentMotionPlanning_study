@@ -1,0 +1,12 @@
+# corridor01_head_on의 timed판: 폭 1 통로의 정면 swap은 이산 단계에서 이미 풀리지
+# 않는다. 후처리기는 새 계획 만들 능력이 없으므로 상속된 CBS가 예산(256)까지 갈겨
+# "후처리할 계획 없음"을 그대로 실패로 보고한다 — expanded_nodes 0, 지표 전부 0.
+# 계보의 정직함: 이 갈래는 search 갈래의 한계를 함께 상속받는다.
+map: ../grid/corridor01.yaml   # scenario 파일 기준 상대 경로
+agents:                        # agent 순서 = agent index (우선순위와 무관, 표시 순서)
+  - start: [0.75, 0.75]        # cell (1, 1) — 오른쪽으로
+    goal: [2.75, 0.75]         # cell (1, 5)
+    vmax: 1
+  - start: [2.75, 0.75]        # cell (1, 5) — 왼쪽으로
+    goal: [0.75, 0.75]         # cell (1, 1)
+    vmax: 1
