@@ -20,7 +20,8 @@
 // summary. No planning logic lives here. Discrete demos use run() (world coords ->
 // cells, cell-interpreted traces); continuous demos use run_continuous() (raw
 // world Points + disc radius, world-point traces declared via the planning_started
-// `coords` field).
+// `coords` field); kinodynamic demos use run_timed() (cells plus each agent's
+// velocity limit vmax — the planning_started `vmax` field).
 namespace demo {
 
 struct Args {
@@ -82,6 +83,14 @@ inline void report(const std::string& name, const mrmp::core::ContinuousPlanResu
             << ",\"expanded_nodes\":" << res.stats.expanded_nodes << "}\n";
 }
 
+// Timed results carry cost AND makespan explicitly (both in time units — see
+// TimedPlanResult); like the continuous overload, nothing is derived by convention.
+inline void report(const std::string& name, const mrmp::core::TimedPlanResult& res) {
+  std::cout << "{\"algorithm\":\"" << name << "\",\"success\":" << (res.success ? "true" : "false")
+            << ",\"sum_of_costs\":" << res.cost << ",\"makespan\":" << res.makespan
+            << ",\"expanded_nodes\":" << res.stats.expanded_nodes << "}\n";
+}
+
 // One discrete demo run: load map + scenario, convert world-coord agent tasks to
 // cells (coordinate frames stay owned by the map layer, per the repo rule), plan
 // with a live recorder, and print the one-line JSON summary.
@@ -130,6 +139,38 @@ inline int run_continuous(const Args& a, const mrmp::core::ParamSet& params, Pla
   if (!fs) throw std::runtime_error("demo: cannot open trace file " + a.trace);
   mrmp::core::TraceRecorder rec(fs);
   rec.planning_started(planner.name(), a.map, params.values(), mrmp::core::Coords::World, radii);
+  auto res = planner.plan(grid, tasks, &rec);
+  report(planner.name(), res);
+  return 0;
+}
+
+// One timed (kinodynamic) demo run: the scenario's world coords convert to cells
+// like the discrete demos, and each agent's velocity limit rides along on the task
+// AND on planning_started's vmax field, so replay and parity read the very numbers
+// the schedule used. A planner that does not require DISCRETE_SPACE is a wiring
+// mistake, so it throws instead of silently mis-planning.
+template <class Planner>
+inline int run_timed(const Args& a, const mrmp::core::ParamSet& params, Planner& planner) {
+  auto map = mrmp::maps::load_map(a.map);
+  auto& grid = as_grid(*map);
+  mrmp::maps::Scenario sc = mrmp::maps::load_scenario(a.scenario);
+
+  std::vector<mrmp::core::AgentTask> tasks;
+  std::vector<double> vmaxs;
+  for (const auto& spec : sc.agents) {
+    tasks.push_back(mrmp::core::AgentTask{grid.world_to_cell(spec.start.x, spec.start.y),
+                                          grid.world_to_cell(spec.goal.x, spec.goal.y),
+                                          spec.vmax});
+    vmaxs.push_back(spec.vmax);
+  }
+  if (!planner.required_capabilities().count(mrmp::core::Capability::DISCRETE_SPACE)) {
+    throw std::runtime_error("demo: planner does not require DISCRETE_SPACE");
+  }
+
+  std::ofstream fs(a.trace);
+  if (!fs) throw std::runtime_error("demo: cannot open trace file " + a.trace);
+  mrmp::core::TraceRecorder rec(fs);
+  rec.planning_started(planner.name(), a.map, params.values(), {}, {}, vmaxs);
   auto res = planner.plan(grid, tasks, &rec);
   report(planner.name(), res);
   return 0;

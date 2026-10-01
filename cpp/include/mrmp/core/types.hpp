@@ -30,10 +30,14 @@ struct Point {
 
 // One agent's planning task on the shared grid (the demo driver converts the
 // scenario's world-coord start/goal into Cells — coordinate frames stay owned by
-// the map layer, per the repo rule).
+// the map layer, per the repo rule). `vmax` is the kinodynamic branch's per-agent
+// velocity limit in CELLS per time unit (default 1.0 = one cell per time unit,
+// which reproduces the discrete step timing up to the safety distance). The
+// search/sampling branches never read it; only KinodynamicPlanner implementations do.
 struct AgentTask {
   Cell start;
   Cell goal;
+  double vmax = 1.0;
 };
 
 // One agent's planning task on the shared continuous space: a disc robot of
@@ -72,6 +76,24 @@ struct MultiPlanResult {
 struct ContinuousPlanResult {
   bool success = false;
   std::vector<std::vector<Point>> paths;
+  double cost = 0.0;
+  double makespan = 0.0;
+  PlanStats stats;
+};
+
+// Kinodynamic-branch result: a plan-execution SCHEDULE, not a space-time path.
+// routes[k] is agent k's route — the collision-free plan's cell sequence with the
+// wait actions removed (consecutive cells are adjacent; every move edge has unit
+// length). times[k][i] is the earliest arrival time at routes[k][i]; times[k][0]
+// is 0 for every agent (every start event is pinned to t = 0 by the STN source).
+// Execution under the uniform velocity model: an agent dwells on a cell until its
+// departure (arrival of the next location minus l(e)/vmax) and traverses at exactly
+// vmax — so arrival lands exactly on the scheduled time. cost is the sum over
+// agents of their goal arrival times (the flow-time analogue), makespan t(X_F).
+struct TimedPlanResult {
+  bool success = false;
+  std::vector<std::vector<Cell>> routes;
+  std::vector<std::vector<double>> times;
   double cost = 0.0;
   double makespan = 0.0;
   PlanStats stats;

@@ -29,14 +29,17 @@ inline const char* to_string(Coords c) { return c == Coords::World ? "world" : "
 // Emits step-by-step trace events as JSON Lines (spec/trace_schema.json). seq
 // starts at 0 and increments per event. Unlike single-robot nav traces, an MRMP
 // trace carries NO wall-clock time: replay is driven purely by seq order, and the
-// only time an event ever carries is the discrete timestep `t` of space-time
-// events. A state on the wire is always a numeric pair: [row, col] ints for
-// grid-cell algorithms (coords omitted) or world-point floats for continuous
-// planners (planning_started then carries coords:"world" plus each agent's disc
-// radius). Floats are compared parsed, not byte-wise (Python 5.0 vs C++ 5 is the
-// same value); ints stay ints on both sides. Both languages serialize each
-// event's fields in exactly the documented order so parsed traces match
-// field-for-field. A null TraceRecorder* is never dereferenced by planners
+// only times an event ever carries are the discrete timestep `t` of space-time
+// events and, on timed (kinodynamic) traces, the earliest arrival times a
+// schedule_found event carries. A state on the wire is always a numeric pair:
+// [row, col] ints for grid-cell algorithms (coords omitted; timed traces keep
+// them and add the per-agent velocity limits `vmax`, cells per time unit) or
+// world-point floats for continuous planners (planning_started then declares
+// coords:"world" plus each agent's disc radius). Floats are compared parsed,
+// not byte-wise (Python 5.0 vs C++ 5 is the same value); ints stay ints on both
+// sides. Both languages serialize each event's fields in exactly the documented
+// order so parsed traces match field-for-field. A null TraceRecorder* is never
+// dereferenced by planners
 // (hot-path guard at the call site), so tracing is zero-cost when off.
 class TraceRecorder {
  public:
@@ -44,11 +47,14 @@ class TraceRecorder {
 
   // `coords` declares how readers must read the numeric state pairs (omitted for
   // the discrete default); `radius` carries each agent's disc radius in meters —
-  // continuous traces only, so discrete traces keep their exact old bytes.
+  // continuous traces only, so discrete traces keep their exact old bytes. `vmax`
+  // carries each agent's velocity limit in cells per time unit — timed (kinodynamic)
+  // traces only; replay replays the uniform velocity model from these numbers.
   void planning_started(const std::string& algorithm, const std::string& map_path,
                         const std::map<std::string, ParamValue>& params,
                         const std::optional<Coords>& coords = {},
-                        const std::optional<std::vector<double>>& radius = {});
+                        const std::optional<std::vector<double>>& radius = {},
+                        const std::optional<std::vector<double>>& vmax = {});
   // metrics keys are sorted (std::map) so both languages emit identical order.
   void planning_finished(bool success, const std::map<std::string, double>& metrics);
 
@@ -68,6 +74,12 @@ class TraceRecorder {
   // overload carries continuous paths (world-point pairs).
   void path_found(const std::vector<Cell>& path, int agent);
   void path_found(const std::vector<Point>& path, int agent);
+
+  // One timed route per agent (kinodynamic branch only): `cells` is the route with
+  // wait actions removed (consecutive cells are adjacent), times[i] the earliest
+  // arrival time at cells[i] — times[0] is 0 for every agent.
+  void schedule_found(int agent, const std::vector<Cell>& cells,
+                      const std::vector<double>& times);
 
   // Continuous planners (dRRT family) prebuild one individual roadmap per agent:
   // `vertices` are world points in insertion order, `edges` are vertex-index

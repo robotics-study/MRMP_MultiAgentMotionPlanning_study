@@ -2,10 +2,11 @@
 """Benchmark matrix runner: (algorithm x its declared scenarios) -> metrics -> report.
 
 Runs each Python demo as a subprocess and collects metrics from the trace's
-`planning_finished` event; discrete planners carry no makespan in their metrics
-(step-based, so it is derived here from `path_found` events), while continuous
-planners emit BOTH metrics themselves (dRRT: steps; dRRT*: arc lengths) and the
-planner's own value always wins. Depends on
+`planning_finished` event; every planner today carries makespan in its metrics
+explicitly (discrete: steps; continuous: per-paper units; timed: time units), so
+the derived fallback below (longest `path_found` path minus its start step) only
+ever fills a gap on discrete traces. The planner's own value always wins.
+Depends on
 spec/core/maps only — it never imports an algorithm module; an algorithm is
 runnable exactly when `configs/<section>/<algo>.yaml` and `python/demos/demo_<algo>.py`
 both exist, which is how the matrix discovers its columns. Each config declares the
@@ -40,9 +41,10 @@ class Row:
 
 
 def _final_metrics(trace_path: Path) -> dict[str, float] | None:
-    """Metrics from the last planning_finished event; a missing makespan (discrete
-    planners only) is derived from the per-agent path_found events (longest
-    space-time path minus its start step)."""
+    """Metrics from the last planning_finished event; every planner emits all three
+    metrics explicitly, so the path_found fallback below is a gap-filler only —
+    timed (kinodynamic) traces carry no path_found events at all and their
+    time-unit makespan arrives in the metrics themselves."""
     result: dict[str, float] | None = None
     success = False
     makespan = 0.0

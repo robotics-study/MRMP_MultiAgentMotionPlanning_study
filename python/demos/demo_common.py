@@ -5,7 +5,8 @@ Demos are assembly only — they wire params + map + scenario + planner and emit
 known only here). Everything else is emitted by the planner. Discrete demos use
 run() (world coords -> Cells, cell-interpreted traces); continuous demos use
 run_continuous() (raw world Points + disc radius, world-point traces declared via
-the planning_started `coords` field).
+the planning_started `coords` field); kinodynamic demos use run_timed() (Cells plus
+each agent's velocity limit vmax — the planning_started `vmax` field).
 """
 
 from __future__ import annotations
@@ -16,19 +17,25 @@ from collections.abc import Callable
 
 from mrmp.core.capabilities import Capability
 from mrmp.core.params import ParamSet
-from mrmp.core.planner import ContinuousMultiAgentPlanner, MultiAgentPlanner
+from mrmp.core.planner import (
+    ContinuousMultiAgentPlanner,
+    KinodynamicPlanner,
+    MultiAgentPlanner,
+)
 from mrmp.core.trace import open_trace
 from mrmp.core.types import (
     AgentTask,
     ContinuousPlanResult,
     ContinuousTask,
     MultiPlanResult,
+    TimedPlanResult,
 )
 from mrmp.maps.loader import load_map, load_scenario
 from mrmp.maps.occupancy_grid import OccupancyGrid2D
 
 PlannerFactory = Callable[[ParamSet], MultiAgentPlanner]
 ContinuousFactory = Callable[[ParamSet], ContinuousMultiAgentPlanner]
+TimedFactory = Callable[[ParamSet], KinodynamicPlanner]
 
 
 def _parse_args(name: str) -> argparse.Namespace:
@@ -88,17 +95,47 @@ def run_continuous(name: str, factory: ContinuousFactory) -> None:
     _report(planner.name, result)
 
 
-def _report(name: str, result: MultiPlanResult | ContinuousPlanResult) -> None:
+def run_timed(name: str, factory: TimedFactory) -> None:
+    args = _parse_args(name)
+    params = ParamSet.from_yaml(args.params)
+    grid = load_map(args.map)
+    assert isinstance(grid, OccupancyGrid2D)
+    scenario = load_scenario(args.scenario)
+    # Kinodynamic planners plan on the same discrete grid but read each agent's
+    # velocity limit (cells per time unit) off the task; the trace declares the
+    # vmax vector so replay and parity read the very numbers the schedule used.
+    tasks: list[AgentTask] = [
+        AgentTask(
+            start=grid.world_to_cell(*spec.start),
+            goal=grid.world_to_cell(*spec.goal),
+            vmax=spec.vmax,
+        )
+        for spec in scenario.agents
+    ]
+    planner = factory(params)
+    assert Capability.DISCRETE_SPACE in planner.required_capabilities()
+    with open_trace(args.trace) as recorder:
+        recorder.planning_started(
+            planner.name, args.map, params.values(), vmax=[task.vmax for task in tasks]
+        )
+        result = planner.plan(grid, tasks, recorder)
+    _report(planner.name, result)
+
+
+def _report(
+    name: str, result: MultiPlanResult | ContinuousPlanResult | TimedPlanResult
+) -> None:
     # One-line JSON metrics on stdout (bench + web export read it). Discrete
-    # results derive makespan = arrival step of the last agent; continuous results
-    # carry cost AND makespan explicitly (dRRT counts steps, dRRT* reports arc
-    # lengths — see ContinuousPlanResult). Parsed values are what must match.
+    # results derive makespan = arrival step of the last agent; continuous and
+    # timed results carry cost AND makespan explicitly (dRRT counts steps, dRRT*
+    # reports arc lengths, kinodynamic schedules report time — see
+    # TimedPlanResult). Parsed values are what must match.
     summary = {
         "algorithm": name,
         "success": result.success,
         "sum_of_costs": round(result.cost, 4),
         "makespan": (
-            result.makespan if isinstance(result, ContinuousPlanResult)
+            result.makespan if not isinstance(result, MultiPlanResult)
             else float(max((len(p) - 1 for p in result.paths), default=0))
         ),
         "expanded_nodes": result.stats.expanded_nodes,
