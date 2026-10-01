@@ -4,6 +4,7 @@ export {parseGridMap} from "../src/libs/grid";
 export {runPrioritizedAStar} from "../src/libs/algorithms/prioritized_astar";
 export {runPushAndSwap} from "../src/libs/algorithms/push_and_swap";
 export {runPushAndRotate} from "../src/libs/algorithms/push_and_rotate";
+export {runPibt} from "../src/libs/algorithms/pibt";
 export {runJointAStar} from "../src/libs/algorithms/joint_astar";
 export {runCbs} from "../src/libs/algorithms/cbs";
 export {runMaRrtStar} from "../src/libs/algorithms/ma_rrt_star";

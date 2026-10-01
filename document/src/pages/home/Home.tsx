@@ -71,12 +71,14 @@ const Home = () => {
                 <p className="sub">
                     {t(
                         "A study of multi-agent motion planning along its genealogy — the " +
-                        "search-based branch (MAPF) and the sampling-based branch — each algorithm " +
+                        "search-based branch (MAPF), the sampling-based branch, and the " +
+                        "decentralized branch that drops the plan itself — each algorithm " +
                         "derived, proven, and shown as the real C++ and Python source that " +
                         "implements it.",
                         "계보를 따라 읽는 multi-agent motion planning — search 기반 갈래(MAPF)와 " +
-                        "sampling 기반 갈래. 알고리즘마다 유도하고 증명하고, 그것을 구현한 실제 " +
-                        "C++·Python 소스까지 함께 읽는다.",
+                        "sampling 기반 갈래, 그리고 계획 자체를 버린 decentralized 갈래까지. " +
+                        "알고리즘마다 유도하고 증명하고, 그것을 구현한 실제 C++·Python 소스까지 " +
+                        "함께 읽는다.",
                     )}
                 </p>
                 <div className="lander-chips">
@@ -86,6 +88,7 @@ const Home = () => {
                     <span className="chip">CBS</span>
                     <span className="chip">MA-RRT*</span>
                     <span className="chip">dRRT*</span>
+                    <span className="chip">PIBT</span>
                     <span className="chip">C++ / Python</span>
                 </div>
                 <div className="lander-btns">
@@ -107,7 +110,7 @@ const Home = () => {
                     <div key={sec.key} className="lander-cat">
                         <div className="part-head">
                             <h3>
-                                <span className="part-index">{["I", "II"][si]}</span>
+                                <span className="part-index">{["I", "II", "III"][si]}</span>
                                 {pick(lang, sec.title)}
                                 <a className="part-intro" onClick={() => goSection(sec.key)}>
                                     Introduction →

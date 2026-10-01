@@ -36,6 +36,7 @@ const RUNNERS = {
     prioritized_astar: (map, agents, params) => engines.runPrioritizedAStar(map, agents, params),
     push_and_swap: (map, agents, params) => engines.runPushAndSwap(map, agents, params),
     push_and_rotate: (map, agents, params) => engines.runPushAndRotate(map, agents, params),
+    pibt: (map, agents, params) => engines.runPibt(map, agents, params),
     joint_astar: (map, agents, params) => engines.runJointAStar(map, agents, params),
     cbs: (map, agents, params) => engines.runCbs(map, agents, params),
     ma_rrt_star: (map, agents, params) => engines.runMaRrtStar(map, agents, params),
@@ -82,6 +83,23 @@ const CHECKS = [
             {map: "tee01", name: "tee01_head_on", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
             {map: "pocket01", name: "pocket01_rotate",
                 agents: [[[1, 5], [1, 2]], [[1, 3], [1, 1]], [[1, 1], [1, 3]]]},
+        ],
+    },
+    // pibt는 decentralized 갈래의 대표 — 계획 없이 매 스텝 협상만 한다. open01_swap에서
+    // joint optimum 30을 맞히고, tee01_head_on에서는 rotate primitive이 없어 정직하게
+    // deadlock한다 (budget 소진). metricKeys에 makespan을 추가한 것은 이 알고리즘의
+    // 핵심 지표가 실행 시간(makespan)이기 때문이다.
+    {
+        algo: "pibt",
+        metricKeys: [{key: "sum_of_costs", tol: 0}, {key: "expanded_nodes", tol: 0},
+            {key: "makespan", tol: 0}],
+        scenarios: [
+            {map: "maze01", name: "maze01_two", agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
+            {map: "open01", name: "open01_cross", agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
+            {map: "open01", name: "open01_swap", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+            {map: "pocket01", name: "pocket01_swap", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "tee01", name: "tee01_head_on", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "corridor01", name: "corridor01_head_on", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
         ],
     },
     {

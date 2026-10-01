@@ -32,6 +32,18 @@ const data: ISectionIntro[] = [
             {en: "What Is Coming", ko: "구현 예정"},
         ],
     },
+    // 세 번째 갈래 — 계획(plan)이라는 매개체 자체를 버린다. search 갈래의 우선순위
+    // 계보가 완성한 규율을 실행 시간의 협상으로만 다시 세운다 (PIBT).
+    {
+        key: "decentralized",
+        contents: lazy(() => import("./DecentralizedPlanning")),
+        sections: [
+            {en: "The Problem, Rebuilt at the Time Step", ko: "스텝에서 다시 세운 문제"},
+            {en: "Why Drop the Plan", ko: "계획을 버리는 이유"},
+            {en: "What Survives Without a Plan", ko: "계획 없이 남는 것"},
+            {en: "What Is Written, and What Comes Next", ko: "집필된 것과 그다음"},
+        ],
+    },
 ]
 
 export default data

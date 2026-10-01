@@ -8,10 +8,10 @@ import {useLang, useTr, pick} from "../libs/i18n";
 const REPO = "https://github.com/robotics-study/mrmp_introduction"
 
 // supportedExample(python/c++) → 실제 구현 파일로 가는 chip 링크. 알고리즘 파일은
-// python/mrmp/search/<slug>.py · cpp/include/mrmp/search/<slug>.hpp 에 있다.
+// python/mrmp/<section>/<slug>.py · cpp/include/mrmp/<section>/<slug>.hpp 에 있다.
 const codeLinkFor = (algo: IAlgoData, language: string): string | null => {
-    if (language === "c++") return `${REPO}/blob/main/cpp/include/mrmp/search/${algo.slug}.hpp`
-    if (language === "python") return `${REPO}/blob/main/python/mrmp/search/${algo.slug}.py`
+    if (language === "c++") return `${REPO}/blob/main/cpp/include/mrmp/${algo.section}/${algo.slug}.hpp`
+    if (language === "python") return `${REPO}/blob/main/python/mrmp/${algo.section}/${algo.slug}.py`
     return null
 }
 
@@ -27,8 +27,8 @@ const AlgorithmContents = (algo: IAlgoData) => {
     const prev = idx > 0 ? ready[idx - 1] : undefined
     const next = idx >= 0 && idx < ready.length - 1 ? ready[idx + 1] : undefined
 
-    // eyebrow: 대분류 이름 (이 저장소는 MAPF 하나뿐).
-    const secTitle = SECTIONS[0].title
+    // eyebrow: 이 알고리즘이 속한 갈래의 이름.
+    const secTitle = SECTIONS.find((s) => s.key === algo.section)!.title
 
     const codeLinks = supportedExample
         ? Object.entries(supportedExample)
