@@ -36,7 +36,8 @@ ParamSet ParamSet::from_yaml(const std::string& path) {
   set.section_ = root.at("section").as_string();
   // A config declares which family (site section) its algorithm belongs to — a
   // config declaring anything else is stale. Mirrored in Python.
-  if (set.section_ != "search" && set.section_ != "sampling") {
+  if (set.section_ != "search" && set.section_ != "sampling" &&
+      set.section_ != "decentralized") {
     fail("unknown section '" + set.section_ + "'");
   }
   // Scenario slugs this algorithm runs on — required list of scalars (possibly

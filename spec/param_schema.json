@@ -12,7 +12,7 @@
       "description": "알고리즘 식별자. 파일명(확장자 제외) 및 trace 의 algorithm 필드와 일치해야 한다."
     },
     "section": {
-      "enum": ["search", "sampling"],
+      "enum": ["search", "sampling", "decentralized"],
       "description": "알고리즘이 속한 계열(사이트의 섹션). configs 디렉토리 구조와 1:1 로 대응한다."
     },
     "scenarios": {
