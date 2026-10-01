@@ -21,7 +21,8 @@ file(GLOB_RECURSE MRMP_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/maps/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/search/*.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/sampling/*.cpp)
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/sampling/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/decentralized/*.cpp)
 
 add_library(mrmp ${MRMP_SOURCES})
 target_include_directories(mrmp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
