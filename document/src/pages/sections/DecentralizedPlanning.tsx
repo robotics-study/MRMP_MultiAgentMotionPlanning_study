@@ -61,8 +61,8 @@ const DecentralizedPlanning = () => {
                         생산할 경로들의 튜플이 없다. 대신 시간 <InlineMath math="t"/>에서 모든 agent의 현재 칸과
                         현재 우선순위가 주어지면 모두의 <InlineMath math="t + 1"/> 칸을 하나의 동기화된 라운드로
                         만들어내는 결정 규칙이 있을 뿐이다. 두 불변식이 탐색이 아니라 구성으로 성립한다: 두 agent가
-                        같은 칸을 주장하는 일은 불가능하고(이미 주장된 칸은 선택지에서 그냥 없다), swap — 한 스텝에
-                        두 agent가 간선을 따라 칸을 맞바꾸는 것 — 는 설계로 배제된다. 비키라는 지시를 받은 agent가
+                        같은 칸을 주장하는 일은 불가능하고(이미 주장된 칸은 선택지에서 그냥 없다), swap(한 스텝에
+                        두 agent가 간선을 따라 칸을 맞바꾸는 것)은 설계로 배제된다. 비키라는 지시를 받은 agent가
                         자기 claimant의 칸으로 들어가는 일이 허용되지 않기 때문이다. 모든 agent가 동시에 goal 위에
                         서면 인스턴스는 풀린 것이고, 실행은 멈추고 실행된 경로들이 역사에서 읽힌다.
                     </p>
@@ -156,9 +156,9 @@ const DecentralizedPlanning = () => {
                     offline.
                 </p>}
                 ko={<p>
-                    한 회원이 집필·구현됐다: <strong>PIBT</strong> — Priority Inheritance with Backtracking
-                    (Okumura, Machida, Défago & Tamura) — search 갈래의 우선순위 규율을 스텝에서 다시 세우고 모든
-                    primitive 자리에 상속을 놓은 것. Push and Rotate 뒤에 이것을 읽어라: 같은 맵(<InlineMath math="open01"/>,{" "}
+                    <strong>PIBT</strong>(Priority Inheritance with Backtracking, Okumura·Machida·Défago &
+                    Tamura)가 한 회원으로 집필·구현됐다: search 갈래의 우선순위 규율을 스텝에서 다시 세우고 모든 primitive
+                    자리에 상속을 놓은 것. Push and Rotate 뒤에 이것을 읽어라: 같은 맵(<InlineMath math="open01"/>,{" "}
                     <InlineMath math="pocket01"/> 그리고 <InlineMath math="corridor01"/>), 그 한가운데 같은 정면 교환,
                     그리고 이제 비교가 직접 가능해진다 — 기하를 기계장치로 돌아 수리하는 쪽과, 기하가 이기게 두는 협상.
                     이 갈래 다음 계보의 종착점은 두 절반이 만나는 자리다: 계획이 다시 등장하지만 이번엔 운동학 제약을

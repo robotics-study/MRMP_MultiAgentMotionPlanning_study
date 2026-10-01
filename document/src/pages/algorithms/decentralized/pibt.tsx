@@ -59,9 +59,9 @@ const Pibt = () => {
                     closes on itself.
                 </p>}
                 ko={<p>
-                    이 페이지 이전의 모든 것은 누가 움직이기 전에 계획을 생산했다. PIBT — Priority Inheritance with
-                    Backtracking, Okumura, Machida, Défago & Tamura (IJCAI 2019 / Artificial Intelligence 310, 2022) —
-                   는 산출물을 지워버린 같은 우선순위 규율이다: 걷기 전까지 경로는 존재하지 않는다. 매 스텝 각 agent가
+                    이 페이지 이전의 모든 것은 누가 움직이기 전에 계획을 생산했다. PIBT(Priority Inheritance with
+                    Backtracking, Okumura·Machida·Défago & Tamura의 IJCAI 2019 / Artificial Intelligence 310, 2022)는
+                    산출물을 지워버린 같은 우선순위 규율이다: 걷기 전까지 경로는 존재하지 않는다. 매 스텝 각 agent가
                     자기 goal까지 거리로 순서 매겨진 이웃에서 다음 칸을 고르고, 결정은 우선순위 내림차순으로 이뤄지며,
                     아직 점유된 칸은 취하지 않고 <strong>claim</strong>하고 점유자가 그 claim을 상속받는다 — 자기 후보
                     중 하나로 비켜야 하거나 claim을 실패시켜야 한다. swap은 구조적으로 불가능하고(상속받은 agent는
@@ -70,7 +70,7 @@ const Pibt = () => {
                     PIBT를 죽이는 것은 대신 위상이다 — Push and Rotate가 기계장치를 지었던 바로 그 자리: 어떤 cycle에도
                     속하지 않는 간선은 막힌 agent에게 물러날 곳을 주지 않는다. 논문은 자기 계보를 스스로 밝힌다 — push
                     and swap/rotate가 PIBT에 "부분적으로 영향을 줬고", PIBT는 안전한 <em>push</em> 동작들의 조합으로 볼
-                    수 있다; 이 페이지에서 그 계보가 자기 자신으로 닫힌다.
+                    수 있다. 이 페이지에서 그 계보가 자기 자신으로 닫힌다.
                 </p>}
             />
 
@@ -192,13 +192,12 @@ const Pibt = () => {
                             <InlineMath math="O(|A| \cdot |E|)"/> overhead) 스텝당 agent당 <InlineMath math="O(\Delta \log
                             \Delta)"/>이고 joint 공간은 결코 구성되지 않는다. <code>expanded_nodes</code> metric은 정확히 그
                             결정 호출들을 센다 — agent 둘에서 성공한 모든 실행의 값은 makespan의 두 배(34 = 2 × 17,
-                            open01_cross): 매 스텝 모든 agent가 상속이든 top-level이로 정확히 한 번 결정되기 때문이다.
+                            open01_cross): 매 스텝 모든 agent가 상속이든 top-level이든 정확히 한 번 결정되기 때문이다.
                         </li>
                         <li>
-                            <strong>정직한 budget 하나를 빼고 파라미터 무의존.</strong> 논문이 자유롭거나 랜덤으로 남긴 것 —{" "}
-                            <InlineMath math="\varepsilon_i"/> 값, candidate tie-break — 전부 여기에 결정론적으로 고정된다
-                            (agent 0 최고; 미점유가 점유보다 우선; 최종 tie-break은 row-major) 그래서 세 언어 미러가 동일한
-                            trace를 만든다. 노브는 <code>max_steps</code> 하나뿐이다.
+                            <strong>정직한 budget 하나를 빼고 파라미터 무의존.</strong> 논문이 자유롭거나 랜덤으로 남긴 것(<InlineMath
+                            math="\varepsilon_i"/> 값, candidate tie-break)은 전부 여기에 결정론적으로 고정된다: agent 0 최고,
+                            미점유가 점유보다 우선, 최종 tie-break은 row-major. 그래서 세 언어 미러가 동일한 trace를 만든다. 노브는 <code>max_steps</code> 하나뿐이다.
                         </li>
                     </ul>
                 </>}
@@ -228,9 +227,9 @@ const Pibt = () => {
                     </p>
                     <BlockMath math="\varepsilon_i = \frac{k - 1 - i}{k}, \qquad p_i[t] = \begin{cases} \varepsilon_i & \pi_i[t] = g_i \\ p_i[t-1] + 1 & \text{그 외} \end{cases}"/>
                     <Terms items={[
-                        ["\\pi[t]", <>joint 배정 — 시각 t에서 agent index → 셀. trace의 full-horizon 경로는 실행 후 이 행들에서 읽는다; parked인 agent도 active에게 goal에서 밀려날 수 있고, 바로 그걸 우선순위 리셋이 인코딩한다</>],
-                        ["C_i", <>agent i의 후보 목록: <InlineMath math="\pi_i[t]"/>와 자유 이웃 — (거리 표 값 오름차순, 도달 불가가 나중; 미점유가 점유보다 우선; 최종 tie-break은 row-major)으로 정렬</>],
-                        ["claim", <>이번 스텝의 투기적 배정. claim된 칸은 이 라운드 이후 모든 선택지에서 제외된다 — vertex conflict는 구성상 불가능 — 그리고 invalid한 claim은 취소되고, 정확히 일어나지 않은 것처럼 된다</>],
+                        ["\\pi[t]", <>joint 배정 — 시각 t에서 agent index → 셀. trace의 full-horizon 경로는 실행 후 이 행들에서 읽는다. parked인 agent도 active에게 goal에서 밀려날 수 있고, 바로 그걸 우선순위 리셋이 인코딩한다</>],
+                        ["C_i", <>agent i의 후보 목록: <InlineMath math="\pi_i[t]"/>와 자유 이웃 — (거리 표 값 오름차순, 도달 불가가 나중, 미점유가 점유보다 우선, 최종 tie-break은 row-major 순서)로 정렬</>],
+                        ["claim", <>이번 스텝의 투기적 배정. claim된 칸은 이 라운드 이후 모든 선택지에서 제외되고, 그래서 vertex conflict는 구성상 불가능하다. invalid한 claim은 취소되면 정확히 일어나지 않은 것과 같아진다</>],
                         ["inheritance", <>claim된 칸의 점유자가 다음으로 결정하고 claimant이 기록된다: claimant의 현재 셀에 들어가는 건 건너뛰기(swap guard) — 그래서 체인은 cycle 주위를 rotation할 수 있지만 두 칸을 맞교환하는 일은 결코 없다</>],
                     ]}/>
                 </>}
@@ -282,17 +281,17 @@ commit: every π_i[t+1] is now set; positions advance together`}
                         <InlineMath math="\varepsilon_i"/>가 서로 다르고, 매 스텝 active엔 같은 +1이 더해지고 parked는 모든
                         active 아래로 리셋) — 그래서 top-level에서 순서가 전순서이고 tie-break가 필요 없다.</li>
                     <li>그 순서에서 미결정 agent가 재귀 절차를 호출한다. 후보는 자기 현재 셀 plus 자유 이웃, 자기 goal까지의
-                        정적 거리 표로 정렬; 미점유가 점유보다 먼저 정렬되고(불필요한 상속을 피하는 논문 자체의 tie-break),
+                        정적 거리 표로 정렬한다. 미점유가 점유보다 먼저 정렬되고(불필요한 상속을 피하는 논문 자체의 tie-break),
                         논문이 랜덤으로 남긴 마지막 tie-break은 row-major가 대신 고정한다.</li>
                     <li>claim은 투기적이고 재귀 <em>전에</em> 놓인다 — 그게 점유자를 비게 만드는 것이다. 점유자가 이미 이번
                         라운드에 결정했다면 claim은 그냥 성립하고, 미결정이면 상속받는다: decide(occupant, from = 나)가 지금
                         실행되고, claimant의 현재 셀은 점유자의 후보에서 제외된다 — swap guard.</li>
                     <li>상속된 호출이 실패하면(점유자가 갈 데가 없다) claim은 일어나지 않은 것처럼 취소되고 claimant는 다음
-                        후보를 시도한다. 후보를 다 소진하면 상속된 호출은 위로 invalid를 보고하고; top-level 호출은 결코
-                        실패하지 않는다 — 결정자의 자기 셀에 대한 이전 claim은 이미 그 agent를 통과해 지나갔을 것이기 때문 —
+                        후보를 시도한다. 후보를 다 소진하면 상속된 호출은 위로 invalid를 보고한다. top-level 호출은 결코
+                        실패하지 않는다. 결정자의 자기 셀에 대한 이전 claim은 이미 그 agent를 통과해 지나갔을 것이기 때문이다.
                         Lemma 1을 한 문장으로 줄이면 이거다.</li>
                     <li>모든 결정이 위치가 전진하기 전에 수집된다: 스텝 t+1에 모든 agent가 움직이거나 머물고, 라운드는 끝난다.
-                        논문의 Algorithm 1을 라인 그대로; 고정된 디테일(고정 ε, 고정 후보 순서)은 세 언어가 비트 단위로
+                        논문의 Algorithm 1을 라인 그대로 옮긴다. 고정된 디테일(고정 ε, 고정 후보 순서)은 세 언어가 비트 단위로
                         일치하게 우리가 고정했다.</li>
                 </ol>}
             />
@@ -364,7 +363,7 @@ commit: every π_i[t+1] is now set; positions advance together`}
                         <InlineMath math="\mathrm{diam}(G) \cdot |A|"/> steps.<InlineMath math="\blacksquare"/>
                     </p>}
                     ko={<p>
-                        어떤 agent도 아직 goal에 도달한 적이 없는 동안, 그들 중 정확히 하나가 최고 우선순위를 갖고; 보조정리 1로
+                        어떤 agent도 아직 goal에 도달한 적이 없는 동안, 그들 중 정확히 하나가 최고 우선순위를 갖고, 보조정리 1로
                         그 agent는 스텝마다 자기 goal에 가장 가까운 이웃을 받고, 그래서 거리가 엄격히 떨어져 <InlineMath math="\mathrm{diam}(G)"/>
                         스텝 안에 goal 위에 선다. goal 위에 서면 우선순위가 아직 active인 모든 agent 아래로 리셋되고 — 다음 active가
                         보장을 이어받고, goal에서 밀려난 parked는 순서 맨 아래에서 그냥 다시 active가 된다. 라운드가 반복되면 각 agent는{" "}
@@ -388,11 +387,11 @@ commit: every π_i[t+1] is now set; positions advance together`}
                     그 bound를 정직하게 읽어라: 모든 agent가 goal을 <em>방문</em>한다는 것이지, 모든 agent가 함께 goal 위에
                     서 있다는 게 아니다 — 논문 스스로 one-shot MAPF의 실패 범주로 "모든 agent가 동시에 goal에 도달하는 것은 결코
                     보장되지 않는다"를 올린다. 그 틈 때문에 이 저장소는 협상을 <em>동시</em> 점유까지 달리고 아니면 budget에 정직하게
-                    멈춘다; <InlineMath math="tee01"/>이나 <InlineMath math="corridor01"/> 같은 트리 모양 맵에서 정면 교환은 물러나는
+                    멈춘다. <InlineMath math="tee01"/>이나 <InlineMath math="corridor01"/> 같은 트리 모양 맵에서 정면 교환은 물러나는
                     agent에게 escape node가 없다 — 논문의 Figure 5 그대로다: 상속은 invalid를 반환하고, claimant은 자기 셀을 "다음으로
                     가까운" 것으로 다시 고르고, 두 번 다시 아무것도 움직이지 않는다. budget 소진은 그 기하의 증거지 그 기하에 대한 증명이
                     아니다: PIBT는 unsolvability를 결코 인증하지 않는다. 이 갈래의 거래를 한 문장으로 — 싸고, 반응적이고, cycle 그래프에서
-                    움직임이 증명되어 있고; 나머지에 대해서는 침묵한다.
+                    움직임이 증명되어 있고, 나머지에 대해서는 침묵한다.
                 </p>}
             />
 
@@ -403,10 +402,10 @@ commit: every π_i[t+1] is now set; positions advance together`}
                     Python/C++ code below emits. Draw walls, drag a numbered dot or its ring to move an agent's start/goal,
                     add agents; every edit re-plans instantly and replays from step 0 (the replay compresses planning into the
                     first seconds, then steps the executed paths at one cell per tick). The presets are the whole argument of
-                    this page. <code>open01_cross</code>: two crossings that never interfere — both walk their unconstrained
+                    this page. <code>open01_cross</code>: the crossing with zero interference — both walk their unconstrained
                     shortest paths (16 + 17 = 33) and the negotiation is invisible except in the metric, exactly twice per step.{" "}
                     <code>open01_swap</code>: the head-on swap on open ground — agent 0 walks straight through at full speed and
-                    agent 1 yields by detouring around row 9 (it may not trade cells: swap guard), landing on 30 = the joint
+                    agent 1 yields by detouring via row 9 (it may not trade cells: swap guard), landing on 30 = the joint
                     optimum CBS searched for. <code>pocket01_swap</code>: the same exchange where a pocket exists — agent 1 ducks
                     into cell (0,4) and comes back behind, 4 + 6 = 10 moves against Push and Swap's rigid 14 and Push and Rotate's
                     12. <code>tee01_head_on</code>: the pocket one column too early — the retreating agent's own cell has no
@@ -417,15 +416,15 @@ commit: every π_i[t+1] is now set; positions advance together`}
                 ko={<p>
                     아래 sandbox는 이 planner를 브라우저에서 직접 실행합니다 — 아래 Python/C++ 코드가 내뱉는 것과 바이트 단위로 같은
                     엔진입니다. 벽을 그리고, 번호가 적힌 점이나 그 링을 끌어 start/goal을 옮기고, agent를 더하면 모든 편집이 즉시 재계획되고
-                    재생은 0스텝부터 다시 돕니다(재생은 계획을 첫 몇 초로 압축한 뒤, 실행된 경로를 tick당 한 칸로 스텝합니다). preset들은 이
-                    페이지의 논지 전체를 담았습니다. <code>open01_cross</code>: 서로 간섭이 없는 두 교차 — 둘 다 제약 없는 최단경로를 걷고
+                    재생은 0스텝부터 다시 돕니다(재생은 계획을 첫 몇 초로 압축한 뒤, 실행된 경로를 tick당 한 칸씩 스텝합니다). preset들은 이
+                    페이지의 논지 전체를 담았습니다. <code>open01_cross</code>: 간섭이 아예 없는 교차 — 둘 다 제약 없는 최단경로를 걷고
                     (16 + 17 = 33) 협상은 metric에서나 보입니다(스텝마다 정확히 두 번). <code>open01_swap</code>: 열린 땅에서의 정면
                     맞교환 — agent 0은 풀속도로 똑바로 걷고 agent 1은 row 9로 우회해 양보합니다(칸 맞교환은 불가 — swap guard), 그리고 CBS가
                     탐색으로 찾아낸 joint optimum 30에 착지합니다. <code>pocket01_swap</code>: 주머니가 있는 곳에서의 같은 교환 — agent 1이
                     (0,4)로 몸을 숙여 뒤에서 돌아오고 4 + 6 = 10 이동, Push and Swap의 딱딱한 14와 Push and Rotate의 12 대비.{" "}
                     <code>tee01_head_on</code>: 주머니가 한 칸 이른 자리 — 물러나는 agent의 현재 셀에 escape branch가 없고, 상속은 invalid를
                     돌려주고, 둘 다 자기 셀을 다시 고르고, 실행은 budget(1000 = 2 × 500 결정 호출)에 정직하게 교착합니다.{" "}
-                    <code>corridor01_head_on</code>: 통로 말고 blamed할 게 없는 같은 실패. 그리고 <code>maze01_two</code>는 단일 gap을 정확히
+                    <code>corridor01_head_on</code>: 원인을 통로 말고는 찾을 수 없는 같은 실패. 그리고 <code>maze01_two</code>는 단일 gap을 정확히
                     joint optimum 66으로 통과합니다.
                 </p>}
             />
