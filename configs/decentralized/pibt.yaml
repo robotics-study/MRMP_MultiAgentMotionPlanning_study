@@ -1,0 +1,24 @@
+# PIBT (Okumura, Machida, Défago & Tamura 2019/2022): decentralized per-timestep decisions — every
+# step each agent picks its next cell by priority (goal-reached resets to ε, travelling increments), a
+# blocked occupant inherits the claim and must vacate, a failed inheritance backtracks. Parameter-free by
+# design except for one honest budget: on graphs that violate the completeness condition (an edge on no
+# cycle) a head-on swap deadlocks forever, and only the step budget turns that deadlock into an honest
+# "no solution found within budget" instead of an infinite run. Every tie-break the paper leaves free or
+# random (ε values, candidate ordering) is pinned deterministically in code for cross-language parity.
+algorithm: pibt
+section: decentralized
+# 매트릭스 러너/웹 수출기가 이 알고리즘을 돌리는 시나리오 목록 (spec/param_schema.json).
+# discrete 알고리즘이므로 셀 시나리오만 — discs 시나리오는 dRRT 영역이다.
+# open01/pocket01/maze01 은 성공 사례(충돌 지점에서 양보가 협상되는 목격), tee01_head_on과
+# corridor01_head_on 은 정직한 실패: 폭 1 통로의 간선은 어떤 cycle에도 속하지 않으므로
+# 막힌 agent가 피할 칸이 없다 — Push and Rotate가 rotate로 푼 그 좌표에서 PIBT는 진다.
+scenarios: [maze01_two, open01_cross, open01_swap, pocket01_swap, tee01_head_on, corridor01_head_on]
+params:
+  - name: max_steps
+    type: int
+    default: 500
+    min: 1
+    description: >-
+      Budget on decision timesteps. The completeness bound is diam(G)·|A| steps when the
+      graph satisfies the cycle condition; hitting the budget instead is honestly "no solution
+      found within budget", never a proof of unsolvability (same convention as CBS's tree budget).

@@ -103,7 +103,7 @@ class ParamSet:
                 raise ParamError(f"param error: {path} missing required key '{key}'")
         # A config declares which family (site section) its algorithm belongs to —
         # a config declaring anything else is stale. Mirrored in C++.
-        if raw["section"] not in ("search", "sampling"):
+        if raw["section"] not in ("search", "sampling", "decentralized"):
             raise ParamError(f"param error: unknown section {raw['section']!r}")
         # Scenario slugs this algorithm runs on — required, list of strings
         # (possibly empty). The matrix runner and web exporter route per config.
