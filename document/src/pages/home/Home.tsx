@@ -89,6 +89,7 @@ const Home = () => {
                     <span className="chip">MA-RRT*</span>
                     <span className="chip">dRRT*</span>
                     <span className="chip">PIBT</span>
+                    <span className="chip">winPIBT</span>
                     <span className="chip">MAPF-POST</span>
                     <span className="chip">C++ / Python</span>
                 </div>

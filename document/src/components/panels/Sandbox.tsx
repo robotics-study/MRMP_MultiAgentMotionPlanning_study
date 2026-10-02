@@ -27,7 +27,14 @@ export interface ScenarioPreset {
     // 전달되고 agent 추가 시 1이 늘어난다. 칩 클릭으로 순환 변경하고, discrete 알고리즘은
     // run이 vmax를 무시한다.
     vmax?: number[];
+    // 창 달린 알고리즘(winPIBT)의 window 파라미터 기본값 — 있으면 창 칩이 렌더되고
+    // 클릭마다 1 → 2 → 3으로 순환한다. 없는 알고리즘은 run이 네 번째 인자를 무시한다.
+    window?: number;
 }
+
+// 창 사다리 — 칩 클릭마다 순환. winPIBT에서 이 값이 곧 갈래의 축이다: w=1은 PIBT로
+// 돌아가고, 커지면 prioritized planning에 가까워진다(pocket 시나리오가 칼날이 되는 지점).
+const WINDOW_LADDER = [1, 2, 3]
 
 // timed preset의 속도 한계 사다리 — 칩 클릭마다 ×2로 순환(4를 넘으면 0.25로 돌아간다).
 // 전부 이진 유리수라 모든 시간이 정확히 표현 가능한 double에 착지한다는 관례와 같다.
@@ -37,8 +44,9 @@ const SUBSCRIPT = ["₀", "₁", "₂", "₃", "₄", "₅"]
 export interface SandboxProps {
     presets: ScenarioPreset[];
     // 라이브 엔진 — Python/C++ planner의 정확한 미러 (libs/algorithms). timed 알고리즘은
-    // 세 번째 인자(agent별 속도 한계)를 쓰고 discrete 알고리즘은 무시한다.
-    run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[]) => TraceEvent[];
+    // 세 번째 인자(agent별 속도 한계)를, 창 달린 알고리즘은 네 번째 인자(창 크기)를 쓰고
+    // 나머지는 무시한다.
+    run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[], win: number) => TraceEvent[];
     // agent 수 상한. 라이브 실행은 동기 호출이라 coupled(joint-space) 탐색은
     // agent가 늘면 |V|^k로 폭발한다 — 그 페이지는 2로 막는다 (그 자체가 교훈).
     maxAgents?: number;
@@ -47,7 +55,7 @@ export interface SandboxProps {
 
 export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
     presets: ScenarioPreset[];
-    run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[]) => TraceEvent[];
+    run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[], win: number) => TraceEvent[];
     maxAgents?: number;
     panel?: number;
 }) => {
@@ -65,13 +73,16 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
     // agent별 속도 한계 — agents와 같은 길이로 유지된다 (추가 시 1, 제거 시 함께 감소).
     // discrete 알고리즘은 run이 vmax를 읽지 않으므로 값은 무관하다.
     const [vmax, setVmax] = useState<number[]>(() => preset.vmax ?? preset.agents.map(() => 1))
+    // 창 달린 알고리즘의 window — 나머지 알고리즘은 run이 네 번째 인자를 읽지 않는다.
+    const [win, setWin] = useState<number>(() => preset.window ?? 1)
 
-    // preset 전환: 그 맵 JSON을 다시 읽고 endpoint와 속도 한계를 preset 기본값으로 되돌린다.
+    // preset 전환: 그 맵 JSON을 다시 읽고 endpoint·속도 한계·창을 preset 기본값으로 되돌린다.
     useEffect(() => {
         let cancelled = false
         const p = presets.find((q) => q.name === presetName) ?? presets[0]
         setAgents(copy(p.agents))
         setVmax(p.vmax ?? p.agents.map(() => 1))
+        if (p.window !== undefined) setWin(p.window)
         loadGridMap(`data/maps/${p.map}.json`).then((m) => {
             if (!cancelled) setMap(m)
         }).catch((e: unknown) => {
@@ -83,11 +94,11 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [presetName, nonce])
 
-    // 라이브: map/agents가 바뀔 때마다 엔진을 다시 돌리고 재생이 0부터 돈다.
+    // 라이브: map/agents/창이 바뀔 때마다 엔진을 다시 돌리고 재생이 0부터 돈다.
     const timeline = useMemo(
-        () => (map ? buildTimeline(run(map, agents, vmax)) : null),
+        () => (map ? buildTimeline(run(map, agents, vmax, win)) : null),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [map, run, agents, vmax],
+        [map, run, agents, vmax, win],
     )
 
     const paintCell = (row: number, col: number, occupied: boolean) => {
@@ -146,6 +157,11 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
         const i = VMAX_LADDER.indexOf(v)
         return i < 0 ? 1 : VMAX_LADDER[(i + 1) % VMAX_LADDER.length]
     }))
+    // 창 칩 클릭 — 사다리 [1, 2, 3]를 한 칸 순환.
+    const cycleWin = () => setWin((prev) => {
+        const i = WINDOW_LADDER.indexOf(prev)
+        return i < 0 ? 1 : WINDOW_LADDER[(i + 1) % WINDOW_LADDER.length]
+    })
 
     const controls: ReactNode = (
         <div className="flex flex-col items-center gap-1.5 text-xs text-muted">
@@ -171,6 +187,16 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
                     +
                 </button>
             </div>
+            {preset.window !== undefined && (
+                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                    <button type="button" onClick={cycleWin}
+                            aria-label={t("cycle the planning window (1 → 2 → 3)",
+                                          "계획 창 순환 변경 (1 → 2 → 3)")}
+                            className="px-1.5 py-0.5 rounded border border-border font-mono tabular-nums hover:bg-surface">
+                        {`w=${win}`}
+                    </button>
+                </div>
+            )}
             {preset.vmax !== undefined && (
                 <div className="flex items-center justify-center gap-1.5 flex-wrap">
                     {vmax.map((v, i) => (
@@ -195,6 +221,15 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
                         "scale every vmax by the same factor and every time scales by its inverse; there is no absolute clock",
                         "속도 칩: 클릭할 때마다 그 agent의 한계가 두 배가 됩니다 (4를 넘으면 0.25로 돌아간다) — " +
                         "모든 vmax에 같은 인자를 걸면 모든 시간이 그 역수로만 스케일됩니다. 절대 시계는 없습니다")}
+                </div>
+            )}
+            {preset.window !== undefined && (
+                <div className="text-xs text-muted text-center">
+                    {t("window chip: the planning window w — at w=1 the negotiation is per-cell again (plain PIBT); " +
+                        "every click widens what each agent reserves ahead, and on pocket01_swap that alone flips " +
+                        "the swap between success and honest deadlock",
+                        "창 칩: 계획 창 w — w=1에서는 협상이 다시 칸 단위가 된다(그냥 PIBT). 클릭마다 각 agent가 미리 " +
+                        "예약하는 범위가 넓어지고, pocket01_swap에서는 그것만으로 교환이 성공과 정직한 교착 사이를 뒤집는다")}
                 </div>
             )}
         </div>

@@ -123,6 +123,18 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
         },
     },
     {
+        slug: "winpibt",
+        blurb: {
+            en: "The same discipline along the time axis: every agent holds a provisional space-time path, extends it " +
+                "w steps ahead and secures those steps one by one in priority order — at w = 1 this is exactly PIBT, and as " +
+                "the window grows frozen reservations pile up until negotiation degenerates into prioritized planning. The " +
+                "branch's coupling axis becomes a single knob you can turn on the live demo.",
+            ko: "같은 규율을 시간 축을 따라: 각 agent가 잠정 시공간 경로를 들고 w스텝씩 연장하며 그 스텝들을 우선순위 " +
+                "순서로 하나씩 확보한다 — w = 1에서 이건 정확히 PIBT이고, 창이 커지면 얼린 예약들이 쌓여 협상이 prioritized " +
+                "planning으로 퇴화할 때쯤 된다. 이 갈래의 결합 축이 데모에서 직접 돌릴 수 있는 하나의 노브가 된다.",
+        },
+    },
+    {
         slug: "mapf_post",
         blurb: {
             en: "Plans nothing new — plans time onto the plan: the collision-free discrete plan becomes a " +
@@ -186,10 +198,12 @@ export const SECTIONS: Array<{
             en: "The branch that drops the plan itself: no path exists before it is walked. Every " +
                 "timestep each agent negotiates its next cell by priority, and a blocked occupant " +
                 "inherits the claim — PIBT is the priority discipline of the search branch rebuilt " +
-                "at the time step, with no offline plan anywhere.",
+                "at the time step, with no offline plan anywhere; winPIBT generalizes that negotiation " +
+                "along the time axis, and the window becomes the branch's coupling axis as one knob.",
             ko: "계획이라는 매개체 자체를 버리는 갈래: 경로는 걷기 전에는 존재하지 않는다. 매 " +
                 "스텝 각 agent가 우선순위로 다음 칸을 협상하고, 막힌 점유자는 claim을 상속받는다 — " +
-                "PIBT는 search 갈래의 우선순위 규율을 스텝에서 다시 세운 것으로, 오프라인 계획은 어디에도 없다.",
+                "PIBT는 search 갈래의 우선순위 규율을 스텝에서 다시 세운 것으로 오프라인 계획은 어디에도 없고, " +
+                "winPIBT는 그 협상을 시간 축을 따라 일반화하며 창이 하나의 노브로 이 갈래의 결합 축이 된다.",
         },
     },
     {
