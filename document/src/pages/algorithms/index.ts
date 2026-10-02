@@ -194,6 +194,25 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
+    // 같은 갈래의 두 번째 회원 — 스텝별 협상을 시간 축으로 일반화한다. 각 agent가 잠정
+    // 시공간 경로를 w스텝씩 연장하고 우선순위 순서로 스텝을 하나씩 확보한다; w=1은 정확히
+    // PIBT이고 창이 커지면 prioritized planning으로 가까워진다 (Okumura, Tamura & Défago).
+    {
+        slug: "winpibt",
+        title: {en: "winPIBT", ko: "winPIBT"},
+        section: "decentralized",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./decentralized/winpibt")),
+        sections: [
+            {en: "From Per-Step Negotiation to the Time Window", ko: "스텝별 협상에서 시간 창으로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
+    },
     // --- kinodynamic 갈래의 유일한 회원 — 계보의 종착점. 계획을 되돌려 받고(아래에선 CBS가
     // 조용히 계속 돈다) 시간 실린 스케줄로 변환한다: TPG → STN, 대기 → dwell, 스텝 → 시각.
     {

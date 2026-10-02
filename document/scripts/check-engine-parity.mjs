@@ -38,6 +38,7 @@ const RUNNERS = {
     push_and_swap: (map, agents, params) => engines.runPushAndSwap(map, agents, params),
     push_and_rotate: (map, agents, params) => engines.runPushAndRotate(map, agents, params),
     pibt: (map, agents, params) => engines.runPibt(map, agents, params),
+    winpibt: (map, agents, params) => engines.runWinpibt(map, agents, params),
     joint_astar: (map, agents, params) => engines.runJointAStar(map, agents, params),
     cbs: (map, agents, params) => engines.runCbs(map, agents, params),
     mapf_post: (map, agents, params, ctx) => engines.runMapfPost(map, agents, ctx.vmax, params),
@@ -115,6 +116,22 @@ const CHECKS = [
     // 핵심 지표가 실행 시간(makespan)이기 때문이다.
     {
         algo: "pibt",
+        metricKeys: [{key: "sum_of_costs", tol: 0}, {key: "expanded_nodes", tol: 0},
+            {key: "makespan", tol: 0}],
+        scenarios: [
+            {map: "maze01", name: "maze01_two", agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
+            {map: "open01", name: "open01_cross", agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
+            {map: "open01", name: "open01_swap", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+            {map: "pocket01", name: "pocket01_swap", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "tee01", name: "tee01_head_on", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "corridor01", name: "corridor01_head_on", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+        ],
+    },
+    // winpibt는 창 달린 PIBT — decentralized 갈래의 두 번째 회원. w=2 기본값에서 pocket 교환은
+    // 성공하고(창 1과 같은 비용, 한 스텝 빠른 makespan) tee/corridor는 모든 창에서 정직하게 교착한다.
+    // 지표에 makespan이 exact로 비교되는 건 PIBT와 같은 이유: 이 갈래의 핵심 지표가 실행 시간이다.
+    {
+        algo: "winpibt",
         metricKeys: [{key: "sum_of_costs", tol: 0}, {key: "expanded_nodes", tol: 0},
             {key: "makespan", tol: 0}],
         scenarios: [

@@ -5,6 +5,7 @@ export {runPrioritizedAStar} from "../src/libs/algorithms/prioritized_astar";
 export {runPushAndSwap} from "../src/libs/algorithms/push_and_swap";
 export {runPushAndRotate} from "../src/libs/algorithms/push_and_rotate";
 export {runPibt} from "../src/libs/algorithms/pibt";
+export {runWinpibt} from "../src/libs/algorithms/winpibt";
 export {runJointAStar} from "../src/libs/algorithms/joint_astar";
 export {runCbs} from "../src/libs/algorithms/cbs";
 export {runMapfPost} from "../src/libs/algorithms/mapf_post";

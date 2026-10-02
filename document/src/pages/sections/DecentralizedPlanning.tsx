@@ -3,7 +3,7 @@ import {InlineMath} from "../../components/math/Tex";
 
 // decentralized 갈래 소개 페이지 — 계획이라는 매개체 자체를 버린 자리에서 문제를 다시
 // 세운다. search 갈래가 우선순위 규율을 어떻게 실행 시간의 협상으로 다시 세우는지(PIBT),
-// 무엇이 남고 무엇이 사라지는지 다룬다.
+// 그 협상이 시간 축을 따라 일반화되는 곳(winPIBT)에서 무엇이 남고 무엇이 사라지는지 다룬다.
 const DecentralizedPlanning = () => {
     const t = useTr()
     return (
@@ -143,28 +143,35 @@ const DecentralizedPlanning = () => {
             <h2>{t("What Is Written, and What Comes Next", "집필된 것과 그다음")}</h2>
             <T
                 en={<p>
-                    One member is written and implemented: <strong>PIBT</strong> — Priority Inheritance with
+                    Two members are written and implemented. First <strong>PIBT</strong> — Priority Inheritance with
                     Backtracking (Okumura, Machida, Défago & Tamura) — the priority discipline of the search branch
                     rebuilt at the time step, with inheritance in place of every primitive. Read it after Push and
                     Rotate: the same maps (<InlineMath math="open01"/>, <InlineMath math="pocket01"/>,{" "}
                     <InlineMath math="corridor01"/>), the same head-on swap at their centers, and now the comparison
-                    is direct — machinery that repairs around geometry versus negotiation that lets geometry win.
-                    The genealogy's terminus this branch foreshadowed is written too: <strong>MAPF-POST</strong> —
-                    plans again, but plans carrying time: routes with the waits deleted and one earliest arrival
-                    time per retained location, executed at each agent's own velocity limit. What it inherits from
-                    here is exactly what this branch inherited from prioritized planning: the view that time belongs
-                    to the problem itself, not merely to its execution.
+                    is direct — machinery that repairs around geometry versus negotiation that lets geometry win. Then
+                    <strong> winPIBT</strong> (Okumura, Tamura & Défago) generalizes exactly that negotiation along the
+                    time axis: a provisional space-time path per agent, extended w steps at a time and secured step by
+                    step — at w = 1 it reproduces PIBT's runs exactly, and widening the window slides the same code
+                    continuously toward prioritized planning. The branch's coupling axis stops being implicit and becomes
+                    a knob. The genealogy's terminus this branch foreshadowed is written too: <strong>MAPF-POST</strong>
+                    — plans again, but plans carrying time: routes with the waits deleted and one earliest arrival time
+                    per retained location, executed at each agent's own velocity limit. What it inherits from here is
+                    exactly what this branch inherited from prioritized planning: the view that time belongs to the
+                    problem itself, not merely to its execution.
                 </p>}
                 ko={<p>
-                    <strong>PIBT</strong>(Priority Inheritance with Backtracking, Okumura·Machida·Défago &
-                    Tamura)가 한 회원으로 집필·구현됐다: search 갈래의 우선순위 규율을 스텝에서 다시 세우고 모든 primitive
+                    두 회원이 집필·구현됐다. 먼저 <strong>PIBT</strong>(Priority Inheritance with Backtracking,
+                    Okumura·Machida·Défago & Tamura): search 갈래의 우선순위 규율을 스텝에서 다시 세우고 모든 primitive
                     자리에 상속을 놓은 것. Push and Rotate 뒤에 이것을 읽어라: 같은 맵(<InlineMath math="open01"/>,{" "}
                     <InlineMath math="pocket01"/> 그리고 <InlineMath math="corridor01"/>), 그 한가운데 같은 정면 교환,
                     그리고 이제 비교가 직접 가능해진다 — 기하를 기계장치로 돌아 수리하는 쪽과, 기하가 이기게 두는 협상.
-                    이 갈래가 예고한 계보의 종착점도 집필됐다: <strong>MAPF-POST</strong> — 계획이 다시 등장하지만
-                    이번엔 시간을 실은 계획이다. 대기를 지운 route와 유지된 위치마다 가장 빠른 도착 시각 하나씩, 각 agent의
-                    자기 속도 한계로 실행된다. 여기서 상속받는 것은 정확히 이 갈래가 우선순위 계획에서 상속한 것이다: 시간은
-                    실행만의 것이 아니라 문제 자체의 것이라는 관점.
+                    그리고 <strong>winPIBT</strong>(Okumura·Tamura & Défago)는 바로 그 협상을 시간 축을 따라 일반화한다:
+                    agent마다 잠정 시공간 경로를 w스텝씩 연장하고 스텝으로 확보해 가고 — w = 1에서 PIBT의 실행을 그대로
+                    재현하고, 창을 넓히면 같은 코드가 prioritized planning 쪽으로 연속적으로 미끄러진다. 이 갈래의 결합 축이
+                    암묵적인 것에서 노브가 된다. 이 갈래가 예고한 계보의 종착점도 집필됐다: <strong>MAPF-POST</strong> —
+                    계획이 다시 등장하지만 이번엔 시간을 실은 계획이다. 대기를 지운 route와 유지된 위치마다 가장 빠른 도착 시각
+                    하나씩, 각 agent의 자기 속도 한계로 실행된다. 여기서 상속받는 것은 정확히 이 갈래가 우선순위 계획에서
+                    상속한 것이다: 시간은 실행만의 것이 아니라 문제 자체의 것이라는 관점.
                 </p>}
             />
         </>
