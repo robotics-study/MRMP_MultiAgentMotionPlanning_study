@@ -4,16 +4,16 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 네 갈�
 
 ## 프로젝트 개요
 
-**여러 로봇의 조율(multi-agent motion planning)** 알고리즘만 다룬다. 1차 분류 축은 planner 타입(survey: Bui et al. 2023): search 기반은 모든 agent가 하나의 shared grid 위에서 이산 상태를 열거해 시공간(space-time) 경로를 찾고, sampling 기반은 연속 configuration space에서 표본 채취로 계획한다. 세 번째 갈래는 분류 축이 한 칸 더 내려간 곳이다 — decentralized는 계획이라는 매개체 자체를 버리고 실행 시간의 스텝별 협상만 남긴다(PIBT). 네 번째 갈래 kinodynamic은 반대로 닫는다 — 계획을 되돌려 받아 그 위에 속도 한계와 dwell semantics을 실는다(MAPF-POST). 단일 로봇 navigation 알고리즘은 이 저장소의 범위가 아니다 — 자매 저장소 [nav_study](https://github.com/robotics-study/navigation_basic) 에서 다룬다.
+**여러 로봇의 조율(multi-agent motion planning)** 알고리즘만 다룬다. 1차 분류 축은 planner 타입(survey: Bui et al. 2023): search 기반은 모든 agent가 하나의 shared grid 위에서 이산 상태를 열거해 시공간(space-time) 경로를 찾고, sampling 기반은 연속 configuration space에서 표본 채취로 계획한다. 세 번째 갈래는 분류 축이 한 칸 더 내려간 곳이다 — decentralized는 계획이라는 매개체 자체를 버리고 실행 시간의 스텝별 협상만 남긴다(PIBT, 그리고 그 협상에 시간 창을 달은 winPIBT). 네 번째 갈래 kinodynamic은 반대로 닫는다 — 계획을 되돌려 받아 그 위에 속도 한계와 dwell semantics을 실는다(MAPF-POST). 단일 로봇 navigation 알고리즘은 이 저장소의 범위가 아니다 — 자매 저장소 [nav_study](https://github.com/robotics-study/navigation_basic) 에서 다룬다.
 
 | 섹션 (= 코드 디렉토리) | 알고리즘 (⏳ = planned) | 베이스 클래스 |
 |---|---|---|
 | `search` | Prioritized A*, Push and Swap, Push and Rotate, Joint-space A*, CBS | `MultiAgentPlanner` |
 | `sampling` | MA-RRT*, sRRT, dRRT, dRRT* | `MultiAgentPlanner` — MA-RRT*는 논문의 자체 이산화(G-RRT*)로, sRRT는 individual policy(BFS tree)가 격자에서 정확히 구성되므로 `DiscreteSpace` 위에서 구현. dRRT는 연속 configuration space용 새 capability `ContinuousSpace`(같은 raster + disc robot) 위에서 구현 |
-| `decentralized` | PIBT | `MultiAgentPlanner` — 계획 없음, `DiscreteSpace` 위에서 스텝별 우선순위 상속 협상만. trace는 planning_started + agent별 path_found(full-horizon) + planning_finished |
+| `decentralized` | PIBT, winPIBT | `MultiAgentPlanner` — 계획 없음, `DiscreteSpace` 위에서 스텝별 우선순위 상속 협상만. winPIBT는 같은 협상에 시간 창 w를 달아 w=1에서 PIBT를 재현하고 창이 커지면 prioritized planning으로 연속 퇴화. trace는 planning_started + agent별 path_found(full-horizon) + planning_finished |
 | `kinodynamic` | MAPF-POST | `MultiAgentPlanner` — 탐색 없음(후처리기), CBS가 조용히 푼 이산 계획을 TPG→STN으로 바꿔 가장 빠른 실행 스케줄로. trace는 planning_started(vmax) + agent별 schedule_found(cells/times — 시각이 스텝을 대신한다) + planning_finished |
 
-계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Push and Swap → Push and Rotate(priority 갈래의 완성인 decentralized 계열) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. Push and Swap(Luna & Bekris, IJCAI 2011)은 예약 동결 대신 push/swap primitive로 끝난 agent를 치우고, swap 자리는 격자에서 빈 2×2 block뿐이라 폭 1 통로는 정직하게 실패한다 — 전작이 그 트리에서의 실패를 시연했고, 후속 Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014)는 자유 그래프를 biconnected subgraph+plank로 분해하고 swap을 degree-3 junction의 rotate로 확장해 판정 절차(해가 있으면 항상 찾고 없으면 불가능하다고 보고)로 완성한다. sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled — 논문 자체의 이산화 G-RRT*로 DiscreteSpace 위에서 구현 완료) → sRRT(Wagner, Kang & Choset 2012, subdimensional — individual policy + collision set, 같은 DiscreteSpace 위에서 구현 완료) → dRRT(Solovey, Salzman & Halperin 2016, 구현 완료. 같은 raster를 그대로 쓰되 robot을 disc로 다루는 새 capability ContinuousSpace 위에서 연속 free space를 표본 채취) → dRRT*(Shome, Solovey, Dobson, Halperin & Bekris, Autonomous Robots 2020, 구현 완료 — 같은 ContinuousSpace 위에서 개별 roadmap을 k-nearest에서 PRM* connection radius로, tree 탐색을 oracle growth + decoupled connector에서 cost-to-come rewiring + branch-and-bound로 바꾼다) 순서. 세 번째 갈래 decentralized는 계획이라는 매개체를 버린 자리 — PIBT(Okumura, Machida, Défago & Tamura, Artificial Intelligence 310 2022 / IJCAI 2019, 구현 완료): 오프라인 경로 없이 매 스텝 우선순위 상속으로 다음 칸을 협상하고, search 갈래가 primitive로 수리했던 폭 1 통로를 정직한 교착으로 남긴다. 네 번째 갈래 kinodynamic은 계획을 되돌려 받는 자리 — MAPF-POST(Hönig, Kumar, Cohen, Ma, Xu, Ayanian & Koenig, ICAPS 2016, 구현 완료): CBS가 조용히 푼 이산 계획을 Temporal Plan Graph로 바꾸고 모든 공유 셀을 안전 마커 사이의 precedence로 바꿔, 구성상 acyclic한 STN의 최대 완화 고정점에서 가장 빠른 실행 스케줄을 낸다. agent는 출발 시각까지 머물고 자기 속도 한계로 이동한다. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
+계보 순서: 각 갈래 안에서 결합 축을 따라 decoupled/priority → coupled → hybrid. search 갈래는 Prioritized A*(Erdmann & Lozano-Pérez 1987) → Push and Swap → Push and Rotate(priority 갈래의 완성인 decentralized 계열) → Joint-space A*(모든 것의 baseline) → CBS(Sharon et al. 2015)로 집필·구현 완료. Push and Swap(Luna & Bekris, IJCAI 2011)은 예약 동결 대신 push/swap primitive로 끝난 agent를 치우고, swap 자리는 격자에서 빈 2×2 block뿐이라 폭 1 통로는 정직하게 실패한다 — 전작이 그 트리에서의 실패를 시연했고, 후속 Push and Rotate(de Wilde, ter Mors & Witteveen, JAIR 2014)는 자유 그래프를 biconnected subgraph+plank로 분해하고 swap을 degree-3 junction의 rotate로 확장해 판정 절차(해가 있으면 항상 찾고 없으면 불가능하다고 보고)로 완성한다. sampling 갈래는 MA-RRT*(Čáp et al. 2013, coupled — 논문 자체의 이산화 G-RRT*로 DiscreteSpace 위에서 구현 완료) → sRRT(Wagner, Kang & Choset 2012, subdimensional — individual policy + collision set, 같은 DiscreteSpace 위에서 구현 완료) → dRRT(Solovey, Salzman & Halperin 2016, 구현 완료. 같은 raster를 그대로 쓰되 robot을 disc로 다루는 새 capability ContinuousSpace 위에서 연속 free space를 표본 채취) → dRRT*(Shome, Solovey, Dobson, Halperin & Bekris, Autonomous Robots 2020, 구현 완료 — 같은 ContinuousSpace 위에서 개별 roadmap을 k-nearest에서 PRM* connection radius로, tree 탐색을 oracle growth + decoupled connector에서 cost-to-come rewiring + branch-and-bound로 바꾼다) 순서. 세 번째 갈래 decentralized는 계획이라는 매개체를 버린 자리 — PIBT(Okumura, Machida, Défago & Tamura, Artificial Intelligence 310 2022 / IJCAI 2019, 구현 완료): 오프라인 경로 없이 매 스텝 우선순위 상속으로 다음 칸을 협상하고, search 갈래가 primitive로 수리했던 폭 1 통로를 정직한 교착으로 남긴다. 같은 저자들의 후속 winPIBT(Okumura, Tamura & Défago, IJCAI-20 MAPF workshop, arXiv:1905.10149, 구현 완료)는 그 협상에 시간 창 w 파라미터를 달아 축을 만든다 — w=1은 PIBT를 그대로 재현하고 창이 커지면 계획이 조금씩 돌아와 prioritized planning으로 연속 퇴화한다. pocket 맵의 폭 1 주머니가 두 갈래를 가르는 칼날(PIBT 교착 → winPIBT w=2 성공). 네 번째 갈래 kinodynamic은 계획을 되돌려 받는 자리 — MAPF-POST(Hönig, Kumar, Cohen, Ma, Xu, Ayanian & Koenig, ICAPS 2016, 구현 완료): CBS가 조용히 푼 이산 계획을 Temporal Plan Graph로 바꾸고 모든 공유 셀을 안전 마커 사이의 precedence로 바꿔, 구성상 acyclic한 STN의 최대 완화 고정점에서 가장 빠른 실행 스케줄을 낸다. agent는 출발 시각까지 머물고 자기 속도 한계로 이동한다. 새 알고리즘도 이 계보 위치에 끼워 넣는다.
 
 모든 알고리즘은 추상 클래스 기반으로 다음 세 가지가 자동으로 성립해야 한다:
 1. **Performance estimate** — 공통 metric(sum_of_costs, makespan, expanded nodes, success)을 benchmark runner가 수집.
@@ -40,7 +40,7 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 네 갈�
 │   │   ├── maps/                # occupancy_grid.hpp, pgm.hpp, loader.hpp
 │   │   ├── search/              #   알고리즘 헤더 (사이트 섹션과 1:1)
 │   │   ├── sampling/            #   MA-RRT* 등 — 사이트 섹션과 1:1
-│   │   ├── decentralized/       #   PIBT — 사이트 섹션과 1:1
+│   │   ├── decentralized/       #   PIBT, winPIBT — 사이트 섹션과 1:1
 │   │   └── kinodynamic/         #   MAPF-POST — 사이트 섹션과 1:1
 │   ├── src/                     # include/와 동일 구조의 구현
 │   ├── demos/                   # demo_<algo>.cpp — 실행 시 trace 파일 출력
@@ -52,7 +52,7 @@ Multi-robot planning 알고리즘 구현체 + demo 모음 — 계보의 네 갈�
 │   │   ├── maps/                # cpp include/mrmp/maps/ 와 1:1 미러
 │   │   ├── search/              #   알고리즘 모듈 (사이트 섹션과 1:1)
 │   │   ├── sampling/            #   MA-RRT* 등 — 사이트 섹션과 1:1
-│   │   ├── decentralized/       #   PIBT — 사이트 섹션과 1:1
+│   │   ├── decentralized/       #   PIBT, winPIBT — 사이트 섹션과 1:1
 │   │   └── kinodynamic/         #   MAPF-POST — 사이트 섹션과 1:1
 │   ├── demos/                   # demo_<algo>.py — demo_common.run(name, factory) 조립만
 │   └── tests/                   # pytest
@@ -131,7 +131,7 @@ python tools/viz/replay.py out/trace.jsonl                                      
 python tools/viz/replay.py out/trace.jsonl --gif out/viz/x.gif --snapshots out/snaps/
 python tools/bench/run_matrix.py --out out/report.md
 PYTHONPATH=$PWD/python python tools/web_export/export_web_assets.py \
-    --algos prioritized_astar,push_and_swap,push_and_rotate,joint_astar,cbs,ma_rrt_star,srrt,drrt,drrt_star,pibt,mapf_post   # 사이트용 자산 (시나리오는 각 config의 scenarios: 가 라우팅)
+    --algos prioritized_astar,push_and_swap,push_and_rotate,joint_astar,cbs,ma_rrt_star,srrt,drrt,drrt_star,pibt,winpibt,mapf_post   # 사이트용 자산 (시나리오는 각 config의 scenarios: 가 라우팅)
 ```
 
 ## 새 알고리즘 추가 체크리스트
