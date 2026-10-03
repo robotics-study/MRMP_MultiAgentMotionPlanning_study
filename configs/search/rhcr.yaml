@@ -1,0 +1,48 @@
+# RHCR (Li, Tinka, Kiesel, Durham, Kumar & Koenig, AAAI-21): Rolling-Horizon Collision
+# Resolution — 창 달린 CBS를 굴린다. 매 갱신 주기 h마다 창 w 안의 충돌만 해소하는 Windowed
+# MAPF solver(CBS)를 다시 돌리고, 실행된 첫 h 스텝이 다음 에피소드의 시작이 된다(w ≥ h가
+# 안전 조건의 전부다: 실행되는 모든 스텝은 어딘가 창 안에서 이미 해소됐기 때문). 창이 호라이즌을
+# 덮으면 일반 CBS와 필드 단위로 완전히 같아지고(테스트로 고정됨), 창이 작아지면 미래 충돌을 보지
+# 못한 채 지금을 최적화한다 — 최적 아님, 완전 아님이 알고리즘의 정의 그 자체다.
+algorithm: rhcr
+section: search
+# 매트릭스 러너/웹 수출기가 이 알고리즘을 돌리는 시나리오 목록 (spec/param_schema.json).
+# discrete 알고리즘이므로 셀 시나리오만 — discs 시나리오는 dRRT 영역이다.
+# 다섯 시나리오 전부 기본값(w=2, h=1)에서 성공하고 CBS의 최적값과 정확히 같다: cross 33(창 무관),
+# swap 30(maze 66과 함께 창이 좁아도 기하가 허용하면 협상으로 해결), pocket 10, tee 11 — 단 w=1에서는
+# pocket/tee가 정직하게 교착하고 swap만 31로 근시안이 드러난다. corridor01_head_on은 목록에 없다:
+# 어떤 창에서도 정직한 실패지만(테스트로 고정), 스텝마다 전체 재계획이라 실행의 트레이스가 터져
+# (스텝당 수천 expansion) 수출 자산으로 실을 수가 없다 — 부정이 고정되는 곳은 테스트다.
+scenarios: [maze01_two, open01_cross, open01_swap, pocket01_swap, tee01_head_on]
+params:
+  - name: window
+    type: int
+    default: 2
+    min: 1
+    description: >-
+      Time horizon w ≥ h: the Windowed MAPF solver resolves collisions whose arrival step
+      falls in (T, T+w] and ignores everything beyond. When w covers an instance's whole
+      horizon the window hides nothing and a single episode IS plain CBS with identical
+      tie-breaks; at w = 1 every conflict is resolved by a wait that just defers itself into
+      the next window — on pocket/tee head-on swaps that pins both agents forever (honest
+      budget stop) and even open01_swap goes suboptimal (31 instead of 30).
+  - name: replan_period
+    type: int
+    default: 1
+    min: 1
+    description: >-
+      Replanning period h ≤ w: execute the first h steps of every windowed solution, then
+      replan from the actual positions (pliable — nothing old stays reserved). h = 1 replans
+      at every step; h = w commits a whole window before looking again. Safety needs h ≤ w —
+      every executed step must fall inside some resolved window, so h > w raises instead of
+      clamping.
+  - name: max_steps
+    type: int
+    default: 64
+    min: 1
+    description: >-
+      Budget on absolute execution steps — generous against the worst solvable makespan here
+      (33). A small window can deadlock (the paper's own Example 2) and the loop only stops
+      honestly at the budget — never a proof of unsolvability. Unlike the decentralized
+      branch's cheap per-step negotiation, every step here re-runs a whole windowed CBS, so
+      this budget also bounds what a replay can ever contain.

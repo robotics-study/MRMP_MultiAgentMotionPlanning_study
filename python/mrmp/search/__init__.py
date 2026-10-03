@@ -3,12 +3,15 @@ configs/search/<slug>.yaml. Reading order follows the branch's genealogy: the
 decoupled/priority line — prioritized planning (Erdmann & Lozano-Pérez 1987) and
 its decentralized completions Push and Swap (Luna & Bekris 2011) and Push and
 Rotate (de Wilde, ter Mors & Witteveen 2014) — then coupled joint-space search,
-then the hybrid CBS (Sharon et al. 2015)."""
+then the hybrid CBS (Sharon et al. 2015), and finally the hybrid folded into time:
+RHCR (Li, Tinka, Kiesel, Durham, Kumar & Koenig 2021), which wraps that same CBS in a
+rolling window and replans from the actual positions every h steps."""
 
 from .cbs import Cbs
 from .joint_astar import JointAStar
 from .prioritized_astar import PrioritizedAStar
 from .push_and_rotate import PushAndRotate
 from .push_and_swap import PushAndSwap
+from .rhcr import Rhcr
 
-__all__ = ["Cbs", "JointAStar", "PrioritizedAStar", "PushAndRotate", "PushAndSwap"]
+__all__ = ["Cbs", "JointAStar", "PrioritizedAStar", "PushAndRotate", "PushAndSwap", "Rhcr"]
