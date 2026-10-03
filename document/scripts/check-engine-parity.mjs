@@ -43,6 +43,7 @@ const RUNNERS = {
     cbs: (map, agents, params) => engines.runCbs(map, agents, params),
     rhcr: (map, agents, params) => engines.runRhcr(map, agents, params),
     mapf_post: (map, agents, params, ctx) => engines.runMapfPost(map, agents, ctx.vmax, params),
+    db_cbs: (map, agents, params, ctx) => engines.runDbCbs(map, agents, ctx.vmax, params),
     ma_rrt_star: (map, agents, params) => engines.runMaRrtStar(map, agents, params),
     srrt: (map, agents, params) => engines.runSrrt(map, agents, params),
     drrt: (map, agents, params, ctx) => engines.runDrrt(map, agents, ctx.radius, params),
@@ -73,6 +74,27 @@ const CHECKS = [
                 agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
             {map: "maze01", name: "maze01_two_timed",
                 agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
+        ],
+    },
+    // db-CBS는 kinodynamic 갈래의 두 번째 회원 — CBS의 저수준이 운동량을 갖는다. timed
+    // 시나리오 다섯 개(정직한 실패였던 corridor 포함 — 여기선 swap으로 solvable)를 필드
+    // 단위로 대조한다. 지표에 delta가 있는 건 라더의 답 칸 자체가 이 알고리즘의 결과이기
+    // 때문이고, maze01_two_timed는 vmax 0.25(비정수)라 이 갈래가 거부해 라우팅되지 않는다.
+    {
+        algo: "db_cbs",
+        metricKeys: [{key: "sum_of_costs", tol: 0}, {key: "expanded_nodes", tol: 0},
+            {key: "makespan", tol: 0}, {key: "delta", tol: 0}],
+        scenarios: [
+            {map: "open01", name: "open01_cross_timed",
+                agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
+            {map: "open01", name: "open01_swap_timed",
+                agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+            {map: "pocket01", name: "pocket01_swap_timed",
+                agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "tee01", name: "tee01_head_on_timed",
+                agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "corridor01", name: "corridor01_head_on_timed",
+                agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
         ],
     },
     {
