@@ -6,6 +6,7 @@ import {buildTimeline} from "../../libs/trace/timeline";
 import {Cell, TraceEvent} from "../../libs/trace/types";
 import {cellToWorld, freePoint, GridMap} from "../../libs/grid";
 import {useTr} from "../../libs/i18n";
+import {Localized} from "../../../types/global";
 
 // 라이브 sandbox — 페이지의 알고리즘을 브라우저에서 직접 돌린다. 벽을 그리고,
 // agent의 start/goal 핸들을 드래그하고, agent를 더하고 빼면 엔진이 즉시 다시
@@ -27,13 +28,14 @@ export interface ScenarioPreset {
     // 전달되고 agent 추가 시 1이 늘어난다. 칩 클릭으로 순환 변경하고, discrete 알고리즘은
     // run이 vmax를 무시한다.
     vmax?: number[];
-    // 창 달린 알고리즘(winPIBT)의 window 파라미터 기본값 — 있으면 창 칩이 렌더되고
+    // 창 달린 알고리즘(winPIBT, RHCR)의 window 파라미터 기본값 — 있으면 창 칩이 렌더되고
     // 클릭마다 1 → 2 → 3으로 순환한다. 없는 알고리즘은 run이 네 번째 인자를 무시한다.
     window?: number;
 }
 
 // 창 사다리 — 칩 클릭마다 순환. winPIBT에서 이 값이 곧 갈래의 축이다: w=1은 PIBT로
 // 돌아가고, 커지면 prioritized planning에 가까워진다(pocket 시나리오가 칼날이 되는 지점).
+// RHCR에서는 창 자체가 알고리즘의 축이다 — 좁히면 근시안이 연구 대상이 된다.
 const WINDOW_LADDER = [1, 2, 3]
 
 // timed preset의 속도 한계 사다리 — 칩 클릭마다 ×2로 순환(4를 넘으면 0.25로 돌아간다).
@@ -51,13 +53,16 @@ export interface SandboxProps {
     // agent가 늘면 |V|^k로 폭발한다 — 그 페이지는 2로 막는다 (그 자체가 교훈).
     maxAgents?: number;
     label: string;
+    // 창 칩이 있는 알고리즘만 쓰는 칩 설명(언어 쌍) — 창이 무엇을 노브인지 각 페이지가 쓴다.
+    windowHint?: Localized<string>;
 }
 
-export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
+export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340, windowHint}: {
     presets: ScenarioPreset[];
     run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[], win: number) => TraceEvent[];
     maxAgents?: number;
     panel?: number;
+    windowHint?: Localized<string>;
 }) => {
     const t = useTr()
     const [presetName, setPresetName] = useState(presets[0].name)
@@ -223,14 +228,8 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
                         "모든 vmax에 같은 인자를 걸면 모든 시간이 그 역수로만 스케일됩니다. 절대 시계는 없습니다")}
                 </div>
             )}
-            {preset.window !== undefined && (
-                <div className="text-xs text-muted text-center">
-                    {t("window chip: the planning window w — at w=1 the negotiation is per-cell again (plain PIBT); " +
-                        "every click widens what each agent reserves ahead, and on pocket01_swap that alone flips " +
-                        "the swap between success and honest deadlock",
-                        "창 칩: 계획 창 w — w=1에서는 협상이 다시 칸 단위가 된다(그냥 PIBT). 클릭마다 각 agent가 미리 " +
-                        "예약하는 범위가 넓어지고, pocket01_swap에서는 그것만으로 교환이 성공과 정직한 교착 사이를 뒤집는다")}
-                </div>
+            {preset.window !== undefined && windowHint && (
+                <div className="text-xs text-muted text-center">{t(windowHint.en, windowHint.ko)}</div>
             )}
         </div>
     )
@@ -251,17 +250,17 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340}: {
                         footer={controls}/>
 }
 
-const Sandbox = ({presets, run, maxAgents, label}: SandboxProps) => {
+const Sandbox = ({presets, run, maxAgents, label, windowHint}: SandboxProps) => {
     const size = modalCanvasSize(1)
     return <CanvasFigure
         label={label}
         tight
         bodyClassName="w-fit"
         className="w-full"
-        modal={<SandboxScene presets={presets} run={run} maxAgents={maxAgents}
+        modal={<SandboxScene presets={presets} run={run} maxAgents={maxAgents} windowHint={windowHint}
                              panel={Math.min(size.width, 640)}/>}
     >
-        <SandboxScene presets={presets} run={run} maxAgents={maxAgents}/>
+        <SandboxScene presets={presets} run={run} maxAgents={maxAgents} windowHint={windowHint}/>
     </CanvasFigure>
 }
 

@@ -23,7 +23,7 @@ lives in the sibling nav_study repo.*
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg)
 ![CMake](https://img.shields.io/badge/CMake-%E2%89%A53.20-064F8C.svg)
-![Tests](https://img.shields.io/badge/tests-171%20py%20%2B%20164%20cpp-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-186%20py%20%2B%20179%20cpp-brightgreen.svg)
 
 </div>
 
@@ -62,6 +62,7 @@ lives in the sibling nav_study repo.*
 | search | Push and Rotate | ✅ | ✅ | de Wilde, ter Mors & Witteveen (JAIR 2014) |
 | search | Joint-space A* | ✅ | ✅ | joint-state search (관행적 baseline) |
 | search | CBS | ✅ | ✅ | Sharon, Stern, Felner & Sturtevant (2015) |
+| search | RHCR | ✅ | ✅ | Li, Tinka, Kiesel, Durham, Kumar & Koenig (AAAI-21, arXiv:2005.07371) |
 | sampling | MA-RRT* | ✅ | ✅ | Čáp, Novák, Vokřínek & Pěchouček (2013) |
 | sampling | sRRT | ✅ | ✅ | Wagner, Kang & Choset (2012) |
 | sampling | dRRT | ✅ | ✅ | Solovey, Salzman & Halperin (2016) |
@@ -70,19 +71,19 @@ lives in the sibling nav_study repo.*
 | decentralized | winPIBT | ✅ | ✅ | Okumura, Tamura & Défago (IJCAI-20 MAPF workshop, arXiv:1905.10149) |
 | kinodynamic | MAPF-POST | ✅ | ✅ | Hönig, Kumar, Cohen, Ma, Xu, Ayanian & Koenig (ICAPS 2016) |
 
-네 갈래는 계보 순서대로 도착했다 — search(계획을 열거로 세운다) → sampling(계획을 표본으로 세운다) → decentralized(계획이라는 매개체 자체를 버린다) → kinodynamic(계획에 시간 — 속도 한계와 dwell semantics — 을 실어 되돌린다). 각 갈래 안에서 계보순(decoupled/priority → coupled → hybrid; priority 갈래의 decentralized 계열은 Push and Swap과 Push and Rotate로 완성)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. Push and Swap 은 예약을 동결하지 않고 push/swap primitive 로 끝난 agent 를 치운다 — 파라미터 무의존이고, swap 자리는 격자에서 빈 2×2 block 뿐이라 폭 1 통로는 정직하게 실패한다. Push and Rotate 는 그 자유 그래프를 biconnected subgraph 와 plank 으로 분해하고 맞교환을 degree-3 junction 의 rotate 로 확장해, 해가 있을 때 항상 찾고 없으면 불가능하다고 보고하는 판정 절차가 된다. sampling 갈래의 첫 회원 MA-RRT* 는 논문 자체의 이산화(G-RRT*)로 DiscreteSpace 위에서 구현됐으므로 새 맵 타입 없이 들어왔고, sRRT 도 개별 policy 가 격자에서 BFS tree 로 정확히 구성되므로 같은 DiscreteSpace 위에 들어왔다. dRRT 는 연속 configuration space 용 새 capability ContinuousSpace 위에서 구현됐다. 같은 raster 를 그대로 쓰되 robot 을 반지름 있는 disc 로 다루고, 부풀려진 obstacle 은 쓰지 않는다. dRRT* 는 같은 ContinuousSpace 위의 informed asymptotically-optimal 후속 — 개별 roadmap 이 k-nearest 에서 PRM* connection radius 로, tree 탐색이 oracle growth + decoupled connector 에서 cost-to-come rewiring + branch-and-bound 로 바뀐다. 세 번째 갈래의 첫 회원 PIBT 는 계획이라는 매개체를 통째로 버린다 — 오프라인 경로 없이 매 스텝 우선순위 상속으로 다음 칸을 협상하고(Okumura et al.), search 갈래가 primitive 로 수리했던 폭 1 통로를 정직한 교착으로 남긴다. 같은 저자들의 후속 winPIBT 는 그 협상에 시간 창을 달아 축을 만든다 — w=1 은 PIBT 를 그대로 재현하고, 창이 커지면 계획이 조금씩 돌아와 prioritized planning 으로 연속 퇴화한다. 네 번째 갈래 kinodynamic 의 MAPF-POST 는 계획을 되돌려 받는다 — CBS 가 조용히 푼 충돌 없는 이산 계획을 Temporal Plan Graph 로 바꾸고, 모든 공유 셀을 안전 마커 사이의 precedence 로 바꿔 항상 acyclic 한 STN 에서 가장 빠른 실행 스케줄로 낸다. agent 는 출발 시각까지 머물고 자기 속도 한계로 이동한다. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
+네 갈래는 계보 순서대로 도착했다 — search(계획을 열거로 세운다) → sampling(계획을 표본으로 세운다) → decentralized(계획이라는 매개체 자체를 버린다) → kinodynamic(계획에 시간 — 속도 한계와 dwell semantics — 을 실어 되돌린다). 각 갈래 안에서 계보순(decoupled/priority → coupled → hybrid; priority 갈래의 decentralized 계열은 Push and Swap과 Push and Rotate로 완성)으로 wave 단위로 구현. ✅ done 이 되면 각 알고리즘 페이지의 References 에 원 논문 링크가 붙는다. Push and Swap 은 예약을 동결하지 않고 push/swap primitive 로 끝난 agent 를 치운다 — 파라미터 무의존이고, swap 자리는 격자에서 빈 2×2 block 뿐이라 폭 1 통로는 정직하게 실패한다. Push and Rotate 는 그 자유 그래프를 biconnected subgraph 와 plank 으로 분해하고 맞교환을 degree-3 junction 의 rotate 로 확장해, 해가 있을 때 항상 찾고 없으면 불가능하다고 보고하는 판정 절차가 된다. sampling 갈래의 첫 회원 MA-RRT* 는 논문 자체의 이산화(G-RRT*)로 DiscreteSpace 위에서 구현됐으므로 새 맵 타입 없이 들어왔고, sRRT 도 개별 policy 가 격자에서 BFS tree 로 정확히 구성되므로 같은 DiscreteSpace 위에 들어왔다. dRRT 는 연속 configuration space 용 새 capability ContinuousSpace 위에서 구현됐다. 같은 raster 를 그대로 쓰되 robot 을 반지름 있는 disc 로 다루고, 부풀려진 obstacle 은 쓰지 않는다. dRRT* 는 같은 ContinuousSpace 위의 informed asymptotically-optimal 후속 — 개별 roadmap 이 k-nearest 에서 PRM* connection radius 로, tree 탐색이 oracle growth + decoupled connector 에서 cost-to-come rewiring + branch-and-bound 로 바뀐다. 세 번째 갈래의 첫 회원 PIBT 는 계획이라는 매개체를 통째로 버린다 — 오프라인 경로 없이 매 스텝 우선순위 상속으로 다음 칸을 협상하고(Okumura et al.), search 갈래가 primitive 로 수리했던 폭 1 통로를 정직한 교착으로 남긴다. 같은 저자들의 후속 winPIBT 는 그 협상에 시간 창을 달아 축을 만든다 — w=1 은 PIBT 를 그대로 재현하고, 창이 커지면 계획이 조금씩 돌아와 prioritized planning 으로 연속 퇴화한다. 네 번째 갈래 kinodynamic 의 MAPF-POST 는 계획을 되돌려 받는다 — CBS 가 조용히 푼 충돌 없는 이산 계획을 Temporal Plan Graph 로 바꾸고, 모든 공유 셀을 안전 마커 사이의 precedence 로 바꿔 항상 acyclic 한 STN 에서 가장 빠른 실행 스케줄로 낸다. agent 는 출발 시각까지 머물고 자기 속도 한계로 이동한다. search 갈래의 다섯 번째 회원 RHCR 은 그 hybrid 극단을 시간축 자체로 접는다 — 창 달린 CBS 를 실제 위치에서 h 스텝마다 다시 굴리고 창 안의 도착 스텝만 해소한다(Li, Tinka, Kiesel, Durham, Kumar & Koenig, AAAI-21). w=∞ 에서 정확히 CBS 이고, 창을 좁히면 근시안 자체가 연구 대상이 된다 — pliable, 결코 얼리지 않음, 판정 모드조차 없음. 단일 로컬 planner(VO/RVO/ORCA 등)는 자매 저장소 nav_study 의 local_planning 범위.
 
 ## 🚀 빠른 시작
 
 ```bash
 # Python (>= 3.10) — mrmp 패키지 + viz/dev extras
 cd python && pip install -e ".[dev,viz]" && cd ..
-PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 171 passed
+PYTHONPATH=$PWD/python .venv/bin/python -m pytest python/tests -q   # 186 passed
 
 # C++ (C++20, CMake >= 3.20, GoogleTest 는 FetchContent 자동)
 cmake -S cpp -B cpp/build -DCMAKE_BUILD_TYPE=Release
 cmake --build cpp/build -j
-ctest --test-dir cpp/build     # 164 tests
+ctest --test-dir cpp/build     # 179 tests
 ```
 
 ### 데모 실행 — 두 언어가 동일한 CLI 인자 (알고리즘 구현 시 활성화)

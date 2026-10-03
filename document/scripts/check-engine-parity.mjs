@@ -41,6 +41,7 @@ const RUNNERS = {
     winpibt: (map, agents, params) => engines.runWinpibt(map, agents, params),
     joint_astar: (map, agents, params) => engines.runJointAStar(map, agents, params),
     cbs: (map, agents, params) => engines.runCbs(map, agents, params),
+    rhcr: (map, agents, params) => engines.runRhcr(map, agents, params),
     mapf_post: (map, agents, params, ctx) => engines.runMapfPost(map, agents, ctx.vmax, params),
     ma_rrt_star: (map, agents, params) => engines.runMaRrtStar(map, agents, params),
     srrt: (map, agents, params) => engines.runSrrt(map, agents, params),
@@ -157,6 +158,22 @@ const CHECKS = [
             {map: "maze01", name: "maze01_two", agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
             {map: "open01", name: "open01_cross", agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
             {map: "open01", name: "open01_swap", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+        ],
+    },
+    // rhcr 은 search 갈래의 hybrid 이 시간축으로 접힌 것 — 창 달린 CBS 를 매 주기 다시 굴린다.
+    // 지표에 makespan 이 exact 로 비교되는 건 decentralized 갈래와 같은 이유: 실행된 궤적이
+    // 결과이고 cost 는 첫 도착(flowtime)의 합이다. corridor01_head_on 은 어떤 창에서도 정직하게
+    // 실패하지만 스텝마다 전체 재계획이라 트레이스가 터져 수출 목록에 없다 — 부정은 테스트만 고정.
+    {
+        algo: "rhcr",
+        metricKeys: [{key: "sum_of_costs", tol: 0}, {key: "expanded_nodes", tol: 0},
+            {key: "makespan", tol: 0}],
+        scenarios: [
+            {map: "maze01", name: "maze01_two", agents: [[[17, 1], [5, 16]], [[17, 16], [5, 1]]]},
+            {map: "open01", name: "open01_cross", agents: [[[10, 1], [10, 17]], [[1, 9], [18, 9]]]},
+            {map: "open01", name: "open01_swap", agents: [[[10, 2], [10, 16]], [[10, 16], [10, 2]]]},
+            {map: "pocket01", name: "pocket01_swap", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
+            {map: "tee01", name: "tee01_head_on", agents: [[[1, 1], [1, 5]], [[1, 5], [1, 1]]]},
         ],
     },
     {

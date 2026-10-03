@@ -63,6 +63,18 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
         },
     },
     {
+        slug: "rhcr",
+        blurb: {
+            en: "The hybrid pole folded into time itself: every h steps, re-run a windowed CBS from the actual positions — " +
+                "collisions whose arrival step falls inside the window are resolved by exactly the constraint tree you already " +
+                "know, and everything beyond it simply does not exist yet. w = ∞ is verbatim the page above; narrow the " +
+                "window and myopia itself becomes the object — pliable, never frozen, with no verdict mode at all.",
+            ko: "hybrid 극단을 시간축 자체로 접는다: h 스텝마다 창 달린 CBS를 실제 위치에서 다시 굴린다 — 도착 스텝이 창 안에 " +
+                "떨어지는 충돌만 이미 아는 그 constraint tree로 해소되고, 그 너머는 아직 존재하지 않는다. w = ∞는 바로 위 페이지를 " +
+                "그대로이고, 창을 좁히면 근시안 자체가 연구 대상이 된다 — pliable, 결코 얼리지 않음, 판정 모드조차 없음.",
+        },
+    },
+    {
         slug: "ma_rrt_star",
         blurb: {
             en: "One RRT* grown on the joint state space of motion graphs: samples are whole joint " +
@@ -156,8 +168,8 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
 // 분류 축이 한 칸 더 내려간다 — 오프라인 계획이라는 매개체 자체를 버리고 실행 시간의
 // 스텝별 협상만 남긴다. 네 번째 갈래 kinodynamic은 반대로 닫는다 — 계획을 되돌려 받고 그
 // 위에 속도 한계와 dwell semantics을 실는다(MAPF-POST). 각 섹션 안의 알고리즘 배치는 항상 계보순 — search는 결합 축을
-// 따라 decoupled → coupled → hybrid 순서로 읽는다. 소스 코드 트리(python/mrmp/<section>/)
-// 와 configs(<section>/<slug>.yaml)도 이 구분을 따른다.
+// 따라 decoupled → coupled → hybrid(CBS) → 그 hybrid가 시간축 자체로 접힌 자리(RHCR) 순서로 읽는다.
+// 소스 코드 트리(python/mrmp/<section>/)와 configs(<section>/<slug>.yaml)도 이 구분을 따른다.
 export const SECTIONS: Array<{
     key: AlgoSection;
     title: Localized<string>;
@@ -170,11 +182,12 @@ export const SECTIONS: Array<{
             en: "Point robots on one shared graph — Multi-Agent Path Finding proper. Enumerate " +
                 "states exactly, and read the branch along its coupling axis: prioritized planning " +
                 "and its decentralized per-agent completion via push/swap primitives, coupled " +
-                "joint-space search, and the hybrid in between (CBS).",
+                "joint-space search, the hybrid in between (CBS) — and that hybrid folded into time " +
+                "itself, replanned on a rolling window (RHCR).",
             ko: "하나의 그래프를 공유하는 점 로봇들 — Multi-Agent Path Finding 그 자체. 상태를 " +
                 "정확하게 열거하고, 결합 축을 따라 읽는다: 우선순위 계획과 push/swap primitive로 " +
-                "완성되는 decentralized 계열, coupled joint-space 탐색, 그리고 그 사이 어딘가의 " +
-                "hybrid(CBS).",
+                "완성되는 decentralized 계열, coupled joint-space 탐색, 그 사이 어딘가의 hybrid(CBS), " +
+                "그리고 그 hybrid가 시간축 자체로 접힌 자리 — 롤링 창으로 다시 계획하는(RHCR).",
         },
     },
     {
