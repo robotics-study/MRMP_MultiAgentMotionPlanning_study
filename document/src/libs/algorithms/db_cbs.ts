@@ -144,7 +144,10 @@ export function runDbCbs(
 
     // Python이 plan()에서 던지는 순서 그대로 — 파라미터 쌍이 먼저, 그다음 vmax 루프.
     // 라이브 sandbox의 vmax 칩은 0.25/0.5로 순환할 수 있고 그때 엔진은 Python처럼 던진다
-    // (속도 격자는 정수만 양자화한다). events는 아직 없다: 거부된 실행은 trace도 없다.
+    // (속도 격자는 정수만 양자화한다). 의도된 차이 하나: Python 데모는 plan() 전에
+    // planning_started를 싣므로 거부된 실행의 trace 파일에는 그 이벤트 하나만 남고, 여기서는
+    // 이벤트를 아예 싣지 않는다 — 거부된 실행은 어떤 트레이스도 수출되지 않고 라이브는 error
+    // 카드를 보이니 관찰 가능한 차이는 없다.
     if (deltaEnd > deltaStart) {
         throw new Error(`param error: db_cbs: delta_end (${deltaEnd}) must not exceed `
             + `delta_start (${deltaStart}) — the ladder tightens, never loosens`);
