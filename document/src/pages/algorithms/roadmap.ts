@@ -160,6 +160,20 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
                 "구성상 일관되고 양수 여유로 안전하다.",
         },
     },
+    {
+        slug: "db_cbs",
+        blurb: {
+            en: "The branch's second member plans the motion itself: CBS whose low level searches states " +
+                "(cell, velocity) on the discretized double integrator — acceleration bounded by 1 cell/step² per " +
+                "axis — and chains primitives under a discontinuity bound that tightens rung by rung. At δ < 1 " +
+                "momentum is law; at δ ≥ 1 physics becomes negotiable, conflicts are co-presence only (a swap is " +
+                "not a collision), and the width-1 corridor the search branch honestly fails becomes solvable.",
+            ko: "갈래의 두 번째 회원은 운동 자체를 계획한다: 저수준이 (cell, velocity) 상태를 이중 적분자 위에서 " +
+                "탐색하는 CBS — 축별 가속 1칸/스텝² — 그리고 불연속성 경계를 칸마다 좁히며 primitive를 체인한다. " +
+                "δ < 1에서 운동량은 법이고, δ ≥ 1에서 물리는 협상 가능해지며, 충돌은 공재뿐(맞교환은 충돌이 아니고), " +
+                "search 갈래가 정직하게 실패하던 폭 1 통로가 solvable이 된다.",
+        },
+    },
 ];
 
 // 대분류 — 홈의 큰 섹션이자 사이드바 disclosure 단위. 첫 둘은 survey(Bui 2023)가
@@ -167,7 +181,8 @@ export const ALGO_BLURBS: AlgoBlurb[] = [
 // sampling-based(연속 configuration space의 표본 채취). 세 번째 갈래 decentralized는
 // 분류 축이 한 칸 더 내려간다 — 오프라인 계획이라는 매개체 자체를 버리고 실행 시간의
 // 스텝별 협상만 남긴다. 네 번째 갈래 kinodynamic은 반대로 닫는다 — 계획을 되돌려 받고 그
-// 위에 속도 한계와 dwell semantics을 실는다(MAPF-POST). 각 섹션 안의 알고리즘 배치는 항상 계보순 — search는 결합 축을
+// 위에 속도 한계와 dwell semantics을 싣고(MAPF-POST), 이어 계획이 운동 자체를 탐색하도록
+// 좁혀진다(db-CBS: 상태가 (cell, velocity)로 바뀐다). 각 섹션 안의 알고리즘 배치는 항상 계보순 — search는 결합 축을
 // 따라 decoupled → coupled → hybrid(CBS) → 그 hybrid가 시간축 자체로 접힌 자리(RHCR) 순서로 읽는다.
 // 소스 코드 트리(python/mrmp/<section>/)와 configs(<section>/<slug>.yaml)도 이 구분을 따른다.
 export const SECTIONS: Array<{
@@ -223,15 +238,17 @@ export const SECTIONS: Array<{
         key: "kinodynamic",
         title: {en: "Kinodynamic Planning", ko: "Kinodynamic Planning"},
         desc: {
-            en: "The genealogy's terminus: the plan comes back carrying time. The search branch's " +
-                "collision-free discrete plan is post-processed, not replanned — waits become dwells, " +
+            en: "The genealogy's terminus: the plan comes back carrying time. MAPF-POST post-processes the " +
+                "search branch's collision-free discrete plan rather than replanning it — waits become dwells, " +
                 "steps become arrival times, and shared cells become precedence constraints between safety " +
-                "markers, solved as a Simple Temporal Network that is consistent by construction. MAPF-POST " +
-                "executes at each agent's own velocity limit.",
-            ko: "계보의 종착점: 계획이 시간을 싣고 돌아온다. search 갈래의 충돌 없는 이산 계획을 재계획하지 " +
-                "않고 후처리한다 — 대기는 dwell이 되고 스텝은 도착 시각이 되며, 공유 셀은 안전 마커 사이의 " +
-                "precedence 제약이 되어 구성상 일관된 Simple Temporal Network로 풀린다. MAPF-POST는 각 agent의 " +
-                "속도 한계로 실행된다.",
+                "markers, solved as a Simple Temporal Network that is consistent by construction. And the branch's " +
+                "second member narrows the fold until the plan searches the motion itself: db-CBS makes velocity " +
+                "part of the state and chains primitives under a discontinuity bound.",
+            ko: "계보의 종착점: 계획이 시간을 싣고 돌아온다. MAPF-POST는 search 갈래의 충돌 없는 이산 계획을 " +
+                "재계획하지 않고 후처리한다 — 대기는 dwell이 되고 스텝은 도착 시각이 되며, 공유 셀은 안전 마커 사이의 " +
+                "precedence 제약이 되어 구성상 일관된 Simple Temporal Network로 풀린다. 그리고 갈래의 두 번째 회원은 " +
+                "접힘을 더 좁혀 계획이 운동 자체를 탐색하게 된다: db-CBS는 속도를 상태로 만들고 불연속성 경계 아래에서 " +
+                "primitive를 체인한다.",
         },
     },
 ];

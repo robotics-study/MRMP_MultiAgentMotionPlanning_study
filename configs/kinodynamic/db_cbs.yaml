@@ -1,0 +1,45 @@
+# db-CBS (Moldagalieva, Ortiz-Haro, Toussaint & Hönig, arXiv:2309.16445): CBS의 저수준이
+# 운동량을 갖는다. 상태가 (cell, velocity)이고 가속은 축별 1칸/스텝²로 제한된다 — 불연속성
+# 경계 δ는 격자 위에서 두 개의 slack로 번역된다(착지 셀의 Manhattan 여유 floor(δ), 착지
+# 속도의 축별 여유 floor(δ)). δ < 1이면 양쪽이 사라져 정확한 이중 적분자가 되고, δ >= 1이면
+# 물리가 협상 가능해진다. 알고리즘은 느슨한 경계에서 정확한 경계로 사다리를 타고, 마지막에
+# 성공한 칸의 해가 답이다(anytime). delta는 칸의 값이고 파라미터는 그 양끝 — 사다리는
+# 좁아지기만 한다(delta_end > delta_start는 플래너가 거부한다). vmax는 정수여야 한다(속도
+# 격자가 정수만 양자화) 그래서 이 갈래의 timed 시나리오 중 maze01_two_timed(0.25)은 여기
+# 라우팅되지 않는다. max_ct_expansions는 상속된 CBS 예산 그대로다 — 칸마다 새로 시작하는
+# 트리의 예산이고, 소진은 판정이 아니라 "예산 내 해 없음"이다.
+algorithm: db_cbs
+section: kinodynamic
+# timed 시나리오만 — vmax 필드가 운동 모델의 입력이다. maze01_two_timed은 vmax 0.25(비정수)라
+# 이 알고리즘이 거부하므로 라우팅되지 않는다.
+scenarios: [open01_cross_timed, open01_swap_timed, pocket01_swap_timed, tee01_head_on_timed, corridor01_head_on_timed]
+params:
+  - name: delta_start
+    type: float
+    default: 1.5
+    min: 0.5
+    max: 1.5
+    description: >-
+      Loose end of the discontinuity-bound ladder (cells): a transition may land this
+      many cells away from the ideal landing and jump velocity by up to floor(delta) —
+      at delta >= 1 physics becomes negotiable. The ladder only tightens; each rung is
+      an independent fresh constraint-tree run, and the last rung that succeeds is the
+      answer (anytime). Values in [0.5, 1) share one lattice (floor = 0: exact double
+      integrator); values in [1, 1.5] share the next (slack of one cell per axis).
+  - name: delta_end
+    type: float
+    default: 0.5
+    min: 0.5
+    max: 1.5
+    description: >-
+      Tight end of the ladder — the honest model (below 1 both slacks vanish and
+      momentum is law). Must not exceed delta_start; equal values run a single rung.
+  - name: max_ct_expansions
+    type: int
+    default: 256
+    min: 1
+    description: >-
+      Budget on constraint-tree node expansions per rung (the root counts as the
+      first) — inherited verbatim from CBS: an unsolvable instance still branches
+      forever, and hitting this budget is "no solution found within budget", never a
+      verdict.

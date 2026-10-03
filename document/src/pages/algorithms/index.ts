@@ -231,7 +231,7 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
-    // --- kinodynamic 갈래의 유일한 회원 — 계보의 종착점. 계획을 되돌려 받고(아래에선 CBS가
+    // --- kinodynamic 갈래의 첫 회원 — 계보의 종착점. 계획을 되돌려 받고(아래에선 CBS가
     // 조용히 계속 돈다) 시간 실린 스케줄로 변환한다: TPG → STN, 대기 → dwell, 스텝 → 시각.
     {
         slug: "mapf_post",
@@ -241,6 +241,26 @@ const data: IAlgoData[] = [
         contents: lazy(() => import("./kinodynamic/mapf_post")),
         sections: [
             {en: "From Plans to Schedules", ko: "계획에서 스케줄로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
+    },
+    // kinodynamic 갈래의 두 번째 회원 — 접힘의 끝: 계획이 운동 자체를 탐색한다. CBS의
+    // 저수준이 (cell, velocity) 상태 위(이산 이중 적분자)로 내려가고 불연속성 경계가 칸마다
+    // 좁아진다(Moldagalieva, Ortiz-Haro, Toussaint & Hönig) — 속도가 상태로 들어오니 swap은
+    // 더 이상 충돌이 아니고, 폭 1 통로의 정직한 실패가 solvable이 된다.
+    {
+        slug: "db_cbs",
+        title: {en: "db-CBS", ko: "db-CBS"},
+        section: "kinodynamic",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./kinodynamic/db_cbs")),
+        sections: [
+            {en: "From Schedules to Motion as State", ko: "스케줄에서 운동의 상태로"},
             {en: "Properties and Complexity", ko: "성질과 복잡도"},
             {en: "The Algorithm", ko: "알고리즘"},
             {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},

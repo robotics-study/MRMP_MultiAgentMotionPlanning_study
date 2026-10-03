@@ -2,7 +2,7 @@ import {ReactNode, useEffect, useMemo, useState} from "react";
 import CanvasFigure, {modalCanvasSize} from "../CanvasFigure";
 import TracePlayer from "../player/TracePlayer";
 import {loadGridMap} from "../../libs/trace/load";
-import {buildTimeline} from "../../libs/trace/timeline";
+import {buildTimeline, MultiTimeline} from "../../libs/trace/timeline";
 import {Cell, TraceEvent} from "../../libs/trace/types";
 import {cellToWorld, freePoint, GridMap} from "../../libs/grid";
 import {useTr} from "../../libs/i18n";
@@ -31,12 +31,20 @@ export interface ScenarioPreset {
     // 창 달린 알고리즘(winPIBT, RHCR)의 window 파라미터 기본값 — 있으면 창 칩이 렌더되고
     // 클릭마다 1 → 2 → 3으로 순환한다. 없는 알고리즘은 run이 네 번째 인자를 무시한다.
     window?: number;
+    // db-CBS의 불연속성 경계 δ 기본값 — 있으면 δ 칩이 렌더되고 클릭마다 사다리를 순환한다.
+    // floor(δ)가 값의 전부다: 0.5와 1은 같은 격자(floor 0 — 정확한 이중 적분자)이고
+    // 1.5부터 착지 여유 한 칸이 열린다. 없는 알고리즘은 run이 다섯 번째 인자를 무시한다.
+    delta?: number;
 }
 
 // 창 사다리 — 칩 클릭마다 순환. winPIBT에서 이 값이 곧 갈래의 축이다: w=1은 PIBT로
 // 돌아가고, 커지면 prioritized planning에 가까워진다(pocket 시나리오가 칼날이 되는 지점).
 // RHCR에서는 창 자체가 알고리즘의 축이다 — 좁히면 근시안이 연구 대상이 된다.
 const WINDOW_LADDER = [1, 2, 3]
+
+// db-CBS의 δ 사다리 — 칩 클릭마다 순환. floor(δ)가 값의 전부라 0.5 → 1은 동작이 전혀
+// 같고(둘 다 floor 0), 1.5에서야 격자가 바뀐다 — 그 자체가 교훈이다.
+const DELTA_LADDER = [0.5, 1, 1.5]
 
 // timed preset의 속도 한계 사다리 — 칩 클릭마다 ×2로 순환(4를 넘으면 0.25로 돌아간다).
 // 전부 이진 유리수라 모든 시간이 정확히 표현 가능한 double에 착지한다는 관례와 같다.
@@ -46,23 +54,29 @@ const SUBSCRIPT = ["₀", "₁", "₂", "₃", "₄", "₅"]
 export interface SandboxProps {
     presets: ScenarioPreset[];
     // 라이브 엔진 — Python/C++ planner의 정확한 미러 (libs/algorithms). timed 알고리즘은
-    // 세 번째 인자(agent별 속도 한계)를, 창 달린 알고리즘은 네 번째 인자(창 크기)를 쓰고
-    // 나머지는 무시한다.
-    run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[], win: number) => TraceEvent[];
+    // 세 번째 인자(agent별 속도 한계)를, 창 달린 알고리즘은 네 번째 인자(창 크기)를,
+    // db-CBS는 다섯 번째 인자(불연속성 경계 δ)를 쓰고 나머지는 무시한다. 엔진이 던지면
+    // (db-CBS의 정수 vmax 거부처럼) 크래시가 아니라 error 카드로 보인다.
+    run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[], win: number,
+          delta: number) => TraceEvent[];
     // agent 수 상한. 라이브 실행은 동기 호출이라 coupled(joint-space) 탐색은
     // agent가 늘면 |V|^k로 폭발한다 — 그 페이지는 2로 막는다 (그 자체가 교훈).
     maxAgents?: number;
     label: string;
     // 창 칩이 있는 알고리즘만 쓰는 칩 설명(언어 쌍) — 창이 무엇을 노브인지 각 페이지가 쓴다.
     windowHint?: Localized<string>;
+    // δ 칩이 있는 알고리즘(db-CBS)만 쓰는 칩 설명 — 불연속성 경계가 무엇을 노브인지.
+    deltaHint?: Localized<string>;
 }
 
-export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340, windowHint}: {
+export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340, windowHint, deltaHint}: {
     presets: ScenarioPreset[];
-    run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[], win: number) => TraceEvent[];
+    run: (map: GridMap, tasks: Array<[Cell, Cell]>, vmax: number[], win: number,
+          delta: number) => TraceEvent[];
     maxAgents?: number;
     panel?: number;
     windowHint?: Localized<string>;
+    deltaHint?: Localized<string>;
 }) => {
     const t = useTr()
     const [presetName, setPresetName] = useState(presets[0].name)
@@ -80,14 +94,17 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340, windowHi
     const [vmax, setVmax] = useState<number[]>(() => preset.vmax ?? preset.agents.map(() => 1))
     // 창 달린 알고리즘의 window — 나머지 알고리즘은 run이 네 번째 인자를 읽지 않는다.
     const [win, setWin] = useState<number>(() => preset.window ?? 1)
+    // db-CBS의 δ — 나머지 알고리즘은 run이 다섯 번째 인자를 읽지 않는다.
+    const [delta, setDelta] = useState<number>(() => preset.delta ?? 0.5)
 
-    // preset 전환: 그 맵 JSON을 다시 읽고 endpoint·속도 한계·창을 preset 기본값으로 되돌린다.
+    // preset 전환: 그 맵 JSON을 다시 읽고 endpoint·속도 한계·창·δ를 preset 기본값으로 되돌린다.
     useEffect(() => {
         let cancelled = false
         const p = presets.find((q) => q.name === presetName) ?? presets[0]
         setAgents(copy(p.agents))
         setVmax(p.vmax ?? p.agents.map(() => 1))
         if (p.window !== undefined) setWin(p.window)
+        if (p.delta !== undefined) setDelta(p.delta)
         loadGridMap(`data/maps/${p.map}.json`).then((m) => {
             if (!cancelled) setMap(m)
         }).catch((e: unknown) => {
@@ -99,12 +116,18 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340, windowHi
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [presetName, nonce])
 
-    // 라이브: map/agents/창이 바뀔 때마다 엔진을 다시 돌리고 재생이 0부터 돈다.
-    const timeline = useMemo(
-        () => (map ? buildTimeline(run(map, agents, vmax, win)) : null),
+    // 라이브: map/agents/창/δ가 바뀔 때마다 엔진을 다시 돌리고 재생이 0부터 돈다. 엔진이
+    // 던지는 거부(db-CBS의 비정수 vmax 같은)는 크래시가 아니라 error 카드다 — 거부된
+    // 실행도 정직한 결과다.
+    const outcome = useMemo<{ timeline: MultiTimeline } | { message: string } | null>(() => {
+        if (!map) return null
+        try {
+            return {timeline: buildTimeline(run(map, agents, vmax, win, delta))}
+        } catch (e) {
+            return {message: e instanceof Error ? e.message : String(e)}
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [map, run, agents, vmax, win],
-    )
+    }, [map, run, agents, vmax, win, delta])
 
     const paintCell = (row: number, col: number, occupied: boolean) => {
         setMap((prev) => {
@@ -166,6 +189,11 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340, windowHi
     const cycleWin = () => setWin((prev) => {
         const i = WINDOW_LADDER.indexOf(prev)
         return i < 0 ? 1 : WINDOW_LADDER[(i + 1) % WINDOW_LADDER.length]
+    })
+    // δ 칩 클릭 — 사다리 [0.5, 1, 1.5]를 한 칸 순환 (floor가 값의 전부: 0.5와 1은 같은 격자).
+    const cycleDelta = () => setDelta((prev) => {
+        const i = DELTA_LADDER.indexOf(prev)
+        return i < 0 ? 0.5 : DELTA_LADDER[(i + 1) % DELTA_LADDER.length]
     })
 
     const controls: ReactNode = (
@@ -231,10 +259,23 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340, windowHi
             {preset.window !== undefined && windowHint && (
                 <div className="text-xs text-muted text-center">{t(windowHint.en, windowHint.ko)}</div>
             )}
+            {preset.delta !== undefined && (
+                <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                    <button type="button" onClick={cycleDelta}
+                            aria-label={t("cycle the discontinuity bound (0.5 → 1 → 1.5)",
+                                          "불연속성 경계를 순환 변경 (0.5 → 1 → 1.5)")}
+                            className="px-1.5 py-0.5 rounded border border-border font-mono tabular-nums hover:bg-surface">
+                        {`δ=${delta}`}
+                    </button>
+                </div>
+            )}
+            {preset.delta !== undefined && deltaHint && (
+                <div className="text-xs text-muted text-center">{t(deltaHint.en, deltaHint.ko)}</div>
+            )}
         </div>
     )
 
-    if (error || !map || !timeline) {
+    if (error || !map || !outcome) {
         return <div className="flex flex-col items-center gap-2">
             <div className="grid place-items-center text-sm text-muted border border-border rounded-lg"
                  style={{width: panel, height: panel}}>
@@ -243,6 +284,17 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340, windowHi
             {controls}
         </div>
     }
+    if ("message" in outcome) {
+        // 엔진이 실행을 거부했다 (db-CBS의 정수 vmax 거부처럼) — 크래시가 아니라 결과다.
+        return <div className="flex flex-col items-center gap-2">
+            <div className="grid place-items-center text-sm text-muted border border-border rounded-lg"
+                 style={{width: panel, height: panel}}>
+                {`${t("the planner refused", "planner가 거부했습니다")}: ${outcome.message}`}
+            </div>
+            {controls}
+        </div>
+    }
+    const timeline = outcome.timeline
     return <TracePlayer map={map} timeline={timeline} panel={panel}
                         agents={agents.map(([start, goal]) => ({start, goal}))}
                         onPaintCell={paintCell} onMoveAgent={moveAgent}
@@ -250,7 +302,7 @@ export const SandboxScene = ({presets, run, maxAgents = 6, panel = 340, windowHi
                         footer={controls}/>
 }
 
-const Sandbox = ({presets, run, maxAgents, label, windowHint}: SandboxProps) => {
+const Sandbox = ({presets, run, maxAgents, label, windowHint, deltaHint}: SandboxProps) => {
     const size = modalCanvasSize(1)
     return <CanvasFigure
         label={label}
@@ -258,9 +310,10 @@ const Sandbox = ({presets, run, maxAgents, label, windowHint}: SandboxProps) => 
         bodyClassName="w-fit"
         className="w-full"
         modal={<SandboxScene presets={presets} run={run} maxAgents={maxAgents} windowHint={windowHint}
-                             panel={Math.min(size.width, 640)}/>}
+                             deltaHint={deltaHint} panel={Math.min(size.width, 640)}/>}
     >
-        <SandboxScene presets={presets} run={run} maxAgents={maxAgents} windowHint={windowHint}/>
+        <SandboxScene presets={presets} run={run} maxAgents={maxAgents} windowHint={windowHint}
+                      deltaHint={deltaHint}/>
     </CanvasFigure>
 }
 

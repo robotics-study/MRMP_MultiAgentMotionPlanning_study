@@ -22,7 +22,7 @@ import pytest
 from conftest import REPO_ROOT, config, grid_from, write_config
 
 from mrmp.core.capabilities import Capability
-from mrmp.core.params import ParamSet, ParamError
+from mrmp.core.params import ParamError, ParamSet
 from mrmp.core.trace import TraceRecorder
 from mrmp.core.types import AgentTask, Cell
 from mrmp.maps.loader import load_map, load_scenario
