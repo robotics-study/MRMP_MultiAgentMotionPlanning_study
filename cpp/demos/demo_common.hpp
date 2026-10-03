@@ -20,8 +20,11 @@
 // summary. No planning logic lives here. Discrete demos use run() (world coords ->
 // cells, cell-interpreted traces); continuous demos use run_continuous() (raw
 // world Points + disc radius, world-point traces declared via the planning_started
-// `coords` field); kinodynamic demos use run_timed() (cells plus each agent's
-// velocity limit vmax — the planning_started `vmax` field).
+// `coords` field); kinodynamic demos use run_timed() (cells plus each agent's velocity
+// limit vmax — the planning_started `vmax` field) for schedule results, and
+// run_velocity() for planners that still SEARCH space-time cells but read the same
+// vmax as a motion constraint (db-CBS: the trace stays cell-and-step like the search
+// branch, only the vmax declaration rides along).
 namespace demo {
 
 struct Args {
@@ -151,6 +154,39 @@ inline int run_continuous(const Args& a, const mrmp::core::ParamSet& params, Pla
 // mistake, so it throws instead of silently mis-planning.
 template <class Planner>
 inline int run_timed(const Args& a, const mrmp::core::ParamSet& params, Planner& planner) {
+  auto map = mrmp::maps::load_map(a.map);
+  auto& grid = as_grid(*map);
+  mrmp::maps::Scenario sc = mrmp::maps::load_scenario(a.scenario);
+
+  std::vector<mrmp::core::AgentTask> tasks;
+  std::vector<double> vmaxs;
+  for (const auto& spec : sc.agents) {
+    tasks.push_back(mrmp::core::AgentTask{grid.world_to_cell(spec.start.x, spec.start.y),
+                                          grid.world_to_cell(spec.goal.x, spec.goal.y),
+                                          spec.vmax});
+    vmaxs.push_back(spec.vmax);
+  }
+  if (!planner.required_capabilities().count(mrmp::core::Capability::DISCRETE_SPACE)) {
+    throw std::runtime_error("demo: planner does not require DISCRETE_SPACE");
+  }
+
+  std::ofstream fs(a.trace);
+  if (!fs) throw std::runtime_error("demo: cannot open trace file " + a.trace);
+  mrmp::core::TraceRecorder rec(fs);
+  rec.planning_started(planner.name(), a.map, params.values(), {}, {}, vmaxs);
+  auto res = planner.plan(grid, tasks, &rec);
+  report(planner.name(), res);
+  return 0;
+}
+
+// One velocity (kinodynamic) demo run: the task carries vmax exactly like run_timed
+// (the velocity limit IS the algorithm's motion model), but the RESULT stays a
+// space-time path — paths[k][t] is agent k's cell at step t — so the trace keeps the
+// discrete shape and the report derives makespan from the paths like every other
+// discrete demo. A planner that does not require DISCRETE_SPACE is a wiring mistake,
+// so it throws instead of silently mis-planning.
+template <class Planner>
+inline int run_velocity(const Args& a, const mrmp::core::ParamSet& params, Planner& planner) {
   auto map = mrmp::maps::load_map(a.map);
   auto& grid = as_grid(*map);
   mrmp::maps::Scenario sc = mrmp::maps::load_scenario(a.scenario);
