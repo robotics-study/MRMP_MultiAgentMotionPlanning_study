@@ -251,6 +251,41 @@ def test_pocket_and_tee_the_window_is_the_edge_of_solvable(tmp_path: Path) -> No
         assert stalled.stats.expanded_nodes == 1895
 
 
+def test_a_parked_goal_crossed_later_is_still_conflicted(tmp_path: Path) -> None:
+    # A parked agent occupies its goal cell FOREVER, so a collision there can land
+    # beyond the earliest path end. The scan horizon is min(t_now + w, MAX over paths of
+    # len - 1): cut it at the MIN instead and agent 0's one-step parked path pins the
+    # horizon at t_now forever — every scan comes up empty and the crossing is COMMITTED
+    # verbatim: a "successful" run whose executed trajectory collides at step 2 (this
+    # exact bug shipped once in the C++ mirror; this test is its vaccine). At w = 2 the
+    # deferred conflict stays inside the two-step window, so the tree keeps paying for
+    # waits until agent 0 hops out of its own goal cell and back — cost is flowtime
+    # (first arrivals 0 + 4), and the hop's two moves are what _per_agent pins. At
+    # w = 1 every wait defers the collision one step OUTSIDE the window, the hop never
+    # wins, and the budget expires honestly.
+    grid = grid_from([".....", "...##"])
+    tasks = [AgentTask((0, 2), (0, 2)), AgentTask((0, 4), (0, 0))]
+    starts = [t.start for t in tasks]
+    goals = [t.goal for t in tasks]
+
+    wide = Rhcr(_params(tmp_path, window=2, replan_period=1, max_steps=64)).plan(grid, tasks)
+    assert wide.success
+    assert_simultaneous(wide.paths, starts, goals)  # fails loudly on a committed collision
+    assert wide.paths == [
+        [(0, 2), (0, 2), (1, 2), (0, 2), (0, 2)],
+        [(0, 4), (0, 3), (0, 2), (0, 1), (0, 0)],
+    ]
+    assert _per_agent(wide.paths) == [2, 4]
+    assert wide.cost == pytest.approx(4.0)
+    assert max(len(p) for p in wide.paths) - 1 == 4
+    assert wide.stats.expanded_nodes == 61
+
+    narrow = Rhcr(_params(tmp_path, window=1, replan_period=1, max_steps=64)).plan(grid, tasks)
+    assert not narrow.success
+    assert narrow.paths == []
+    assert narrow.stats.expanded_nodes == 951
+
+
 def test_maze01_two_the_corridor_meeting_needs_no_foresight(tmp_path: Path) -> None:
     # The two-room maze pins 66/33 at every window (the meeting point sits where a wait
     # alone resolves the head-on — foresight buys nothing here either), and the rolling

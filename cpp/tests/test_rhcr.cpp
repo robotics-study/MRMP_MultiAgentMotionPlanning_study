@@ -305,6 +305,41 @@ TEST(Rhcr, PocketAndTeeTheWindowIsTheEdgeOfSolvable) {
   }
 }
 
+TEST(Rhcr, AParkedGoalCrossedLaterIsStillConflicted) {
+  // A parked agent occupies its goal cell FOREVER, so a collision there can land beyond
+  // the earliest path end. The scan horizon is min(t_now + w, MAX over paths of size - 1):
+  // cut it at the MIN instead and agent 0's one-step parked path pins the horizon at
+  // t_now forever — every scan comes up empty and the crossing is COMMITTED verbatim: a
+  // "successful" run whose executed trajectory collides at step 2 (this exact bug shipped
+  // once in this mirror; this test is its vaccine). At w = 2 the deferred conflict stays
+  // inside the two-step window, so the tree keeps paying for waits until agent 0 hops out
+  // of its own goal cell and back. At w = 1 every wait defers the collision one step
+  // OUTSIDE the window, the hop never wins, and the budget expires honestly.
+  auto grid = test::make_grid({".....", "...##"});
+  std::vector<core::AgentTask> tasks{{core::Cell{0, 2}, core::Cell{0, 2}},
+                                     {core::Cell{0, 4}, core::Cell{0, 0}}};
+
+  core::MultiPlanResult wide = search::Rhcr(window_config(2, 1, 64)).plan(grid, tasks, nullptr);
+  ASSERT_TRUE(wide.success);
+  assert_simultaneous(wide.paths, tasks);  // fails loudly on a committed collision
+  const std::vector<core::Cell> parked{core::Cell{0, 2}, core::Cell{0, 2}, core::Cell{1, 2},
+                                       core::Cell{0, 2}, core::Cell{0, 2}};
+  const std::vector<core::Cell> crosser{core::Cell{0, 4}, core::Cell{0, 3}, core::Cell{0, 2},
+                                        core::Cell{0, 1}, core::Cell{0, 0}};
+  ASSERT_EQ(wide.paths.size(), 2u);
+  EXPECT_TRUE(wide.paths[0] == parked);
+  EXPECT_TRUE(wide.paths[1] == crosser);
+  EXPECT_EQ(per_agent_costs(wide.paths), std::vector<int>({2, 4}));
+  EXPECT_DOUBLE_EQ(wide.cost, 4.0);
+  EXPECT_EQ(makespan_of(wide.paths), 4);
+  EXPECT_EQ(wide.stats.expanded_nodes, 61);
+
+  core::MultiPlanResult narrow = search::Rhcr(window_config(1, 1, 64)).plan(grid, tasks, nullptr);
+  EXPECT_FALSE(narrow.success);
+  EXPECT_TRUE(narrow.paths.empty());
+  EXPECT_EQ(narrow.stats.expanded_nodes, 951);
+}
+
 TEST(Rhcr, Maze01TwoTheCorridorMeetingNeedsNoForesight) {
   // The two-room maze pins 66/33 at every window (the meeting point sits where a wait
   // alone resolves the head-on — foresight buys nothing here either), and the rolling

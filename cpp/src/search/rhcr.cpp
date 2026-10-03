@@ -335,9 +335,14 @@ std::optional<std::tuple<ConflictKind, Cell, int, std::pair<int, int>, std::opti
 Rhcr::first_conflict(const std::vector<std::vector<Cell>>& paths, int t_now, int window) {
   // Earliest conflict whose ARRIVAL step falls inside the window, (t_now, t_now +
   // window]; ties by (cell row, col), then pair i < j. Beyond the window nothing is a
-  // conflict: that is what the window IS.
-  int horizon = t_now + window;
-  for (const auto& p : paths) horizon = std::min(horizon, static_cast<int>(p.size()) - 1);
+  // conflict: that is what the window IS. The scan never runs past the LAST arrival —
+  // an early-parked agent still occupies its goal cell, and another agent passing
+  // through that cell later is a real conflict (occupied() clamps to path.back()).
+  int last_arrival = static_cast<int>(paths[0].size()) - 1;
+  for (const auto& p : paths) {
+    last_arrival = std::max(last_arrival, static_cast<int>(p.size()) - 1);
+  }
+  const int horizon = std::min(t_now + window, last_arrival);
   for (int t = t_now + 1; t <= horizon; ++t) {
     std::set<std::tuple<Cell, int, int>> candidates;
     std::map<std::tuple<Cell, int, int>, std::pair<ConflictKind, std::optional<Cell>>> kinds;
