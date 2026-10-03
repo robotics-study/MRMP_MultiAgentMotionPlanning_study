@@ -64,6 +64,7 @@ from __future__ import annotations
 
 import heapq
 import itertools
+from collections import deque
 from dataclasses import dataclass
 
 from ..core.capabilities import Capability, DiscreteSpace
@@ -101,11 +102,9 @@ def _occupied(path: list[Cell], t: int) -> Cell:
 def _reachable(space: DiscreteSpace, start: Cell) -> set[Cell]:
     """Static flood fill over passable cells — no constraints involved."""
     seen: set[Cell] = {start}
-    queue: list[Cell] = [start]
-    head = 0
-    while head < len(queue):
-        cell = queue[head]
-        head += 1
+    queue: deque[Cell] = deque([start])
+    while queue:
+        cell = queue.popleft()
         for succ, _cost in space.neighbors(cell):
             if succ not in seen:
                 seen.add(succ)
