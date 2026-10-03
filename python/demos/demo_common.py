@@ -6,7 +6,10 @@ known only here). Everything else is emitted by the planner. Discrete demos use
 run() (world coords -> Cells, cell-interpreted traces); continuous demos use
 run_continuous() (raw world Points + disc radius, world-point traces declared via
 the planning_started `coords` field); kinodynamic demos use run_timed() (Cells plus
-each agent's velocity limit vmax — the planning_started `vmax` field).
+each agent's velocity limit vmax — the planning_started `vmax` field) for schedule
+results, and run_velocity() for planners that still SEARCH space-time cells but read
+the same vmax as a motion constraint (db-CBS: the trace stays cell-and-step like the
+search branch, only the vmax declaration rides along).
 """
 
 from __future__ import annotations
@@ -122,13 +125,41 @@ def run_timed(name: str, factory: TimedFactory) -> None:
     _report(planner.name, result)
 
 
+def run_velocity(name: str, factory: PlannerFactory) -> None:
+    """db-CBS's driver: the task carries vmax exactly like run_timed (the velocity
+    limit IS the algorithm's motion model), but the RESULT stays a space-time path —
+    paths[k][t] is agent k's cell at step t — so the trace keeps the discrete shape
+    and makespan derives from the paths like every other discrete demo."""
+    args = _parse_args(name)
+    params = ParamSet.from_yaml(args.params)
+    grid = load_map(args.map)
+    assert isinstance(grid, OccupancyGrid2D)
+    scenario = load_scenario(args.scenario)
+    tasks: list[AgentTask] = [
+        AgentTask(
+            start=grid.world_to_cell(*spec.start),
+            goal=grid.world_to_cell(*spec.goal),
+            vmax=spec.vmax,
+        )
+        for spec in scenario.agents
+    ]
+    planner = factory(params)
+    assert Capability.DISCRETE_SPACE in planner.required_capabilities()
+    with open_trace(args.trace) as recorder:
+        recorder.planning_started(
+            planner.name, args.map, params.values(), vmax=[task.vmax for task in tasks]
+        )
+        result = planner.plan(grid, tasks, recorder)
+    _report(planner.name, result)
+
+
 def _report(
     name: str, result: MultiPlanResult | ContinuousPlanResult | TimedPlanResult
 ) -> None:
     # One-line JSON metrics on stdout (bench + web export read it). Discrete
-    # results derive makespan = arrival step of the last agent; continuous and
-    # timed results carry cost AND makespan explicitly (dRRT counts steps, dRRT*
-    # reports arc lengths, kinodynamic schedules report time — see
+    # results derive makespan = arrival step of the last agent; continuous and timed
+    # results carry cost AND makespan explicitly (dRRT counts steps, dRRT* reports
+    # arc lengths, kinodynamic schedules report time — see ContinuousPlanResult /
     # TimedPlanResult). Parsed values are what must match.
     summary = {
         "algorithm": name,
