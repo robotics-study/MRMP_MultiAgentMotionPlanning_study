@@ -408,7 +408,13 @@ while some agent is not on its goal and the budget holds:
             <Sandbox label={t(
                 "Live winpibt sandbox — the browser engine is a field-identical mirror of the Python/C++ planner. Draw walls, drag endpoints, add agents; the chip cycles the window w = 1 → 2 → 3 and every edit re-plans and replays",
                 "라이브 winpibt sandbox. 브라우저 엔진은 Python/C++ planner와 필드 단위로 동일한 미러입니다. 벽을 그리고, endpoint를 끌어 옮기고, agent를 더하면 모든 편집이 즉시 재계획과 재생으로 이어지고, 칩은 창 w = 1 → 2 → 3을 순환합니다",
-            )} presets={PRESETS} run={runLive}/>
+            )} windowHint={{
+                en: "window chip: the planning window w — at w=1 the negotiation is per-cell again (plain PIBT); " +
+                    "every click widens what each agent reserves ahead, and on pocket01_swap that alone flips " +
+                    "the swap between success and honest deadlock",
+                ko: "창 칩: 계획 창 w — w=1에서는 협상이 다시 칸 단위가 된다(그냥 PIBT). 클릭마다 각 agent가 미리 " +
+                    "예약하는 범위가 넓어지고, pocket01_swap에서는 그것만으로 교환이 성공과 정직한 교착 사이를 뒤집는다",
+            }} presets={PRESETS} run={runLive}/>
 
             <h2>Implementation</h2>
             <T

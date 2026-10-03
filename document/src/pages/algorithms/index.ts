@@ -99,6 +99,24 @@ const data: IAlgoData[] = [
             {en: "References", ko: "References"},
         ],
     },
+    // hybrid 극단이 시간축 자체로 접힌 자리 — 창 달린 CBS를 매 갱신 주기 실제 위치에서 다시
+    // 굴린다(Li et al., AAAI-21). w = ∞가 바로 위의 CBS이고, 창을 좁히면 근시안이 연구 대상이 된다.
+    {
+        slug: "rhcr",
+        title: {en: "Rolling-Horizon Collision Resolution", ko: "Rolling-Horizon Collision Resolution"},
+        section: "search",
+        supportedExample: {python: true, "c++": true},
+        contents: lazy(() => import("./search/rhcr")),
+        sections: [
+            {en: "From Constraint Trees to the Rolling Horizon", ko: "constraint tree에서 롤링 호라이즌으로"},
+            {en: "Properties and Complexity", ko: "성질과 복잡도"},
+            {en: "The Algorithm", ko: "알고리즘"},
+            {en: "What It Guarantees, What It Cannot", ko: "보장하는 것, 못 하는 것"},
+            {en: "Demo", ko: "Demo"},
+            {en: "Implementation", ko: "Implementation"},
+            {en: "References", ko: "References"},
+        ],
+    },
     // --- sampling 갈래 — 집필 순서도 결합 축을 따른다: coupled → subdimensional →
     // implicit roadmap. 첫 회원 MA-RRT*는 논문 자체의 이산화(G-RRT*)로 DiscreteSpace
     // 위에서 구현됐다 — search 갈래와 같은 맵, 같은 비용 척도로 비교 가능하다.

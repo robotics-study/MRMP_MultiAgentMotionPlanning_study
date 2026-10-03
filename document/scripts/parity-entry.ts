@@ -8,6 +8,7 @@ export {runPibt} from "../src/libs/algorithms/pibt";
 export {runWinpibt} from "../src/libs/algorithms/winpibt";
 export {runJointAStar} from "../src/libs/algorithms/joint_astar";
 export {runCbs} from "../src/libs/algorithms/cbs";
+export {runRhcr} from "../src/libs/algorithms/rhcr";
 export {runMapfPost} from "../src/libs/algorithms/mapf_post";
 export {runMaRrtStar} from "../src/libs/algorithms/ma_rrt_star";
 export {runSrrt} from "../src/libs/algorithms/srrt";
